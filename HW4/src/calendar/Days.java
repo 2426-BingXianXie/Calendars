@@ -12,7 +12,6 @@ public enum Days {
   private final char symbol;
 
   Days(char symbol) {
-
     this.symbol = symbol;
   }
 

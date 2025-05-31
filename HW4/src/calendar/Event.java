@@ -2,6 +2,7 @@ package calendar;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -12,17 +13,17 @@ public class Event {
   private final UUID id;
   private String subject;
   private LocalDateTime startDate;
-  private LocalDateTime finishDate;
+  private LocalDateTime endDate;
   private String description;
   private String location;
   private EventStatus status;
   private UUID seriesId;
 
-  public Event(String subject, LocalDateTime start, LocalDateTime end) {
+  public Event(String subject, LocalDateTime startDate, LocalDateTime endDate) {
     this.id = UUID.randomUUID();
     this.subject = subject;
-    this.start = start;
-    this.end = end;
+    this.startDate = startDate;
+    this.endDate = endDate;
     this.status = EventStatus.PUBLIC;
     this.seriesId = null;
   }
@@ -56,7 +57,7 @@ public class Event {
    * @return the start time as a LocalDateTime
    */
   public LocalDateTime getStart() {
-    return start;
+    return startDate;
   }
 
   /**
@@ -64,7 +65,7 @@ public class Event {
    * @param start the new start time for the event
    */
   public void setStart(LocalDateTime start) {
-    this.start = start;
+    this.startDate = start;
   }
 
   /**
@@ -72,7 +73,7 @@ public class Event {
    * @return the end time as a LocalDateTime
    */
   public LocalDateTime getEnd() {
-    return end;
+    return endDate;
   }
 
   /**
@@ -80,7 +81,7 @@ public class Event {
    * @param end the new end time for the event
    */
   public void setEnd(LocalDateTime end) {
-    this.end = end;
+    this.endDate = end;
   }
 
   /**
@@ -157,8 +158,8 @@ public class Event {
     if (o == null || getClass() != o.getClass()) return false;
     Event event = (Event) o;
     return subject.equals(event.subject) &&
-            start.equals(event.start) &&
-            end.equals(event.end);
+            startDate.equals(event.startDate) &&
+            endDate.equals(event.endDate);
   }
 
   /**
@@ -168,6 +169,6 @@ public class Event {
    */
   @Override
   public int hashCode() {
-    return Objects.hash(subject, start, end);
+    return Objects.hash(subject, startDate, endDate);
   }
 }
