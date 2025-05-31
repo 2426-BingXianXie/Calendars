@@ -2,6 +2,7 @@ package calendar;
 
 import java.time.*;
 
+// optional?
 public interface Calendar {
   void createEvent(String subject, LocalDateTime fromDate, LocalDateTime toDate);
 
