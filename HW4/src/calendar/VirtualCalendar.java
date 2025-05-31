@@ -33,19 +33,6 @@ public class VirtualCalendar implements ICalendar {
     this.eventSeriesByID = new HashMap<UUID, EventSeries>();
   }
 
-  /**
-   * Creates a single, non-recurring event.
-   *
-   * @param subject     the subject of the event
-   * @param startDate   the starting date and time of the event
-   * @param endDate     the ending date and time of the event. If empty, make event an all-day event
-   * @param description the description of the event. Can be left blank
-   * @param location    the location of the event, either in-person or online. Can be left blank
-   * @param eventStatus the status of the event, either public or private. Can be left blank
-   * @return the created Event object.
-   * @throws IllegalArgumentException if the given start date is chronologically after the end
-   *                                  date, or if the event already exists.
-   */
   public Event createEvent(String subject, LocalDateTime startDate, LocalDateTime endDate,
                            String description, Location location, EventStatus eventStatus)
           throws IllegalArgumentException {
