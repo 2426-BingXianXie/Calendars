@@ -4,7 +4,7 @@ public enum Days {
   MONDAY('M'),
   TUESDAY('T'),
   WEDNESDAY('W'),
-  THURSDAY('U'),
+  THURSDAY('R'),
   FRIDAY('F'),
   SATURDAY('S'),
   SUNDAY('U');
