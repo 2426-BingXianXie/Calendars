@@ -1,5 +1,5 @@
 package calendar;
 
 public enum Location {
-  PHYSICAL, ONLINE
+  PHYSICAL, ONLINE, CUSTOM;
 }

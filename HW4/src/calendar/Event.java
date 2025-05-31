@@ -174,4 +174,33 @@ public class Event {
   public int hashCode() {
     return Objects.hash(subject, startDate, endDate);
   }
+
+  /**
+   * Returns a string representation of the event's location.
+   * If the location is CUSTOM, it returns the custom location detail.
+   * Otherwise, it returns the name of the location along with any additional details.
+   * @return a formatted string representing the event's location
+   */
+  public String getLocationDisplay() {
+    if (location == null) {
+      return "";
+    }
+    return location == Location.CUSTOM
+            ? locationDetail
+            : location.name() + (locationDetail != null ? ": " + locationDetail : "");
+  }
+
+  /**
+   * Returns a string representation of the event.
+   * The format includes the subject, start and end times, and location if available.
+   * @return a formatted string representing the event
+   */
+  @Override
+  public String toString() {
+    return String.format("%s (%s to %s)%s",
+            subject,
+            start,
+            end,
+            location != null ? " @ " + getLocationDisplay() : "");
+  }
 }
