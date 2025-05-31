@@ -77,21 +77,13 @@ public class VirtualCalendar {
 
   }
 
-  // could implement Property enum
-  public void editEvent(Event event, String property, String newProperty, LocalDateTime fromDate, LocalDateTime toDate) {
+
+  public Event editEvent(Event event, String property, String newProperty, LocalDateTime fromDate, LocalDateTime toDate) {
 
   }
 
   public void editSeries(Event event, String property, String newProperty, LocalDateTime fromDate) {
 
-  }
-
-  public String printEvents(LocalDateTime fromDate, LocalDateTime toDate) {
-    return "";
-  }
-
-  public String printStatus(LocalDateTime date) {
-    return "";
   }
 
 
