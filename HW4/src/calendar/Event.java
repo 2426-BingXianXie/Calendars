@@ -4,13 +4,170 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public class Event { // need to override equals
-  String subject;
-  LocalDateTime startDate;
-  LocalDateTime finishDate;
-  String description;
-  EventStatus status;
-  Location location;
-  UUID id;
-  UUID seriesId; // null if not part of a series
+/**
+ * Represents an event in a calendar.
+ * Each event has a unique ID, subject, start and end times, description, location, status, and optional series ID.
+ */
+public class Event {
+  private final UUID id;
+  private String subject;
+  private LocalDateTime startDate;
+  private LocalDateTime finishDate;
+  private String description;
+  private String location;
+  private EventStatus status;
+  private UUID seriesId;
+
+  public Event(String subject, LocalDateTime start, LocalDateTime end) {
+    this.id = UUID.randomUUID();
+    this.subject = subject;
+    this.start = start;
+    this.end = end;
+    this.status = EventStatus.PUBLIC;
+    this.seriesId = null;
+  }
+
+  /**
+   * Returns the unique identifier for this event.
+   * @return the UUID of the event
+   */
+  public UUID getId() {
+    return id;
+  }
+
+  /**
+   * Returns the subject of this event.
+   * @return the subject of the event
+   */
+  public String getSubject() {
+    return subject;
+  }
+
+  /**
+   * Sets the subject of this event.
+   * @param subject the new subject for the event
+   */
+  public void setSubject(String subject) {
+    this.subject = subject;
+  }
+
+  /**
+   * Returns the start time of this event.
+   * @return the start time as a LocalDateTime
+   */
+  public LocalDateTime getStart() {
+    return start;
+  }
+
+  /**
+   * Sets the start time of this event.
+   * @param start the new start time for the event
+   */
+  public void setStart(LocalDateTime start) {
+    this.start = start;
+  }
+
+  /**
+   * Returns the end time of this event.
+   * @return the end time as a LocalDateTime
+   */
+  public LocalDateTime getEnd() {
+    return end;
+  }
+
+  /**
+   * Sets the end time of this event.
+   * @param end the new end time for the event
+   */
+  public void setEnd(LocalDateTime end) {
+    this.end = end;
+  }
+
+  /**
+   * Returns the description of this event.
+   * @return the description as a String
+   */
+  public String getDescription() {
+    return description;
+  }
+
+  /**
+   * Sets the description of this event.
+   * @param description the new description for the event
+   */
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  /**
+   * Returns the location of this event.
+   * @return the location as a String
+   */
+  public String getLocation() {
+    return location;
+  }
+
+  /**
+   * Sets the location of this event.
+   * @param location the new location for the event
+   */
+  public void setLocation(String location) {
+    this.location = location;
+  }
+
+  /**
+   * Returns the status of this event.
+   * @return the status as an EventStatus enum
+   */
+  public EventStatus getStatus() {
+    return status;
+  }
+
+  /**
+   * Sets the status of this event.
+   * @param status the new status for the event
+   */
+  public void setStatus(EventStatus status) {
+    this.status = status;
+  }
+
+  /**
+   * Returns the series ID associated with this event, if any.
+   * @return the UUID of the series, or null if not part of a series
+   */
+  public UUID getSeriesId() {
+    return seriesId;
+  }
+
+  /**
+   * Sets the series ID for this event.
+   * @param seriesId the UUID of the series to associate with this event
+   */
+  public void setSeriesId(UUID seriesId) {
+    this.seriesId = seriesId;
+  }
+
+  /**
+   * @param o the object to compare with this event
+   * @return true if the object is an Event with the same subject, start, and end times; false otherwise
+   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Event event = (Event) o;
+    return subject.equals(event.subject) &&
+            start.equals(event.start) &&
+            end.equals(event.end);
+  }
+
+  /**
+   * Returns a hash code for this event.
+   * The hash code is based on the subject, start, and end times.
+   * @return the hash code as an int
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(subject, start, end);
+  }
 }
