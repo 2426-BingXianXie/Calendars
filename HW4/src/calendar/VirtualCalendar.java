@@ -60,7 +60,8 @@ public class VirtualCalendar {
     Event event = new Event(subject, startDate, endDate, description, location, eventStatus, null);
     if (uniqueEvents.add(event)) { // check for duplicate event
       // add event to each day from start to end date
-      for (LocalDate date = startDate.toLocalDate(); !date.isAfter(endDate.toLocalDate()); date = date.plusDays(1)) {
+      for (LocalDate date = startDate.toLocalDate(); !date.isAfter(endDate.toLocalDate());
+           date = date.plusDays(1)) {
         calendarEvents.computeIfAbsent(date, k -> new ArrayList<Event>()).add(event);
       }
       eventsByID.put(event.getId(), event);

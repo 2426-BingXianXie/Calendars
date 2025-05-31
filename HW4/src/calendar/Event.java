@@ -107,7 +107,7 @@ public class Event {
    * Returns the location of this event.
    * @return the location as a String
    */
-  public String getLocation() {
+  public Location getLocation() {
     return location;
   }
 
@@ -115,7 +115,7 @@ public class Event {
    * Sets the location of this event.
    * @param location the new location for the event
    */
-  public void setLocation(String location) {
+  public void setLocation(Location location) {
     this.location = location;
   }
 
@@ -145,7 +145,7 @@ public class Event {
 
   /**
    * Sets the series ID for this event.
-   * @param seriesId the UUID of the series to associate with this event
+   * @param seriesID the UUID of the series to associate with this event
    */
   public void setSeriesId(UUID seriesID) {
     this.seriesID = seriesID;
