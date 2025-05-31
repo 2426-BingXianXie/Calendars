@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -19,7 +20,7 @@ import java.util.UUID;
  * <p>This calendar mimics the features found in widely-used calendar apps, such as
  * Google Calendar and Apple's Calendar app.
  */
-public class VirtualCalendar {
+public class VirtualCalendar implements ICalendar {
   private Map<LocalDate, List<Event>> calendarEvents;
   private Set<Event> uniqueEvents;
   private Map<UUID, Event> eventsByID;
@@ -77,12 +78,24 @@ public class VirtualCalendar {
 
   }
 
+  public List<Event> getEventsList(LocalDate date) {
+    return calendarEvents.get(date);
+  }
 
-  public Event editEvent(Event event, String property, String newProperty, LocalDateTime fromDate, LocalDateTime toDate) {
+  public List<Event> getEventsListInDateRange(LocalDate start, LocalDate end) {
+    return null;
+  }
+
+  // could implement Property enum
+  public Event editEvent(UUID eventID, String property, String newProperty) {
+    return null;
+  }
+
+  public void editSeriesFromDate(UUID seriesID, String property, String newProperty) {
 
   }
 
-  public void editSeries(Event event, String property, String newProperty, LocalDateTime fromDate) {
+  public void editSeries(UUID seriesID, String property, String newProperty) {
 
   }
 

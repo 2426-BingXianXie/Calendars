@@ -10,7 +10,7 @@ public interface ICalendar {
                     String description, Location location, EventStatus eventStatus)
           throws IllegalArgumentException;
 
-  EventSeries createEventSeries(String subject, LocalTime startTime, Duration duration,
+  void createEventSeries(String subject, LocalTime startTime, Duration duration,
                                 Set<Days> daysOfWeek, LocalDate startDate, LocalDate endDate,
                                 int repeats, String description, Location location,
                                 EventStatus eventStatus) throws IllegalArgumentException;
