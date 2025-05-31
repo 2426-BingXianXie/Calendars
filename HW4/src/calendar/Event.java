@@ -15,17 +15,20 @@ public class Event {
   private LocalDateTime startDate;
   private LocalDateTime endDate;
   private String description;
-  private String location;
+  private Location location;
   private EventStatus status;
-  private UUID seriesId;
+  private UUID seriesID;
 
-  public Event(String subject, LocalDateTime startDate, LocalDateTime endDate) {
+  public Event(String subject, LocalDateTime startDate, LocalDateTime endDate, String description,
+               Location location, EventStatus status, UUID seriesID) {
     this.id = UUID.randomUUID();
     this.subject = subject;
     this.startDate = startDate;
     this.endDate = endDate;
-    this.status = EventStatus.PUBLIC;
-    this.seriesId = null;
+    this.description = description;
+    this.location = location;
+    this.status = status;
+    this.seriesID = seriesID;
   }
 
   /**
@@ -136,16 +139,16 @@ public class Event {
    * Returns the series ID associated with this event, if any.
    * @return the UUID of the series, or null if not part of a series
    */
-  public UUID getSeriesId() {
-    return seriesId;
+  public UUID getSeriesID() {
+    return seriesID;
   }
 
   /**
    * Sets the series ID for this event.
    * @param seriesId the UUID of the series to associate with this event
    */
-  public void setSeriesId(UUID seriesId) {
-    this.seriesId = seriesId;
+  public void setSeriesId(UUID seriesID) {
+    this.seriesID = seriesID;
   }
 
   /**
