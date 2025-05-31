@@ -92,6 +92,15 @@ public class EventSeries {
    *
    * @param id the UUID to set for the event series
    */
+  public void setId(UUID id) {
+    this.id = id;
+  }
+
+  /**
+   * Returns the subject for this event series.
+   *
+   * @return the subject of the event series
+   */
   public String getSubject() {
     return subject;
   }

@@ -31,6 +31,16 @@ public class Event {
     this.seriesID = seriesID;
   }
 
+  // constructor without description, location, status and series id
+  public Event(String subject, LocalDateTime startDate, LocalDateTime endDate) {
+    this(subject, startDate, endDate, null, null, null, null);
+  }
+
+  // constructor without all optional details
+  public Event(String subject, LocalDateTime startDate) {
+    this(subject, startDate, null, null, null, null, null);
+  }
+
   /**
    * Returns the unique identifier for this event.
    * @return the UUID of the event
@@ -199,8 +209,8 @@ public class Event {
   public String toString() {
     return String.format("%s (%s to %s)%s",
             subject,
-            start,
-            end,
+            startDate,
+            endDate,
             location != null ? " @ " + getLocationDisplay() : "");
   }
 }
