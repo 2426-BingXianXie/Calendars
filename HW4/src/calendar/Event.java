@@ -16,6 +16,7 @@ public class Event {
   private LocalDateTime endDate;
   private String description;
   private Location location;
+  private String locationDetail;
   private EventStatus status;
   private UUID seriesID;
 
