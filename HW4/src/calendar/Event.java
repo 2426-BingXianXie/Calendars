@@ -28,6 +28,7 @@ public class Event {
     this.endDate = endDate;
     this.description = description;
     this.location = location;
+    this.locationDetail = locationDetail;
     this.status = status;
     this.seriesID = seriesID;
   }
