@@ -21,7 +21,7 @@ public class Event {
   private UUID seriesID;
 
   public Event(String subject, LocalDateTime startDate, LocalDateTime endDate, String description,
-               Location location, EventStatus status, UUID seriesID) {
+               Location location, String locationDetail, EventStatus status, UUID seriesID) {
     this.id = UUID.randomUUID();
     this.subject = subject;
     this.startDate = startDate;
