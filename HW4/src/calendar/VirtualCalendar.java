@@ -33,6 +33,20 @@ public class VirtualCalendar implements ICalendar {
     this.eventSeriesByID = new HashMap<UUID, EventSeries>();
   }
 
+  /**
+   * Creates a single, non-recurring event.
+   *
+   * @param subject     the subject of the event
+   * @param startDate   the starting date and time of the event
+   * @param endDate     the ending date and time of the event. If empty, make event an all-day event
+   * @param description the description of the event. Can be left blank
+   * @param location    the location of the event, either in-person or online. Can be left blank
+   * @param eventStatus the status of the event, either public or private. Can be left blank
+   * @return the created Event object.
+   * @throws IllegalArgumentException if the given start date is chronologically after the end
+   *                                  date, or if the event already exists.
+   */
+  @Override
   public Event createEvent(String subject, LocalDateTime startDate, LocalDateTime endDate,
                            String description, Location location, EventStatus eventStatus)
           throws IllegalArgumentException {
@@ -59,31 +73,207 @@ public class VirtualCalendar implements ICalendar {
     }
   }
 
+  /**
+   * Creates a series of recurring events.
+   *
+   * @param subject     the subject of the event series
+   * @param startTime   the starting time of the events in the series
+   * @param duration    the duration of each event in the series
+   * @param daysOfWeek  the days of the week on which the events occur
+   * @param startDate   the starting date for the series
+   * @param endDate     the ending date for the series
+   * @param repeats     number of times to repeat, or 0 for infinite
+   * @param description description of the event series
+   * @param location    location of the event series
+   * @param eventStatus status of the event series
+   */
+  @Override
   public void createEventSeries(String subject, LocalTime startTime, Duration duration,
                                 Set<Days> daysOfWeek, LocalDate startDate, LocalDate endDate,
                                 int repeats, String description, Location location, EventStatus eventStatus) {
+    // Convert Days to DayOfWeek
+    Set<DayOfWeek> dayOfWeeks = daysOfWeek.stream()
+            .map(Days::toDayOfWeek)
+            .collect(Collectors.toSet());
 
+    // Create first event instance
+    LocalDateTime eventStart = LocalDateTime.of(startDate, startTime);
+    LocalDateTime eventEnd = eventStart.plus(duration);
+
+    // Validate same day
+    if (!eventStart.toLocalDate().equals(eventEnd.toLocalDate())) {
+      throw new IllegalArgumentException("Series events must start and end on the same day");
+    }
+
+    // Create series
+    EventSeries series = new EventSeries(
+            subject, eventStart, eventEnd,
+            dayOfWeeks, repeats > 0 ? repeats : null,
+            endDate
+    );
+
+    // Generate all events in series
+    Set<Event> events = series.generateEvents();
+
+    // Add each event with details
+    for (Event event : events) {
+      event.setDescription(description);
+      event.setLocation(location);
+      event.setStatus(eventStatus);
+      event.setSeriesId(series.getId());
+
+      if (!uniqueEvents.add(event)) {
+        throw new IllegalArgumentException("Duplicate event in series: " + event.getSubject());
+      }
+
+      // Add to date index
+      LocalDate date = event.getStart().toLocalDate();
+      calendarEvents.computeIfAbsent(date, k -> new ArrayList<>()).add(event);
+      eventsByID.put(event.getId(), event);
+    }
+
+    eventSeriesByID.put(series.getId(), series);
   }
 
+  /**
+   * Retrieves a list of events for a specific date.
+   *
+   * @param date the date for which to retrieve events
+   * @return a list of events on the specified date
+   */
+  @Override
   public List<Event> getEventsList(LocalDate date) {
-    return calendarEvents.get(date);
+    return calendarEvents.getOrDefault(date, new ArrayList<>());
   }
 
+  /**
+   * Retrieves a list of events within a specified date range.
+   *
+   * @param start the start date of the range
+   * @param end   the end date of the range
+   * @return a list of events occurring between the start and end dates, inclusive
+   */
+  @Override
   public List<Event> getEventsListInDateRange(LocalDate start, LocalDate end) {
-    return null;
+    List<Event> result = new ArrayList<>();
+    for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
+      result.addAll(getEventsList(date));
+    }
+    return result;
+  }
+
+  /**
+   * Checks if the user is busy at a specific date and time.
+   *
+   * @param dateTime the date and time to check
+   * @return true if the user has any event scheduled at the given time,
+   *         false otherwise
+   */
+  @Override
+  public boolean isBusyAt(LocalDateTime dateTime) {
+    // Get all events for the target date
+    List<Event> daysEvents = getEventsList(dateTime.toLocalDate());
+
+    // Check if any event overlaps with the given time
+    for (Event event : daysEvents) {
+      if (isDuringEvent(event, dateTime)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Checks if a specific time falls within an event's duration
+   *
+   * @param event The event to check
+   * @param dateTime The time to verify
+   * @return true if the time is within the event's start-end range
+   */
+  private boolean isDuringEvent(Event event, LocalDateTime dateTime) {
+    LocalDateTime start = event.getStart();
+    LocalDateTime end = event.getEnd();
+
+    // Handle zero-duration events (instantaneous)
+    if (start.equals(end)) {
+      return dateTime.equals(start);
+    }
+
+    // Check if time falls within [start, end) interval
+    return !dateTime.isBefore(start) && dateTime.isBefore(end);
   }
 
   // could implement Property enum
-  public Event editEvent(UUID eventID, String property, String newProperty) {
-    return null;
+  @Override
+  public Event editEvent(UUID eventID, String property, String newValue) {
+    Event event = eventsByID.get(eventID);
+    if (event == null) return null;
+
+    switch (property.toLowerCase()) {
+      case "subject":
+        event.setSubject(newValue);
+        break;
+      case "start":
+        LocalDateTime newStart = LocalDateTime.parse(newValue);
+        event.setStart(newStart);
+        break;
+      case "end":
+        LocalDateTime newEnd = LocalDateTime.parse(newValue);
+        event.setEnd(newEnd);
+        break;
+      case "description":
+        event.setDescription(newValue);
+        break;
+      case "location":
+        event.setLocation(Location.valueOf(newValue));
+        break;
+      case "status":
+        event.setStatus(EventStatus.valueOf(newValue));
+        break;
+    }
+    return event;
   }
 
-  public void editSeriesFromDate(UUID seriesID, String property, String newProperty) {
+  @Override
+  public void editSeriesFromDate(UUID seriesID, String property, String newValue) {
+    EventSeries series = eventSeriesByID.get(seriesID);
+    if (series == null) return;
 
+    // Find the first event to modify from
+    Event firstEvent = null;
+    for (Event event : uniqueEvents) {
+      if (seriesID.equals(event.getSeriesId())) {
+        firstEvent = event;
+        break;
+      }
+    }
+    if (firstEvent == null) return;
+
+    // Edit all events from this event forward
+    for (Event event : uniqueEvents) {
+      if (seriesID.equals(event.getSeriesId()) &&
+              !event.getStart().isBefore(firstEvent.getStart())) {
+        editEvent(event.getId(), property, newValue);
+      }
+    }
   }
 
-  public void editSeries(UUID seriesID, String property, String newProperty) {
+  @Override
+  public void editSeries(UUID seriesID, String property, String newValue) {
+    EventSeries series = eventSeriesByID.get(seriesID);
+    if (series == null) return;
 
+    // Edit all events in the series
+    for (Event event : uniqueEvents) {
+      if (seriesID.equals(event.getSeriesId())) {
+        editEvent(event.getId(), property, newValue);
+      }
+    }
+
+    // Update series properties if needed
+    if ("subject".equals(property)) {
+      series.setSubject(newValue);
+    }
   }
 
 

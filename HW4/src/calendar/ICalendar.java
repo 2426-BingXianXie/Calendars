@@ -33,6 +33,8 @@ public interface ICalendar {
 
   List<Event> getEventsListInDateRange(LocalDate start, LocalDate end);
 
+  boolean isBusyAt(LocalDateTime dateTime);
+
   // could implement Property enum
   Event editEvent(UUID eventID, String property, String newProperty);
 
