@@ -24,20 +24,46 @@ public class EventSeries {
   private Set<DayOfWeek> daysOfRecurrence = new HashSet<>();
   private Duration duration;
 
-  public EventSeries(String subject, LocalDateTime start, LocalDateTime end,
-                     String weekdayChars, Integer occurrenceCount, LocalDate endDate) {
-    if (!start.toLocalDate().equals(end.toLocalDate())) {
+  public EventSeries(String subject,
+                     LocalDateTime startDateTime,
+                     LocalDateTime endDateTime,
+                     Set<DayOfWeek> daysOfRecurrence,
+                     Integer occurrenceCount,
+                     LocalDate endDate) {
+
+    // Validate single-day event constraint
+    if (!startDateTime.toLocalDate().equals(endDateTime.toLocalDate())) {
       throw new IllegalArgumentException("Series events must start and end on the same day");
     }
 
+    // Validate recurrence days
+    if (daysOfRecurrence == null || daysOfRecurrence.isEmpty()) {
+      throw new IllegalArgumentException("At least one recurrence day required");
+    }
+
     this.subject = subject;
-    this.startTime = start.toLocalTime();
-    this.seriesStartDate = start.toLocalDate();
-    this.duration = Duration.between(start, end);
+    this.startTime = startDateTime.toLocalTime();
+    this.seriesStartDate = startDateTime.toLocalDate();
+    this.duration = Duration.between(startDateTime, endDateTime);
     this.id = UUID.randomUUID();
-    this.daysOfRecurrence = Days.parseWeekdays(weekdayChars);
+    this.daysOfRecurrence = new HashSet<>(daysOfRecurrence);
     this.numOccurrences = occurrenceCount != null ? occurrenceCount : 0;
     this.seriesEndDate = endDate;
+
+    // Validate termination conditions
+    if (this.numOccurrences <= 0 && this.seriesEndDate == null) {
+      throw new IllegalArgumentException("Must specify either occurrence count or end date");
+    }
+
+    // Validate duration doesn't cross days
+    validateDuration(startDateTime);
+  }
+
+  private void validateDuration(LocalDateTime referenceStart) {
+    LocalDateTime testEnd = referenceStart.plus(duration);
+    if (!referenceStart.toLocalDate().equals(testEnd.toLocalDate())) {
+      throw new IllegalArgumentException("Duration would cross day boundary");
+    }
   }
 
   /**
