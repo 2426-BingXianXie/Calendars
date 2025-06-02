@@ -197,9 +197,8 @@ public class Event {
     if (location == null) {
       return "";
     }
-    return location == Location.CUSTOM
-            ? locationDetail
-            : location.name() + (locationDetail != null ? ": " + locationDetail : "");
+    return location.name() + (locationDetail != null && !locationDetail.isEmpty()
+            ? ": " + locationDetail : "");
   }
 
   /**
