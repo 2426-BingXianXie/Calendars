@@ -1,17 +1,18 @@
 package calendar;
 
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Represents a virtual calendar that allows you to create events and store them
@@ -59,7 +60,7 @@ public class VirtualCalendar implements ICalendar {
     if (startDate.isAfter(endDate)) { // check for valid dates
       throw new IllegalArgumentException("Start date cannot be after end date");
     }
-    Event event = new Event(subject, startDate, endDate, description, location, eventStatus, null);
+    Event event = new Event(subject, startDate, endDate, description, location, null, eventStatus, null);
     if (uniqueEvents.add(event)) { // check for duplicate event
       // add event to each day from start to end date
       for (LocalDate date = startDate.toLocalDate(); !date.isAfter(endDate.toLocalDate());
@@ -109,9 +110,7 @@ public class VirtualCalendar implements ICalendar {
     EventSeries series = new EventSeries(
             subject, eventStart, eventEnd,
             dayOfWeeks, repeats > 0 ? repeats : null,
-            endDate
-    );
-
+            endDate);
     // Generate all events in series
     Set<Event> events = series.generateEvents();
 
@@ -131,7 +130,6 @@ public class VirtualCalendar implements ICalendar {
       calendarEvents.computeIfAbsent(date, k -> new ArrayList<>()).add(event);
       eventsByID.put(event.getId(), event);
     }
-
     eventSeriesByID.put(series.getId(), series);
   }
 
@@ -242,7 +240,7 @@ public class VirtualCalendar implements ICalendar {
     // Find the first event to modify from
     Event firstEvent = null;
     for (Event event : uniqueEvents) {
-      if (seriesID.equals(event.getSeriesId())) {
+      if (seriesID.equals(event.getSeriesID())) {
         firstEvent = event;
         break;
       }
@@ -251,7 +249,7 @@ public class VirtualCalendar implements ICalendar {
 
     // Edit all events from this event forward
     for (Event event : uniqueEvents) {
-      if (seriesID.equals(event.getSeriesId()) &&
+      if (seriesID.equals(event.getSeriesID()) &&
               !event.getStart().isBefore(firstEvent.getStart())) {
         editEvent(event.getId(), property, newValue);
       }
@@ -265,7 +263,7 @@ public class VirtualCalendar implements ICalendar {
 
     // Edit all events in the series
     for (Event event : uniqueEvents) {
-      if (seriesID.equals(event.getSeriesId())) {
+      if (seriesID.equals(event.getSeriesID())) {
         editEvent(event.getId(), property, newValue);
       }
     }
@@ -275,6 +273,4 @@ public class VirtualCalendar implements ICalendar {
       series.setSubject(newValue);
     }
   }
-
-
 }

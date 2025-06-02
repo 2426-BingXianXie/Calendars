@@ -35,12 +35,12 @@ public class Event {
 
   // constructor without description, location, status and series id
   public Event(String subject, LocalDateTime startDate, LocalDateTime endDate) {
-    this(subject, startDate, endDate, null, null, null, null);
+    this(subject, startDate, endDate, null, null, null, null, null);
   }
 
   // constructor without all optional details
   public Event(String subject, LocalDateTime startDate) {
-    this(subject, startDate, null, null, null, null, null);
+    this(subject, startDate, null, null, null, null, null, null);
   }
 
   /**
