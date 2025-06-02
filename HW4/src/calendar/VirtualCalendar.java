@@ -91,7 +91,8 @@ public class VirtualCalendar implements ICalendar {
   @Override
   public void createEventSeries(String subject, LocalTime startTime, Duration duration,
                                 Set<Days> daysOfWeek, LocalDate startDate, LocalDate endDate,
-                                int repeats, String description, Location location, EventStatus eventStatus) {
+                                int repeats, String description, Location location,
+                                EventStatus eventStatus)  throws IllegalArgumentException {
     // Convert Days to DayOfWeek
     Set<DayOfWeek> dayOfWeeks = daysOfWeek.stream()
             .map(Days::toDayOfWeek)

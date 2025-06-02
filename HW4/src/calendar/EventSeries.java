@@ -29,7 +29,7 @@ public class EventSeries {
                      LocalDateTime endDateTime,
                      Set<DayOfWeek> daysOfRecurrence,
                      Integer occurrenceCount,
-                     LocalDate endDate) {
+                     LocalDate endDate) throws IllegalArgumentException {
 
     // Validate single-day event constraint
     if (!startDateTime.toLocalDate().equals(endDateTime.toLocalDate())) {
@@ -59,7 +59,7 @@ public class EventSeries {
     validateDuration(startDateTime);
   }
 
-  private void validateDuration(LocalDateTime referenceStart) {
+  private void validateDuration(LocalDateTime referenceStart) throws IllegalArgumentException {
     LocalDateTime testEnd = referenceStart.plus(duration);
     if (!referenceStart.toLocalDate().equals(testEnd.toLocalDate())) {
       throw new IllegalArgumentException("Duration would cross day boundary");
@@ -73,7 +73,7 @@ public class EventSeries {
    *
    * @return a set of generated Event objects
    */
-  public Set<Event> generateEvents() {
+  public Set<Event> generateEvents() throws IllegalArgumentException {
     Set<Event> events = new HashSet<>();
     LocalDate current = seriesStartDate;
     int count = 0;
@@ -84,7 +84,7 @@ public class EventSeries {
         LocalDateTime eventEnd = eventStart.plus(duration);
 
         if (!eventStart.toLocalDate().equals(eventEnd.toLocalDate())) {
-          throw new IllegalStateException(
+          throw new IllegalArgumentException(
                   "Generated event spans multiple days: " + eventStart + " to " + eventEnd);
         }
 
@@ -174,7 +174,7 @@ public class EventSeries {
    * @param duration the {@link Duration} to set
    * @throws IllegalArgumentException if the duration crosses into the next day
    */
-  public void setDuration(Duration duration) {
+  public void setDuration(Duration duration) throws IllegalArgumentException {
     LocalDateTime testStart = LocalDateTime.now().with(startTime);
     LocalDateTime testEnd = testStart.plus(duration);
 
