@@ -79,7 +79,7 @@ public class VirtualCalendar implements ICalendar {
    *
    * @param subject     the subject of the event series
    * @param startTime   the starting time of the events in the series
-   * @param duration    the duration of each event in the series
+   * @param endTime     the ending time of each event in the series
    * @param daysOfWeek  the days of the week on which the events occur
    * @param startDate   the starting date for the series
    * @param endDate     the ending date for the series
@@ -89,7 +89,7 @@ public class VirtualCalendar implements ICalendar {
    * @param eventStatus status of the event series
    */
   @Override
-  public void createEventSeries(String subject, LocalTime startTime, Duration duration,
+  public void createEventSeries(String subject, LocalTime startTime, LocalTime endTime,
                                 Set<Days> daysOfWeek, LocalDate startDate, LocalDate endDate,
                                 int repeats, String description, Location location,
                                 EventStatus eventStatus)  throws IllegalArgumentException {
@@ -100,12 +100,7 @@ public class VirtualCalendar implements ICalendar {
 
     // Create first event instance
     LocalDateTime eventStart = LocalDateTime.of(startDate, startTime);
-    LocalDateTime eventEnd = eventStart.plus(duration);
-
-    // Validate same day
-    if (!eventStart.toLocalDate().equals(eventEnd.toLocalDate())) {
-      throw new IllegalArgumentException("Series events must start and end on the same day");
-    }
+    LocalDateTime eventEnd = LocalDateTime.of(startDate, endTime);
 
     // Create series
     EventSeries series = new EventSeries(
