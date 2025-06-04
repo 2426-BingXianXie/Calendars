@@ -24,10 +24,10 @@ import calendar.CalendarException;
  * Google Calendar and Apple's Calendar app.
  */
 public class VirtualCalendar implements ICalendar {
-  private Map<LocalDate, List<Event>> calendarEvents;
-  private Set<Event> uniqueEvents;
-  private Map<UUID, Event> eventsByID;
-  private Map<UUID, EventSeries> eventSeriesByID;
+  private final Map<LocalDate, List<Event>> calendarEvents;
+  private final Set<Event> uniqueEvents;
+  private final Map<UUID, Event> eventsByID;
+  private final Map<UUID, EventSeries> eventSeriesByID;
 
   public VirtualCalendar() {
     this.calendarEvents = new HashMap<LocalDate, List<Event>>();
@@ -365,8 +365,8 @@ public class VirtualCalendar implements ICalendar {
       }
     }
 
-    // Update series properties if needed
-    if ("subject".equals(property.getStr())) {
+    // update series properties
+    if (property == Property.SUBJECT) {
       series.setSubject(newValue);
     }
   }

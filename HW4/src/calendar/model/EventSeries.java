@@ -21,7 +21,7 @@ public class EventSeries {
   private LocalTime startTime;
   private LocalDate seriesStartDate;
   private LocalDate seriesEndDate;
-  private int numOccurrences;
+  private final int numOccurrences;
   private UUID id;
   private Set<DayOfWeek> daysOfRecurrence = new HashSet<>();
   private Duration duration;
