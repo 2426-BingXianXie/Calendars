@@ -11,7 +11,6 @@ import calendar.model.ICalendar;
 import calendar.controller.ICalendarController;
 import calendar.view.ICalendarView;
 import calendar.model.VirtualCalendar;
-import calendar.CalendarException;
 
 public class CalendarRunner {
   public static void main(String[] args) {
