@@ -1,6 +1,7 @@
 package calendar.model;
 
 import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -227,29 +228,29 @@ public class VirtualCalendar implements ICalendar {
     return !dateTime.isBefore(start) && dateTime.isBefore(end);
   }
 
-  // could implement Property enum
   @Override
   public Event editEvent(UUID eventID, Property property, String newValue)
           throws CalendarException {
     Event event = eventsByID.get(eventID);
-    if (event == null) return null;
-
-    // store original values of uniqueness-defining properties
-    String originalSubject = event.getSubject();
-    LocalDateTime originalStartDate = event.getStart();
-    LocalDateTime originalEndDate = event.getEnd();
-
-    // determine if the property being changed affects uniqueness
-    boolean affectsUniqueness = false;
-    switch (property) {
-      case SUBJECT:
-      case START:
-      case END:
-        affectsUniqueness = true;
-        break;
+    if (event == null) {
+      throw new CalendarException("Event not found");
     }
-    // if uniqueness is affected, remove the event from uniqueEvents
-    if (affectsUniqueness) uniqueEvents.remove(event);
+
+    // Store original values for uniqueness check
+    String originalSubject = event.getSubject();
+    LocalDateTime originalStart = event.getStart();
+    LocalDateTime originalEnd = event.getEnd();
+    UUID originalSeriesId = event.getSeriesID();
+
+    // Check if editing would break series membership
+    boolean breakingSeries = false;
+    if (originalSeriesId != null &&
+            (property == Property.START || property == Property.END)) {
+      breakingSeries = true;
+    }
+
+    // Temporarily remove from uniqueEvents for uniqueness check
+    uniqueEvents.remove(event);
 
     try {
       switch (property) {
@@ -259,14 +260,14 @@ public class VirtualCalendar implements ICalendar {
         case START:
           LocalDateTime newStart = LocalDateTime.parse(newValue);
           if (newStart.isAfter(event.getEnd())) {
-            throw new CalendarException("New start time cannot be after current end time.");
+            throw new CalendarException("New start time cannot be after current end time");
           }
           event.setStart(newStart);
           break;
         case END:
           LocalDateTime newEnd = LocalDateTime.parse(newValue);
           if (event.getStart().isAfter(newEnd)) {
-            throw new CalendarException("New end time cannot be before current start time.");
+            throw new CalendarException("New end time cannot be before current start time");
           }
           event.setEnd(newEnd);
           break;
@@ -278,53 +279,52 @@ public class VirtualCalendar implements ICalendar {
           event.setLocation(newLocation);
           break;
         case STATUS:
-          EventStatus newStatus = EventStatus.valueOf(newValue);
+          EventStatus newStatus = EventStatus.fromStr(newValue);
           event.setStatus(newStatus);
           break;
       }
-      // if updating fails, re-add to uniqueEvents
-    } catch (CalendarException | DateTimeParseException e) {
-      if (affectsUniqueness) uniqueEvents.add(event);
-      throw new CalendarException("Invalid format for new property value: " + newValue);
+    } catch (IllegalArgumentException | DateTimeParseException e) {
+      // Revert to original values
+      event.setSubject(originalSubject);
+      event.setStart(originalStart);
+      event.setEnd(originalEnd);
+      uniqueEvents.add(event);
+      throw new CalendarException("Invalid property value: " + e.getMessage());
     }
 
-    if (affectsUniqueness) {
-      if (!uniqueEvents.add(event)) { // check if edited event conflicts with an existing event
-        event.setSubject(originalSubject); // revert to original values
-        event.setStart(originalStartDate);
-        event.setEnd(originalEndDate);
-        uniqueEvents.add(event); // re-add back to uniqueEvents in its original state
-        throw new CalendarException("Edit failed. The change would result in a duplicate event.");
-      }
+    // Handle series membership
+    if (breakingSeries) {
+      event.setSeriesId(null);
     }
 
-    // update calendarEvents for new dates
-    LocalDate oldStartDate = originalStartDate.toLocalDate();
-    LocalDate oldEndDate = originalEndDate.toLocalDate();
-    LocalDate newStartDate = event.getStart().toLocalDate();
-    LocalDate newEndDate = event.getEnd().toLocalDate();
+    // Check for uniqueness with new values
+    if (!uniqueEvents.add(event)) {
+      // Revert to original values
+      event.setSubject(originalSubject);
+      event.setStart(originalStart);
+      event.setEnd(originalEnd);
+      event.setSeriesId(originalSeriesId);
+      uniqueEvents.add(event);
+      throw new CalendarException("Event conflicts with existing event");
+    }
 
-    // check if dates have changed
-    if (affectsUniqueness && (!oldStartDate.equals(newStartDate) ||
-            !oldEndDate.equals(newEndDate))) {
-      // remove from old dates in calendarEvents
-      for (LocalDate date = oldStartDate; !date.isAfter(oldEndDate);
-           date = date.plusDays(1)) {
-        List<Event> dayEvents = getEventsList(date);
-        // check if returned events list is empty
-        if (!dayEvents.isEmpty()) {
-          // remove from list if ID matches
-          dayEvents.removeIf(e -> e.getId().equals(eventID));
-          if (dayEvents.isEmpty()) { // if date no longer contains events, remove date key from map
-            calendarEvents.remove(date);
-          }
+    // Update calendar events mapping if dates changed
+    if (property == Property.START || property == Property.END) {
+      LocalDate oldDate = originalStart.toLocalDate();
+      LocalDate newDate = event.getStart().toLocalDate();
+
+      // Remove from old date
+      if (calendarEvents.containsKey(oldDate)) {
+        calendarEvents.get(oldDate).removeIf(e -> e.getId().equals(eventID));
+        if (calendarEvents.get(oldDate).isEmpty()) {
+          calendarEvents.remove(oldDate);
         }
       }
-      // add to new dates in calendarEvents
-      for (LocalDate date = newStartDate; !date.isAfter(newEndDate); date = date.plusDays(1)) {
-        calendarEvents.computeIfAbsent(date, k -> new ArrayList<>()).add(event);
-      }
+
+      // Add to new date
+      calendarEvents.computeIfAbsent(newDate, k -> new ArrayList<>()).add(event);
     }
+
     return event;
   }
 
@@ -335,39 +335,72 @@ public class VirtualCalendar implements ICalendar {
     if (series == null) return;
 
     // Find the first event to modify from
-    Event firstEvent = null;
+    LocalDateTime firstEventStart = null;
     for (Event event : uniqueEvents) {
       if (seriesID.equals(event.getSeriesID())) {
-        firstEvent = event;
+        firstEventStart = event.getStart();
         break;
       }
     }
-    if (firstEvent == null) return;
+    if (firstEventStart == null) return;
 
     // Edit all events from this event forward
     for (Event event : uniqueEvents) {
       if (seriesID.equals(event.getSeriesID()) &&
-              !event.getStart().isBefore(firstEvent.getStart())) {
+              !event.getStart().isBefore(firstEventStart)) {
         editEvent(event.getId(), property, newValue);
       }
     }
   }
 
   @Override
-  public void editSeries(UUID seriesID, Property property, String newValue) throws CalendarException {
+  public void editSeries(UUID seriesID, Property property, String newValue)
+          throws CalendarException {
     EventSeries series = eventSeriesByID.get(seriesID);
     if (series == null) return;
+
+    // Update series properties first
+    switch (property) {
+      case SUBJECT:
+        series.setSubject(newValue);
+        break;
+      case START:
+        LocalTime newStart = LocalTime.parse(newValue);
+        series.setStartTime(newStart);
+        break;
+      case END:
+        // When changing end time, we need to update duration
+        LocalTime newEnd = LocalTime.parse(newValue);
+        Duration newDuration = Duration.between(series.getStartTime(), newEnd);
+        series.setDuration(newDuration);
+        break;
+      case DESCRIPTION:
+      case LOCATION:
+      case STATUS:
+        // These don't affect series pattern, handled in events
+        break;
+    }
 
     // Edit all events in the series
     for (Event event : uniqueEvents) {
       if (seriesID.equals(event.getSeriesID())) {
-        editEvent(event.getId(), property, newValue);
+        // For subject, start, and end - update through series properties
+        if (property == Property.SUBJECT) {
+          event.setSubject(newValue);
+        } else if (property == Property.START) {
+          LocalDateTime newStartTime = LocalDateTime.of(
+                  event.getStart().toLocalDate(),
+                  series.getStartTime()
+          );
+          event.setStart(newStartTime);
+        } else if (property == Property.END) {
+          LocalDateTime newEndTime = event.getStart().plus(series.getDuration());
+          event.setEnd(newEndTime);
+        } else {
+          // For other properties, use standard edit
+          editEvent(event.getId(), property, newValue);
+        }
       }
-    }
-
-    // update series properties
-    if (property == Property.SUBJECT) {
-      series.setSubject(newValue);
     }
   }
 }
