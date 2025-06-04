@@ -2,6 +2,9 @@ package calendar;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 public class CalendarView implements ICalendarView {
   private final Appendable out;
@@ -22,6 +25,35 @@ public class CalendarView implements ICalendarView {
 
   public void farewellMessage() throws IllegalStateException {
     writeMessage("Thank you for using this program!");
+  }
+
+  public void showCalendarEvents(List<Event> events, LocalDate date) {
+    writeMessage("Printing events on " + date.toString() + "." + System.lineSeparator());
+    printEvents(events);
+  }
+
+  @Override
+  public void showCalendarEventsInDateRange(LocalDateTime start, LocalDateTime end,
+                                            List<Event> events) {
+    writeMessage("Printing events from " + start + " to " + end + "." + System.lineSeparator());
+    printEvents(events);
+  }
+
+  private void printEvents(List<Event> events) {
+    if (events.isEmpty()) {
+      writeMessage("No events found" + System.lineSeparator());
+    }
+    for (Event event : events) {
+      if (event.getLocation() == null) { // check for valid location in event
+        writeMessage("Event '" + event.getSubject() + "' on " + event.getStart().toLocalDate()
+                + " from " + event.getStart().toLocalTime() + " to " +
+                event.getEnd().toLocalTime() + System.lineSeparator());
+      } else { // print out location as well
+        writeMessage(event.getLocation() + " event '" + event.getSubject() + "' on " +
+                        event.getStart().toLocalDate() + "' from " + event.getStart().toLocalTime()
+                + " to " + event.getEnd().toLocalTime() + System.lineSeparator());
+      }
+    }
   }
 
   public void writeMessage(String message) throws IllegalStateException {

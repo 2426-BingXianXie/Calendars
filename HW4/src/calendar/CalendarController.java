@@ -167,13 +167,20 @@ public class CalendarController implements ICalendarController {
     }
     // attempt to parse second date input
     LocalDateTime toDate = parseDateTime(sc);
+    if (toDate.isBefore(fromDate)) { // check for valid end date input
+      throw new IllegalArgumentException("End date must be after start date");
+    }
     // check if there's a 'repeats' keyword next
     if (sc.hasNext()) {
       String repeatsKeyword = sc.next();
       if (repeatsKeyword.equalsIgnoreCase("repeats")) { // is a series of events
+        // check that each event in a series only lasts 1 day
+        if (!fromDate.toLocalDate().isEqual(toDate.toLocalDate())) {
+          throw new IllegalArgumentException("Each event in a series can only last one day");
+        }
         handleSeriesDetails(subject, fromDate, false, sc, model, fromDate.toLocalTime(), toDate.toLocalTime());
       } else {
-        throw new IllegalArgumentException("Expected 'repeats' or end of command for single timed event.");
+        throw new IllegalArgumentException("Expected 'repeats' after <dateStringTtimeString>.");
       }
     } else { // no more inputs, so it's a single event
       model.createEvent(subject, fromDate, toDate, null, null, null);
@@ -241,15 +248,15 @@ public class CalendarController implements ICalendarController {
     // check for input after create
     if (next.equalsIgnoreCase("event") ||
             next.equalsIgnoreCase("events")) {
-      handleEditEvent(sc, model);
+      handleEditEvent(sc, model, false);
     } else if (next.equalsIgnoreCase("series")) {
-      handleEditSeries(sc, model);
+      handleEditEvent(sc, model, true);
     } else {
       throw new IllegalArgumentException("Unknown event keyword: " + next);
     }
   }
 
-  private void handleEditEvent(Scanner sc, ICalendar model) {
+  private void handleEditEvent(Scanner sc, ICalendar model, boolean fullSeries) {
     Property property = checkValidProperty(sc);
     String subject = checkValidSubject(sc);
     // check that there is a valid subject
@@ -257,18 +264,7 @@ public class CalendarController implements ICalendarController {
     // check that user inputted date
     if (!sc.hasNext()) throw new IllegalArgumentException(
             "Incomplete command, missing <dateStringTtimeString>.");
-    handleEditFromVariants(sc, model, subject, property, false);
-  }
-
-  private void handleEditSeries(Scanner sc, ICalendar model) {
-    Property property = checkValidProperty(sc);
-    String subject = checkValidSubject(sc);
-    // check that there is a valid subject
-    if (subject.isEmpty()) throw new IllegalArgumentException("Missing event subject");
-    // check that user inputted date
-    if (!sc.hasNext()) throw new IllegalArgumentException(
-            "Incomplete command, missing <dateStringTtimeString>.");
-    handleEditFromVariants(sc, model, subject, property, true);
+    handleEditFromVariants(sc, model, subject, property, fullSeries);
   }
 
   private Property checkValidProperty(Scanner sc) {
@@ -313,7 +309,7 @@ public class CalendarController implements ICalendarController {
               "Expected 'with' after 'to <dateStringTTimeString>.");
       String newProperty = sc.next();
       // retrieve events with matching details
-      List<Event> events = model.findEventsByDetails(subject, fromDate, toDate);
+      List<Event> events = model.getEventsByDetails(subject, fromDate, toDate);
       Event event = checkAmbiguousEvents(events);
       UUID eventId = event.getId();
       model.editEvent(eventId, property, newProperty);
@@ -356,10 +352,58 @@ public class CalendarController implements ICalendarController {
 
 
   private void handlePrint(Scanner sc, ICalendar model) {
+    if (!sc.hasNext()) throw new IllegalArgumentException("Missing input after 'print'.");
+    // check that input entered after 'print' is 'events'
+    if (!sc.next().equalsIgnoreCase("events")) {
+      throw new IllegalArgumentException("Expected 'events' after 'print'.");
+    } else {
+      // input is valid, check for next keyword after events
+      if (!sc.hasNext()) throw new IllegalArgumentException("Missing input after 'events'.");
+      String nextKeyword = sc.next();
+      // check if next word is 'on', print events only on that day if so
+      if (nextKeyword.equalsIgnoreCase("on")) {
+        // check for valid input after 'on'
+        // attempt to parse date input
+        LocalDate date = parseDate(sc);
+        List<Event> events = model.getEventsList(date);
+        view.showCalendarEvents(events, date);
+        // check if next word is 'from'
+      } else if (nextKeyword.equalsIgnoreCase("from")) {
+        if (!sc.hasNext()) throw new IllegalArgumentException("Missing input after 'from'.");
+        // attempt to parse start date input
+        LocalDateTime fromDate = parseDateTime(sc);
+        if (!sc.hasNext()) throw new IllegalArgumentException(
+                "Missing input after <dateStringTTimeString>.");
+        if (!sc.next().equalsIgnoreCase("to")) throw new IllegalArgumentException(
+                "Expected 'to' after <dateStringTTimeString>.");
+        // attempt to parse end date input
+        LocalDateTime toDate = parseDateTime(sc);
+        List<Event> events = model.getEventsListInDateRange(fromDate, toDate);
+        view.showCalendarEventsInDateRange(fromDate, toDate, events);
+      }
+    }
   }
 
   private void handleShow(Scanner sc, ICalendar model) {
-
+    if (!sc.hasNext()) throw new IllegalArgumentException("Missing input after 'show'.");
+    // check that input after 'show' is 'status'
+    if (!sc.next().equalsIgnoreCase("status")) {
+      throw new IllegalArgumentException("Expected 'status' after 'show'.");
+    }
+    if (!sc.hasNext()) throw new IllegalArgumentException("Missing input after 'status'.");
+    // check that input after 'status' is 'on'
+    if (!sc.next().equalsIgnoreCase("on")) {
+      throw new IllegalArgumentException("Expected 'on' after 'status'.");
+    }
+    // attempt to parse date string
+    LocalDateTime date = parseDateTime(sc);
+    boolean isBusy = model.isBusyAt(date); // check if user already has event on this dateTime
+    if (isBusy) {
+      view.writeMessage("User is busy, already has an event scheduled on " + date + "."
+              + System.lineSeparator());
+    } else {
+      view.writeMessage("User is available on " + date + "."
+              + System.lineSeparator());
+    }
   }
-
 }

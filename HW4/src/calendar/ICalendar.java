@@ -31,11 +31,11 @@ public interface ICalendar {
 
   List<Event> getEventsBySubjectAndStartTime(String subject, LocalDateTime startTime);
 
-  List<Event> findEventsByDetails(String subject, LocalDateTime startTime, LocalDateTime endTime);
+  List<Event> getEventsByDetails(String subject, LocalDateTime startTime, LocalDateTime endTime);
 
   List<Event> getEventsList(LocalDate date);
 
-  List<Event> getEventsListInDateRange(LocalDate start, LocalDate end);
+  List<Event> getEventsListInDateRange(LocalDateTime start, LocalDateTime end);
 
   boolean isBusyAt(LocalDateTime dateTime);
 

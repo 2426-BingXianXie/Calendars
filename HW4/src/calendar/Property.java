@@ -23,7 +23,7 @@ public enum Property {
 
   public static Property fromStr(String s) {
     for (Property property : values()) {
-      if (property.str.equals(s)) {
+      if (property.str.equalsIgnoreCase(s)) {
         return property;
       }
     }
