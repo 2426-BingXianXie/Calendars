@@ -1,5 +1,5 @@
 package calendar;
 
 public interface ICalendarController {
-  void go();
+  void go() throws CalendarException;
 }

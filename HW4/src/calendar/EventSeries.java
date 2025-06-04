@@ -29,16 +29,16 @@ public class EventSeries {
                      LocalDateTime endDateTime,
                      Set<DayOfWeek> daysOfRecurrence,
                      Integer occurrenceCount,
-                     LocalDate endDate) throws IllegalArgumentException {
+                     LocalDate endDate) throws CalendarException {
 
     // Validate single-day event constraint
     if (!startDateTime.toLocalDate().equals(endDateTime.toLocalDate())) {
-      throw new IllegalArgumentException("Series events must start and end on the same day");
+      throw new CalendarException("Series events must start and end on the same day");
     }
 
     // Validate recurrence days
     if (daysOfRecurrence == null || daysOfRecurrence.isEmpty()) {
-      throw new IllegalArgumentException("At least one recurrence day required");
+      throw new CalendarException("At least one recurrence day required");
     }
 
     this.subject = subject;
@@ -52,17 +52,17 @@ public class EventSeries {
 
     // Validate termination conditions
     if (this.numOccurrences <= 0 && this.seriesEndDate == null) {
-      throw new IllegalArgumentException("Must specify either occurrence count or end date");
+      throw new CalendarException("Must specify either occurrence count or end date");
     }
 
     // Validate duration doesn't cross days
     validateDuration(startDateTime);
   }
 
-  private void validateDuration(LocalDateTime referenceStart) throws IllegalArgumentException {
+  private void validateDuration(LocalDateTime referenceStart) throws CalendarException {
     LocalDateTime testEnd = referenceStart.plus(duration);
     if (!referenceStart.toLocalDate().equals(testEnd.toLocalDate())) {
-      throw new IllegalArgumentException("Duration would cross day boundary");
+      throw new CalendarException("Duration would cross day boundary");
     }
   }
 
@@ -73,7 +73,7 @@ public class EventSeries {
    *
    * @return a set of generated Event objects
    */
-  public Set<Event> generateEvents() throws IllegalArgumentException {
+  public Set<Event> generateEvents() throws CalendarException {
     Set<Event> events = new HashSet<>();
     LocalDate current = seriesStartDate;
     int count = 0;
@@ -84,7 +84,7 @@ public class EventSeries {
         LocalDateTime eventEnd = eventStart.plus(duration);
 
         if (!eventStart.toLocalDate().equals(eventEnd.toLocalDate())) {
-          throw new IllegalArgumentException(
+          throw new CalendarException(
                   "Generated event spans multiple days: " + eventStart + " to " + eventEnd);
         }
 
@@ -172,14 +172,14 @@ public class EventSeries {
    * Ensures that the duration does not cross a day boundary.
    *
    * @param duration the {@link Duration} to set
-   * @throws IllegalArgumentException if the duration crosses into the next day
+   * @throws CalendarException if the duration crosses into the next day
    */
-  public void setDuration(Duration duration) throws IllegalArgumentException {
+  public void setDuration(Duration duration) throws CalendarException {
     LocalDateTime testStart = LocalDateTime.now().with(startTime);
     LocalDateTime testEnd = testStart.plus(duration);
 
     if (!testStart.toLocalDate().equals(testEnd.toLocalDate())) {
-      throw new IllegalArgumentException("Duration would cross day boundary");
+      throw new CalendarException("Duration would cross day boundary");
     }
     this.duration = duration;
   }
