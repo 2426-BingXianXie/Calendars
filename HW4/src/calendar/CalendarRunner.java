@@ -1,6 +1,7 @@
+package calendar;
+
 import java.io.InputStreamReader;
 import calendar.controller.CalendarController;
-import calendar.CalendarException;
 import calendar.view.CalendarView;
 import calendar.model.ICalendar;
 import calendar.controller.ICalendarController;
