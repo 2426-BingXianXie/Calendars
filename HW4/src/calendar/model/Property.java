@@ -1,6 +1,8 @@
-package calendar;
+package calendar.model;
 
 import java.util.Arrays;
+
+import calendar.CalendarException;
 
 public enum Property {
   SUBJECT("subject"),

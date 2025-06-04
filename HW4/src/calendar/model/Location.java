@@ -1,4 +1,4 @@
-package calendar;
+package calendar.model;
 
 import java.util.Arrays;
 

@@ -1,8 +1,10 @@
-package calendar;
+package calendar.model;
 
 import java.time.DayOfWeek;
 import java.util.EnumSet;
 import java.util.Set;
+
+import calendar.CalendarException;
 
 public enum Days {
   MONDAY('M', DayOfWeek.MONDAY),

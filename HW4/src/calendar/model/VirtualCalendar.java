@@ -1,4 +1,4 @@
-package calendar;
+package calendar.model;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import calendar.CalendarException;
 
 /**
  * Represents a virtual calendar that allows you to create events and store them
@@ -39,21 +41,17 @@ public class VirtualCalendar implements ICalendar {
    * @param subject     the subject of the event
    * @param startDate   the starting date and time of the event
    * @param endDate     the ending date and time of the event. If empty, make event an all-day event
-   * @param description the description of the event. Can be left blank
-   * @param location    the location of the event, either in-person or online. Can be left blank
-   * @param eventStatus the status of the event, either public or private. Can be left blank
    * @return the created Event object.
    * @throws CalendarException if the given start date is chronologically after the end
    *                                  date, or if the event already exists.
    */
   @Override
-  public Event createEvent(String subject, LocalDateTime startDate, LocalDateTime endDate,
-                           String description, Location location, EventStatus eventStatus)
+  public Event createEvent(String subject, LocalDateTime startDate, LocalDateTime endDate)
           throws CalendarException {
     if (startDate.isAfter(endDate)) { // check for valid dates
       throw new CalendarException("Start date cannot be after end date");
     }
-    Event event = new Event(subject, startDate, endDate, description, location, null, eventStatus, null);
+    Event event = new Event(subject, startDate, endDate);
     if (uniqueEvents.add(event)) { // check for duplicate event
       // add event to each day from start to end date
       for (LocalDate date = startDate.toLocalDate(); !date.isAfter(endDate.toLocalDate());

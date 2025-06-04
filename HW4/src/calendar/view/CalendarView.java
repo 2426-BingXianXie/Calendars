@@ -1,10 +1,11 @@
-package calendar;
+package calendar.view;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import calendar.model.Event;
 
 public class CalendarView implements ICalendarView {
   private final Appendable out;

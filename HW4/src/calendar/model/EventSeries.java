@@ -1,4 +1,4 @@
-package calendar;
+package calendar.model;
 
 import java.time.DayOfWeek;
 import java.time.Duration;
@@ -8,6 +8,8 @@ import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+
+import calendar.CalendarException;
 
 /**
  * Represents a series of recurring events in a calendar.

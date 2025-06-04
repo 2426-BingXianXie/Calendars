@@ -1,9 +1,11 @@
-package calendar;
+package calendar.model;
 
 import java.time.*;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import calendar.CalendarException;
 
 public interface ICalendar {
 
@@ -13,21 +15,16 @@ public interface ICalendar {
    * @param subject     the subject of the event
    * @param startDate   the starting date and time of the event
    * @param endDate     the ending date and time of the event. If empty, make event an all-day event
-   * @param description the description of the event. Can be left blank
-   * @param location    the location of the event, either in-person or online. Can be left blank
-   * @param eventStatus the status of the event, either public or private. Can be left blank
    * @return the created Event object.
    * @throws CalendarException if the given start date is chronologically after the end
    *                                  date, or if the event already exists.
    */
-  Event createEvent(String subject, LocalDateTime startDate, LocalDateTime endDate,
-                    String description, Location location, EventStatus eventStatus)
-          throws CalendarException;
+  Event createEvent(String subject, LocalDateTime startDate, LocalDateTime endDate) throws CalendarException;
 
   void createEventSeries(String subject, LocalTime startTime, LocalTime endTime,
-                                Set<Days> daysOfWeek, LocalDate startDate, LocalDate endDate,
-                                int repeats, String description, Location location,
-                                EventStatus eventStatus) throws CalendarException;
+                         Set<Days> daysOfWeek, LocalDate startDate, LocalDate endDate,
+                         int repeats, String description, Location location,
+                         EventStatus eventStatus) throws CalendarException;
 
   List<Event> getEventsBySubjectAndStartTime(String subject, LocalDateTime startTime);
 

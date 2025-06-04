@@ -1,4 +1,4 @@
-package calendar;
+package calendar.controller;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -9,6 +9,13 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.UUID;
+
+import calendar.CalendarException;
+import calendar.view.ICalendarView;
+import calendar.model.Days;
+import calendar.model.Event;
+import calendar.model.ICalendar;
+import calendar.model.Property;
 
 public class CalendarController implements ICalendarController {
   private final Readable in;
@@ -138,8 +145,7 @@ public class CalendarController implements ICalendarController {
     } else { // no repeats keyword, so event is an all-day event
       model.createEvent(subject,
               LocalDateTime.of(onDate, LocalTime.of(8, 0)),
-              LocalDateTime.of(onDate, LocalTime.of(17, 0)),
-              null, null, null);
+              LocalDateTime.of(onDate, LocalTime.of(17, 0)));
       view.writeMessage("Event '" + subject + "' created from 8am to 5pm on " + onDate +
               System.lineSeparator());
     }
@@ -183,7 +189,7 @@ public class CalendarController implements ICalendarController {
         throw new CalendarException("Expected 'repeats' or end of command for single timed event.");
       }
     } else { // no more inputs, so it's a single event
-      model.createEvent(subject, fromDate, toDate, null, null, null);
+      model.createEvent(subject, fromDate, toDate);
       view.writeMessage("Event '" + subject + "' created from " + fromDate + " to " + toDate + "."
               + System.lineSeparator());
     }
