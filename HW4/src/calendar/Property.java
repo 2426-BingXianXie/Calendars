@@ -1,6 +1,5 @@
 package calendar;
 
-import java.time.DayOfWeek;
 import java.util.Arrays;
 
 public enum Property {
@@ -21,13 +20,13 @@ public enum Property {
     return str;
   }
 
-  public static Property fromStr(String s) {
+  public static Property fromStr(String s) throws CalendarException {
     for (Property property : values()) {
       if (property.str.equalsIgnoreCase(s)) {
         return property;
       }
     }
-    throw new IllegalArgumentException("Invalid property: " + s +
+    throw new CalendarException("Invalid property: " + s +
             ", valid values are: " + Arrays.toString(values()));
   }
 

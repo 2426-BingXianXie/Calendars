@@ -44,15 +44,15 @@ public enum Days {
    *
    * @param c the character symbol for the day
    * @return the Days enum for the specified symbol
-   * @throws IllegalArgumentException if the character does not match any day
+   * @throws CalendarException if the character does not match any day
    */
-  public static Days fromSymbol(char c) {
+  public static Days fromSymbol(char c) throws CalendarException {
     for (Days day : values()) {
       if (day.symbol == c) {
         return day;
       }
     }
-    throw new IllegalArgumentException("Invalid weekday symbol: " + c);
+    throw new CalendarException("Invalid weekday symbol: " + c);
   }
 
   /**
@@ -61,7 +61,7 @@ public enum Days {
    * @param weekdayChars a string containing characters representing weekdays
    * @return a set of DayOfWeek enums corresponding to the characters
    */
-  public static Set<DayOfWeek> parseWeekdays(String weekdayChars) {
+  public static Set<DayOfWeek> parseWeekdays(String weekdayChars) throws CalendarException {
     Set<DayOfWeek> days = EnumSet.noneOf(DayOfWeek.class);
     for (char c : weekdayChars.toCharArray()) {
       days.add(fromSymbol(c).toDayOfWeek());

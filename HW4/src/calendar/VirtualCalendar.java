@@ -43,15 +43,15 @@ public class VirtualCalendar implements ICalendar {
    * @param location    the location of the event, either in-person or online. Can be left blank
    * @param eventStatus the status of the event, either public or private. Can be left blank
    * @return the created Event object.
-   * @throws IllegalArgumentException if the given start date is chronologically after the end
+   * @throws CalendarException if the given start date is chronologically after the end
    *                                  date, or if the event already exists.
    */
   @Override
   public Event createEvent(String subject, LocalDateTime startDate, LocalDateTime endDate,
                            String description, Location location, EventStatus eventStatus)
-          throws IllegalArgumentException {
+          throws CalendarException {
     if (startDate.isAfter(endDate)) { // check for valid dates
-      throw new IllegalArgumentException("Start date cannot be after end date");
+      throw new CalendarException("Start date cannot be after end date");
     }
     Event event = new Event(subject, startDate, endDate, description, location, null, eventStatus, null);
     if (uniqueEvents.add(event)) { // check for duplicate event
@@ -63,7 +63,7 @@ public class VirtualCalendar implements ICalendar {
       eventsByID.put(event.getId(), event);
       return event;
     } else {
-      throw new IllegalArgumentException("Event already exists");
+      throw new CalendarException("Event already exists");
     }
   }
 
@@ -85,7 +85,7 @@ public class VirtualCalendar implements ICalendar {
   public void createEventSeries(String subject, LocalTime startTime, LocalTime endTime,
                                 Set<Days> daysOfWeek, LocalDate startDate, LocalDate endDate,
                                 int repeats, String description, Location location,
-                                EventStatus eventStatus)  throws IllegalArgumentException {
+                                EventStatus eventStatus)  throws CalendarException {
     // Convert Days to DayOfWeek
     Set<DayOfWeek> dayOfWeeks = daysOfWeek.stream()
             .map(Days::toDayOfWeek)
@@ -111,7 +111,7 @@ public class VirtualCalendar implements ICalendar {
       event.setSeriesId(series.getId());
 
       if (!uniqueEvents.add(event)) {
-        throw new IllegalArgumentException("Duplicate event in series: " + event.getSubject());
+        throw new CalendarException("Duplicate event in series: " + event.getSubject());
       }
 
       // Add to date index

@@ -17,17 +17,17 @@ public interface ICalendar {
    * @param location    the location of the event, either in-person or online. Can be left blank
    * @param eventStatus the status of the event, either public or private. Can be left blank
    * @return the created Event object.
-   * @throws IllegalArgumentException if the given start date is chronologically after the end
+   * @throws CalendarException if the given start date is chronologically after the end
    *                                  date, or if the event already exists.
    */
   Event createEvent(String subject, LocalDateTime startDate, LocalDateTime endDate,
                     String description, Location location, EventStatus eventStatus)
-          throws IllegalArgumentException;
+          throws CalendarException;
 
   void createEventSeries(String subject, LocalTime startTime, LocalTime endTime,
                                 Set<Days> daysOfWeek, LocalDate startDate, LocalDate endDate,
                                 int repeats, String description, Location location,
-                                EventStatus eventStatus) throws IllegalArgumentException;
+                                EventStatus eventStatus) throws CalendarException;
 
   List<Event> getEventsBySubjectAndStartTime(String subject, LocalDateTime startTime);
 
