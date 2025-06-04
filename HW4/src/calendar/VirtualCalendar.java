@@ -122,7 +122,7 @@ public class VirtualCalendar implements ICalendar {
     eventSeriesByID.put(series.getId(), series);
   }
 
-  public List<Event> findEventsByDetails(String subject, LocalDateTime startTime, LocalDateTime endTime) {
+  public List<Event> getEventsByDetails(String subject, LocalDateTime startTime, LocalDateTime endTime) {
     List<Event> matchingEvents = new ArrayList<>();
     // use getEventsList to narrow down
     List<Event> eventsOnDay = getEventsList(startTime.toLocalDate());
@@ -167,10 +167,22 @@ public class VirtualCalendar implements ICalendar {
    * @return a list of events occurring between the start and end dates, inclusive
    */
   @Override
-  public List<Event> getEventsListInDateRange(LocalDate start, LocalDate end) {
+  public List<Event> getEventsListInDateRange(LocalDateTime start, LocalDateTime end) {
+    // use set for duplicate events
+    Set<Event> uniqueEvents = new HashSet<>();
     List<Event> result = new ArrayList<>();
-    for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
-      result.addAll(getEventsList(date));
+    for (LocalDate date = start.toLocalDate(); !date.isAfter(end.toLocalDate());
+         date = date.plusDays(1)) {
+      uniqueEvents.addAll(getEventsList(date));
+    }
+    // check that events fall within time intervals
+    for (Event event : uniqueEvents) {
+      LocalDateTime eventStart = event.getStart();
+      LocalDateTime eventEnd = event.getEnd();
+
+      if (eventStart.isBefore(end) && eventEnd.isAfter(start)) {
+        result.add(event);
+      }
     }
     return result;
   }
@@ -238,10 +250,12 @@ public class VirtualCalendar implements ICalendar {
         event.setDescription(newValue);
         break;
       case LOCATION:
-        event.setLocation(Location.valueOf(newValue));
+        Location newLocation = Location.fromStr(newValue);
+        event.setLocation(newLocation);
         break;
       case STATUS:
-        event.setStatus(EventStatus.valueOf(newValue));
+        EventStatus newStatus = EventStatus.valueOf(newValue);
+        event.setStatus(newStatus);
         break;
     }
     return event;
