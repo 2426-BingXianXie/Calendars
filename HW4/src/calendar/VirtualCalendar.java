@@ -50,12 +50,6 @@ public class VirtualCalendar implements ICalendar {
   public Event createEvent(String subject, LocalDateTime startDate, LocalDateTime endDate,
                            String description, Location location, EventStatus eventStatus)
           throws IllegalArgumentException {
-    if (endDate == null) { // no end date, so event should be an "all day event"
-      // set end date to same day, 5pm
-      endDate = LocalDateTime.of(startDate.toLocalDate(), LocalTime.of(17, 0));
-      // set start date to same day, 8am
-      startDate = LocalDateTime.of(startDate.toLocalDate(), LocalTime.of(8, 0));
-    }
     if (startDate.isAfter(endDate)) { // check for valid dates
       throw new IllegalArgumentException("Start date cannot be after end date");
     }
@@ -128,6 +122,32 @@ public class VirtualCalendar implements ICalendar {
     eventSeriesByID.put(series.getId(), series);
   }
 
+  public List<Event> findEventsByDetails(String subject, LocalDateTime startTime, LocalDateTime endTime) {
+    List<Event> matchingEvents = new ArrayList<>();
+    // use getEventsList to narrow down
+    List<Event> eventsOnDay = getEventsList(startTime.toLocalDate());
+    for (Event event : eventsOnDay) {
+      if (event.getSubject().equalsIgnoreCase(subject) && event.getStart().equals(startTime) &&
+      event.getEnd().equals(endTime)) {
+        matchingEvents.add(event);
+      }
+    }
+    return matchingEvents;
+  }
+
+  @Override
+  public List<Event> getEventsBySubjectAndStartTime(String subject, LocalDateTime startTime) {
+    List<Event> matchingEvents = new ArrayList<>();
+    // use getEventsList to narrow down
+    List<Event> eventsOnDay = getEventsList(startTime.toLocalDate());
+    for (Event event : eventsOnDay) {
+      if (event.getSubject().equalsIgnoreCase(subject) && event.getStart().equals(startTime)) {
+        matchingEvents.add(event);
+      }
+    }
+    return matchingEvents;
+  }
+
   /**
    * Retrieves a list of events for a specific date.
    *
@@ -198,29 +218,29 @@ public class VirtualCalendar implements ICalendar {
 
   // could implement Property enum
   @Override
-  public Event editEvent(UUID eventID, String property, String newValue) {
+  public Event editEvent(UUID eventID, Property property, String newValue) {
     Event event = eventsByID.get(eventID);
     if (event == null) return null;
 
-    switch (property.toLowerCase()) {
-      case "subject":
+    switch (property) {
+      case SUBJECT:
         event.setSubject(newValue);
         break;
-      case "start":
+      case START:
         LocalDateTime newStart = LocalDateTime.parse(newValue);
         event.setStart(newStart);
         break;
-      case "end":
+      case END:
         LocalDateTime newEnd = LocalDateTime.parse(newValue);
         event.setEnd(newEnd);
         break;
-      case "description":
+      case DESCRIPTION:
         event.setDescription(newValue);
         break;
-      case "location":
+      case LOCATION:
         event.setLocation(Location.valueOf(newValue));
         break;
-      case "status":
+      case STATUS:
         event.setStatus(EventStatus.valueOf(newValue));
         break;
     }
@@ -228,7 +248,7 @@ public class VirtualCalendar implements ICalendar {
   }
 
   @Override
-  public void editSeriesFromDate(UUID seriesID, String property, String newValue) {
+  public void editSeriesFromDate(UUID seriesID, Property property, String newValue) {
     EventSeries series = eventSeriesByID.get(seriesID);
     if (series == null) return;
 
@@ -252,7 +272,7 @@ public class VirtualCalendar implements ICalendar {
   }
 
   @Override
-  public void editSeries(UUID seriesID, String property, String newValue) {
+  public void editSeries(UUID seriesID, Property property, String newValue) {
     EventSeries series = eventSeriesByID.get(seriesID);
     if (series == null) return;
 
@@ -264,7 +284,7 @@ public class VirtualCalendar implements ICalendar {
     }
 
     // Update series properties if needed
-    if ("subject".equals(property)) {
+    if ("subject".equals(property.getStr())) {
       series.setSubject(newValue);
     }
   }

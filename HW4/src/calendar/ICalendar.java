@@ -29,6 +29,10 @@ public interface ICalendar {
                                 int repeats, String description, Location location,
                                 EventStatus eventStatus) throws IllegalArgumentException;
 
+  List<Event> getEventsBySubjectAndStartTime(String subject, LocalDateTime startTime);
+
+  List<Event> findEventsByDetails(String subject, LocalDateTime startTime, LocalDateTime endTime);
+
   List<Event> getEventsList(LocalDate date);
 
   List<Event> getEventsListInDateRange(LocalDate start, LocalDate end);
@@ -36,11 +40,11 @@ public interface ICalendar {
   boolean isBusyAt(LocalDateTime dateTime);
 
   // could implement Property enum
-  Event editEvent(UUID eventID, String property, String newProperty);
+  Event editEvent(UUID eventID, Property property, String newProperty);
 
-  void editSeriesFromDate(UUID seriesID, String property, String newProperty);
+  void editSeriesFromDate(UUID seriesID, Property property, String newProperty);
 
-  void editSeries(UUID seriesID, String property, String newProperty);
+  void editSeries(UUID seriesID, Property property, String newProperty);
 
 
 }
