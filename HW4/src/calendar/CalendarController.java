@@ -351,7 +351,7 @@ public class CalendarController implements ICalendarController {
   }
 
 
-  private void handlePrint(Scanner sc, ICalendar model) {
+  private void handlePrint(Scanner sc, ICalendar model) throws CalendarException {
     if (!sc.hasNext()) throw new IllegalArgumentException("Missing input after 'print'.");
     // check that input entered after 'print' is 'events'
     if (!sc.next().equalsIgnoreCase("events")) {
@@ -384,7 +384,7 @@ public class CalendarController implements ICalendarController {
     }
   }
 
-  private void handleShow(Scanner sc, ICalendar model) {
+  private void handleShow(Scanner sc, ICalendar model) throws CalendarException {
     if (!sc.hasNext()) throw new IllegalArgumentException("Missing input after 'show'.");
     // check that input after 'show' is 'status'
     if (!sc.next().equalsIgnoreCase("status")) {
