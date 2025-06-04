@@ -2,6 +2,8 @@ package calendar.model;
 
 import java.util.Arrays;
 
+import calendar.CalendarException;
+
 public enum Location {
   PHYSICAL("physical"), ONLINE("online");
 
@@ -15,13 +17,13 @@ public enum Location {
     return value;
   }
 
-  public static Location fromStr(String s) {
+  public static Location fromStr(String s) throws CalendarException {
     for (Location location : values()) {
       if (location.value.equalsIgnoreCase(s)) {
         return location;
       }
     }
-    throw new IllegalArgumentException("Invalid location: " + s +
+    throw new CalendarException("Invalid location: " + s +
             ", valid values are: " + Arrays.toString(values()));
   }
 

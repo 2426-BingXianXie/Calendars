@@ -2,6 +2,8 @@ package calendar.model;
 
 import java.util.Arrays;
 
+import calendar.CalendarException;
+
 public enum EventStatus {
   PUBLIC("public"), PRIVATE("private");
 
@@ -15,13 +17,13 @@ public enum EventStatus {
     return value;
   }
 
-  public static EventStatus fromStr(String s) {
+  public static EventStatus fromStr(String s) throws CalendarException {
     for (EventStatus eventStatus : values()) {
       if (eventStatus.value.equalsIgnoreCase(s)) {
         return eventStatus;
       }
     }
-    throw new IllegalArgumentException("Invalid event status: " + s +
+    throw new CalendarException("Invalid event status: " + s +
             ", valid values are: " + Arrays.toString(values()));
   }
 }

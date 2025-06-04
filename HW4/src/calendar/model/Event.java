@@ -213,4 +213,8 @@ public class Event {
             endDate,
             location != null ? " @ " + getLocationDisplay() : "");
   }
+
+  public String getLocationDetail() {
+    return locationDetail;
+  }
 }

@@ -37,11 +37,11 @@ public interface ICalendar {
   boolean isBusyAt(LocalDateTime dateTime);
 
   // could implement Property enum
-  Event editEvent(UUID eventID, Property property, String newProperty);
+  Event editEvent(UUID eventID, Property property, String newProperty) throws CalendarException;
 
-  void editSeriesFromDate(UUID seriesID, Property property, String newProperty);
+  void editSeriesFromDate(UUID seriesID, Property property, String newProperty) throws CalendarException;
 
-  void editSeries(UUID seriesID, Property property, String newProperty);
+  void editSeries(UUID seriesID, Property property, String newProperty) throws CalendarException;
 
 
 }
