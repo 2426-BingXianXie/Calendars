@@ -24,20 +24,20 @@ public class CalendarRunner {
         System.out.println("Please select mode:");
         System.out.println("1. Interactive");
         System.out.println("2. Headless");
-        System.out.print("Enter choice Interactive or Headless : ");
+        System.out.print("Enter choice (1, 2, 'interactive', or 'headless'): ");
 
         Scanner scanner = new Scanner(System.in);
-        int choice = scanner.nextInt();
-        scanner.nextLine();  // Consume newline
+        String input = scanner.nextLine().trim().toLowerCase();
 
-        if (choice == 1) {
+        if (input.equals("1") || input.equals("interactive")) {
           args = new String[]{"--mode", "interactive"};
-        } else if (choice == 2) {
+        } else if (input.equals("2") || input.equals("headless")) {
           System.out.print("Enter command file path: ");
           String filePath = scanner.nextLine();
           args = new String[]{"--mode", "headless", filePath};
         } else {
-          System.err.println("Invalid choice. Exiting.");
+          System.err.println("Invalid choice: " + input);
+          System.err.println("Valid choices: 1, 2, interactive, headless");
           System.exit(1);
         }
       }
@@ -73,9 +73,6 @@ public class CalendarRunner {
         System.err.println("Example for headless mode: java CalendarRunner --mode headless commands.txt");
         System.exit(1);
       }
-    } catch (CalendarException e) {
-      System.err.println("Calendar Error: " + e.getMessage());
-      System.exit(1);
     } catch (IOException e) {
       System.err.println("I/O Error: " + e.getMessage());
       System.err.println("Could not read file: " + (args.length > 2 ? args[2] : ""));
