@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Scanner;
 
 import calendar.CalendarException;
-import calendar.controller.AbstractCommand;
 import calendar.model.Event;
 import calendar.model.ICalendar;
 import calendar.view.ICalendarView;

@@ -1,4 +1,4 @@
-package calendar.controller;
+package calendar.controller.commands;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -6,6 +6,7 @@ import java.time.format.DateTimeParseException;
 import java.util.Scanner;
 
 import calendar.CalendarException;
+import calendar.controller.CalendarCommand;
 import calendar.model.ICalendar;
 import calendar.view.ICalendarView;
 
