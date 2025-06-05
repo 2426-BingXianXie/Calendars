@@ -413,34 +413,73 @@ public class EventSeriesTest {
   }
 
   /**
-   * Tests the EventSeries constructor when the number of occurrences is zero
-   * and there's no end date (covered by constructor tests). This specifically tests
-   * when the end date is set to a date before any events can be generated.
-   * Asserts that an error is thrown.
+   * Tests the constructor when both occurrence count and end date are null.
+   * Verifies that the constructor throws a CalendarException when neither
+   * termination condition is provided.
    *
-   * @throws CalendarException if there's an issue during event series creation.
+   * @throws CalendarException expected when no termination condition is specified
    */
   @Test(expected = CalendarException.class)
-  public void testGenerateEventsZeroOccurrences() throws CalendarException {
-    endDate = LocalDate.of(2025, 6, 1); // Before startDateTime (June 2)
-    EventSeries series = new EventSeries(subject, startDateTime, endDateTime, daysOfRecurrence,
-            null, endDate);
+  public void testConstructorNullOccurrenceCountAndNullEndDate() throws CalendarException {
+    // Both occurrenceCount and endDate are null - should throw exception
+    new EventSeries(subject, startDateTime, endDateTime, daysOfRecurrence,
+            null, null);
   }
 
   /**
-   * Tests the {@code generateEvents} method when the series end date is before the series
-   * start date.
-   * Asserts that an error is thrown.
+   * Tests the constructor when the series end date is before the series start date.
+   * Verifies that the constructor throws a CalendarException when the end date
+   * precedes the start date, which would create an invalid date range.
    *
-   * @throws CalendarException if there's an issue during event series creation.
+   * @throws CalendarException expected when end date is before start date
    */
   @Test(expected = CalendarException.class)
-  public void testGenerateEventsSeriesEndDateBeforeStartDate() throws CalendarException {
-    endDate = LocalDate.of(2025, 5, 1); // Before startDateTime (June 2)
-    EventSeries series = new EventSeries(subject, startDateTime, endDateTime, daysOfRecurrence,
-            null, endDate);
+  public void testConstructorEndDateBeforeStartDate() throws CalendarException {
+    LocalDate invalidEndDate = LocalDate.of(2025, 5, 1);
+    new EventSeries(subject, startDateTime, endDateTime, daysOfRecurrence,
+            null, invalidEndDate);
   }
 
+  /**
+   * Tests the constructor with a valid end date that comes after the start date.
+   * Verifies that the constructor succeeds when the end date is properly set
+   * to a date after the series start date.
+   *
+   * @throws CalendarException should not be thrown for valid date range
+   */
+  @Test
+  public void testConstructorValidEndDateAfterStartDate() throws CalendarException {
+    LocalDate validEndDate = LocalDate.of(2025, 6, 30);
+    EventSeries series = new EventSeries(subject, startDateTime, endDateTime,
+            daysOfRecurrence, null, validEndDate);
+
+    assertNotNull("Series should be created successfully", series);
+    assertEquals("End date should be set correctly", validEndDate,
+            series.getSeriesEndDate());
+    assertEquals("Start date should be set correctly",
+            startDateTime.toLocalDate(), series.getSeriesStartDate());
+  }
+
+  /**
+   * Tests the constructor when end date equals the start date.
+   * Verifies that the constructor allows an end date that is the same as
+   * the start date, creating a single-day series.
+   *
+   * @throws CalendarException should not be thrown for same-day series
+   */
+  @Test
+  public void testConstructorEndDateEqualsStartDate() throws CalendarException {
+    LocalDate sameDate = startDateTime.toLocalDate();
+    EventSeries series = new EventSeries(subject, startDateTime, endDateTime,
+            daysOfRecurrence, null, sameDate);
+
+    assertNotNull("Series should be created successfully", series);
+    assertEquals("End date should equal start date",
+            sameDate, series.getSeriesEndDate());
+    assertEquals("Start date should be set correctly",
+            sameDate, series.getSeriesStartDate());
+  }
+  
   /**
    * Tests the {@code generateEvents} method when there are no matching days of recurrence
    * within the specified date range.

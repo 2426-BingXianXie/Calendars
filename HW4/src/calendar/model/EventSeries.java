@@ -160,10 +160,14 @@ public class EventSeries {
    */
   private boolean exceedsLimit(LocalDate date, int count) {
     // If a series end date is defined, check if the current date is after it.
-    if (seriesEndDate != null) return date.isAfter(seriesEndDate);
+    if (seriesEndDate != null) {
+      return date.isAfter(seriesEndDate);
+    }
     // If a number of occurrences is defined (greater than 0), check if the current count
     // meets or exceeds it.
-    if (numOccurrences > 0) return count >= numOccurrences;
+    if (numOccurrences > 0) {
+      return count >= numOccurrences;
+    }
     // If neither an end date nor a positive occurrence count is defined, the limit is 
     // not exceeded (should be caught by constructor).
     return false;
