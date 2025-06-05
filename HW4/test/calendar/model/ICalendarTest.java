@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import calendar.CalendarException;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -62,7 +63,7 @@ public class ICalendarTest {
    * @throws CalendarException if the event creation fails (unexpected for valid input).
    */
   @Test
-  public void testCreateEvent_ValidSingleEvent() throws CalendarException {
+  public void testCreateEventValidSingleEvent() throws CalendarException {
     Event event = calendar.createEvent("Test Event", today9AM, today10AM);
     assertNotNull(event);
     assertEquals("Test Event", event.getSubject());
@@ -82,7 +83,7 @@ public class ICalendarTest {
    * @throws CalendarException if the event creation fails.
    */
   @Test
-  public void testCreateEvent_EventSpanningMultipleDays() throws CalendarException {
+  public void testCreateEventEventSpanningMultipleDays() throws CalendarException {
     LocalDateTime start = LocalDateTime.of(2025, 6, 4, 22, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 5, 2, 0);
     Event event = calendar.createEvent("Overnight Event", start, end);
@@ -101,7 +102,7 @@ public class ICalendarTest {
    * @throws CalendarException expected exception for invalid event times.
    */
   @Test(expected = CalendarException.class)
-  public void testCreateEvent_StartTimeAfterEndTime() throws CalendarException {
+  public void testCreateEventStartTimeAfterEndTime() throws CalendarException {
     calendar.createEvent("Invalid Event", today10AM, today9AM);
   }
 
@@ -112,7 +113,7 @@ public class ICalendarTest {
    * @throws CalendarException expected exception for creating a duplicate event.
    */
   @Test(expected = CalendarException.class)
-  public void testCreateEvent_DuplicateEvent() throws CalendarException {
+  public void testCreateEventDuplicateEvent() throws CalendarException {
     calendar.createEvent("Duplicate", today9AM, today10AM);
     calendar.createEvent("Duplicate", today9AM, today10AM);
   }
@@ -124,7 +125,7 @@ public class ICalendarTest {
    * @throws CalendarException if the event creation fails.
    */
   @Test
-  public void testCreateEvent_AllDayEventImplicitly() throws CalendarException {
+  public void testCreateEventAllDayEventImplicitly() throws CalendarException {
     LocalDateTime start = LocalDate.of(2025, 6, 4).atStartOfDay();
     LocalDateTime end = LocalDate.of(2025, 6, 4).atTime(23,
             59, 59);
@@ -144,7 +145,7 @@ public class ICalendarTest {
    * @throws CalendarException if the event series creation fails.
    */
   @Test
-  public void testCreateEventSeries_CountBased() throws CalendarException {
+  public void testCreateEventSeriesCountBased() throws CalendarException {
     Set<Days> days = EnumSet.of(Days.MONDAY, Days.WEDNESDAY);
     calendar.createEventSeries("Series Test", LocalTime.of(9, 0),
             LocalTime.of(10, 0),
@@ -190,7 +191,7 @@ public class ICalendarTest {
    * @throws CalendarException if the event series creation fails.
    */
   @Test
-  public void testCreateEventSeries_DateBased() throws CalendarException {
+  public void testCreateEventSeriesDateBased() throws CalendarException {
     Set<Days> days = EnumSet.of(Days.TUESDAY, Days.THURSDAY);
     calendar.createEventSeries("Date Series", LocalTime.of(14, 0),
             LocalTime.of(15, 0),
@@ -228,7 +229,7 @@ public class ICalendarTest {
    * @throws CalendarException expected exception if an event in the series is a duplicate.
    */
   @Test(expected = CalendarException.class)
-  public void testCreateEventSeries_EventCreationFailsInSeries() throws CalendarException {
+  public void testCreateEventSeriesEventCreationFailsInSeries() throws CalendarException {
     Set<Days> days = EnumSet.of(Days.MONDAY);
     // Create a series that generates an event on June 2nd, 9-10 AM
     calendar.createEventSeries("Duplicate Series Event",
@@ -253,7 +254,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation fails.
    */
   @Test
-  public void testGetEventsBySubjectAndStartTime_Found() throws CalendarException {
+  public void testGetEventsBySubjectAndStartTimeFound() throws CalendarException {
     Event event1 = calendar.createEvent("Meeting", today9AM, today10AM);
     Event event2 = calendar.createEvent("Meeting", tomorrow9AM, tomorrow10AM);
     Event event3 = calendar.createEvent("Other Event", today9AM, today10AM);
@@ -272,7 +273,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation fails.
    */
   @Test
-  public void testGetEventsBySubjectAndStartTime_NotFound() throws CalendarException {
+  public void testGetEventsBySubjectAndStartTimeNotFound() throws CalendarException {
     calendar.createEvent("Meeting", today9AM, today10AM);
     List<Event> result = calendar.getEventsBySubjectAndStartTime("Non Existent", today9AM);
     assertTrue(result.isEmpty());
@@ -285,7 +286,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation fails.
    */
   @Test
-  public void testGetEventsBySubjectAndStartTime_CaseInsensitiveSubject() throws CalendarException {
+  public void testGetEventsBySubjectAndStartTimeCaseInsensitiveSubject() throws CalendarException {
     Event event = calendar.createEvent("Case Test", today9AM, today10AM);
     List<Event> result = calendar.getEventsBySubjectAndStartTime("case test", today9AM);
     assertEquals(1, result.size());
@@ -300,7 +301,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation fails.
    */
   @Test
-  public void testGetEventsByDetails_Found() throws CalendarException {
+  public void testGetEventsByDetailsFound() throws CalendarException {
     Event event1 = calendar.createEvent("Project Sync", today9AM, today10AM);
     Event event2 = calendar.createEvent("Project Sync", tomorrow9AM, tomorrow10AM);
     Event event3 = calendar.createEvent("Project Sync", today9AM, tomorrow10AM);
@@ -317,7 +318,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation fails.
    */
   @Test
-  public void testGetEventsByDetails_NotFound() throws CalendarException {
+  public void testGetEventsByDetailsNotFound() throws CalendarException {
     calendar.createEvent("Project Sync", today9AM, today10AM);
     List<Event> result = calendar.getEventsByDetails("Project Sync",
             today9AM, today9AM.plusMinutes(30));
@@ -332,7 +333,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation fails.
    */
   @Test
-  public void testGetEventsList_DateWithEvents() throws CalendarException {
+  public void testGetEventsListDateWithEvents() throws CalendarException {
     Event event1 = calendar.createEvent("Morning Event", today9AM, today10AM);
     Event event2 = calendar.createEvent("Afternoon Event", today10AM,
             today10AM.plusHours(1));
@@ -348,7 +349,7 @@ public class ICalendarTest {
    * Asserts that an empty list is returned.
    */
   @Test
-  public void testGetEventsList_DateWithoutEvents() {
+  public void testGetEventsListDateWithoutEvents() {
     List<Event> events = calendar.getEventsList(tomorrow9AM.toLocalDate());
     assertTrue(events.isEmpty());
   }
@@ -360,7 +361,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation fails.
    */
   @Test
-  public void testGetEventsList_EventSpanningMultipleDaysIsListedOnBoth() throws CalendarException {
+  public void testGetEventsListEventSpanningMultipleDaysIsListedOnBoth() throws CalendarException {
     LocalDateTime start = LocalDateTime.of(2025, 6, 4, 23, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 5, 1, 0);
     Event overnightEvent = calendar.createEvent("Overnight Event", start, end);
@@ -382,7 +383,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation fails.
    */
   @Test
-  public void testGetEventsListInDateRange_MultipleDays() throws CalendarException {
+  public void testGetEventsListInDateRangeMultipleDays() throws CalendarException {
     Event event1 = calendar.createEvent("Day 1 Event", today9AM, today10AM);
     Event event2 = calendar.createEvent("Day 2 Event", tomorrow9AM, tomorrow10AM);
     Event event3 = calendar.createEvent("Day 3 Event", dayAfterTomorrow9AM,
@@ -403,7 +404,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation fails.
    */
   @Test
-  public void testGetEventsListInDateRange_PartialOverlap() throws CalendarException {
+  public void testGetEventsListInDateRangePartialOverlap() throws CalendarException {
     Event event = calendar.createEvent("Partial", today9AM, today10AM); // 9:00 - 10:00
 
     // Range: 9:30 - 10:30 (overlaps end)
@@ -431,7 +432,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation fails.
    */
   @Test
-  public void testGetEventsListInDateRange_NoEvents() throws CalendarException {
+  public void testGetEventsListInDateRangeNoEvents() throws CalendarException {
     List<Event> result = calendar.getEventsListInDateRange(today9AM, today10AM);
     assertTrue(result.isEmpty());
   }
@@ -445,7 +446,7 @@ public class ICalendarTest {
    * @throws IllegalArgumentException expected exception for invalid date range.
    */
   @Test(expected = IllegalArgumentException.class)
-  public void testGetEventsListInDateRange_StartAfterEnd() throws CalendarException {
+  public void testGetEventsListInDateRangeStartAfterEnd() throws CalendarException {
     calendar.getEventsListInDateRange(today10AM, today9AM);
   }
 
@@ -456,7 +457,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation fails.
    */
   @Test
-  public void testIsBusyAt_WithinEvent() throws CalendarException {
+  public void testIsBusyAtWithinEvent() throws CalendarException {
     calendar.createEvent("Busy Slot", today9AM, today10AM);
     assertTrue(calendar.isBusyAt(today9AM.plusMinutes(30)));
   }
@@ -468,7 +469,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation fails.
    */
   @Test
-  public void testIsBusyAt_ExactlyAtStart() throws CalendarException {
+  public void testIsBusyAtExactlyAtStart() throws CalendarException {
     calendar.createEvent("Busy Slot", today9AM, today10AM);
     assertTrue(calendar.isBusyAt(today9AM));
   }
@@ -480,7 +481,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation fails.
    */
   @Test
-  public void testIsBusyAt_ExactlyAtEnd() throws CalendarException {
+  public void testIsBusyAtExactlyAtEnd() throws CalendarException {
     calendar.createEvent("Busy Slot", today9AM, today10AM);
     assertFalse(calendar.isBusyAt(today10AM));
   }
@@ -492,7 +493,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation fails.
    */
   @Test
-  public void testIsBusyAt_BeforeEvent() throws CalendarException {
+  public void testIsBusyAtBeforeEvent() throws CalendarException {
     calendar.createEvent("Busy Slot", today9AM, today10AM);
     assertFalse(calendar.isBusyAt(today9AM.minusMinutes(1)));
   }
@@ -504,7 +505,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation fails.
    */
   @Test
-  public void testIsBusyAt_AfterEvent() throws CalendarException {
+  public void testIsBusyAtAfterEvent() throws CalendarException {
     calendar.createEvent("Busy Slot", today9AM, today10AM);
     assertFalse(calendar.isBusyAt(today10AM.plusMinutes(1)));
   }
@@ -514,7 +515,7 @@ public class ICalendarTest {
    * Asserts that the method returns false.
    */
   @Test
-  public void testIsBusyAt_NoEvents() {
+  public void testIsBusyAtNoEvents() {
     assertFalse(calendar.isBusyAt(today9AM));
   }
 
@@ -526,7 +527,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation fails.
    */
   @Test
-  public void testIsBusyAt_OvernightEventCoverage() throws CalendarException {
+  public void testIsBusyAtOvernightEventCoverage() throws CalendarException {
     LocalDateTime overnightStart = LocalDateTime.of(2025, 6, 4,
             23, 0);
     LocalDateTime overnightEnd = LocalDateTime.of(2025, 6, 5,
@@ -545,7 +546,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation or editing fails.
    */
   @Test
-  public void testEditEvent_Subject() throws CalendarException {
+  public void testEditEventSubject() throws CalendarException {
     Event event = calendar.createEvent("Old Subject", today9AM, today10AM);
     Event editedEvent = calendar.editEvent(event.getId(), Property.SUBJECT, "New Subject");
     assertEquals("New Subject", editedEvent.getSubject());
@@ -560,7 +561,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation or editing fails.
    */
   @Test
-  public void testEditEvent_StartTime() throws CalendarException {
+  public void testEditEventStartTime() throws CalendarException {
     Event event = calendar.createEvent("Edit Time", today9AM, today10AM);
     LocalDateTime newStartTime = today9AM.minusHours(1);
     Event editedEvent = calendar.editEvent(event.getId(), Property.START, newStartTime.toString());
@@ -578,7 +579,7 @@ public class ICalendarTest {
    * @throws CalendarException expected exception for invalid time edit.
    */
   @Test(expected = CalendarException.class)
-  public void testEditEvent_StartTimeAfterEndTime() throws CalendarException {
+  public void testEditEventStartTimeAfterEndTime() throws CalendarException {
     Event event = calendar.createEvent("Test", today9AM, today10AM);
     calendar.editEvent(event.getId(), Property.START, today10AM.plusMinutes(1).toString());
   }
@@ -590,7 +591,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation or editing fails.
    */
   @Test
-  public void testEditEvent_EndTime() throws CalendarException {
+  public void testEditEventEndTime() throws CalendarException {
     Event event = calendar.createEvent("Edit Time", today9AM, today10AM);
     LocalDateTime newEndTime = today10AM.plusHours(1);
     Event editedEvent = calendar.editEvent(event.getId(), Property.END, newEndTime.toString());
@@ -606,7 +607,7 @@ public class ICalendarTest {
    * @throws CalendarException expected exception for invalid time edit.
    */
   @Test(expected = CalendarException.class)
-  public void testEditEvent_EndTimeBeforeStartTime() throws CalendarException {
+  public void testEditEventEndTimeBeforeStartTime() throws CalendarException {
     Event event = calendar.createEvent("Test", today9AM, today10AM);
     calendar.editEvent(event.getId(), Property.END, today9AM.minusMinutes(1).toString());
   }
@@ -618,7 +619,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation or editing fails.
    */
   @Test
-  public void testEditEvent_Description() throws CalendarException {
+  public void testEditEventDescription() throws CalendarException {
     Event event = calendar.createEvent("Desc Test", today9AM, today10AM);
     Event editedEvent = calendar.editEvent(event.getId(), Property.DESCRIPTION,
             "New Description");
@@ -632,22 +633,10 @@ public class ICalendarTest {
    * @throws CalendarException if event creation or editing fails.
    */
   @Test
-  public void testEditEvent_Location() throws CalendarException {
+  public void testEditEventLocation() throws CalendarException {
     Event event = calendar.createEvent("Loc Test", today9AM, today10AM);
     Event editedEvent = calendar.editEvent(event.getId(), Property.LOCATION, "ONLINE");
     assertEquals(Location.ONLINE, editedEvent.getLocation());
-  }
-
-  /**
-   * Tests the {@code editEvent} method when attempting to set an invalid location value.
-   * Expects a {@link CalendarException}.
-   *
-   * @throws CalendarException expected exception for invalid location string.
-   */
-  @Test(expected = CalendarException.class)
-  public void testEditEvent_InvalidLocationValue() throws CalendarException {
-    Event event = calendar.createEvent("Loc Test", today9AM, today10AM);
-    calendar.editEvent(event.getId(), Property.LOCATION, "INVALID_LOCATION");
   }
 
   /**
@@ -657,23 +646,13 @@ public class ICalendarTest {
    * @throws CalendarException if event creation or editing fails.
    */
   @Test
-  public void testEditEvent_Status() throws CalendarException {
+  public void testEditEventStatus() throws CalendarException {
     Event event = calendar.createEvent("Status Test", today9AM, today10AM);
     Event editedEvent = calendar.editEvent(event.getId(), Property.STATUS, "PRIVATE");
     assertEquals(EventStatus.PRIVATE, editedEvent.getStatus());
   }
 
-  /**
-   * Tests the {@code editEvent} method when attempting to set an invalid status value.
-   * Expects a {@link CalendarException}.
-   *
-   * @throws CalendarException expected exception for invalid status string.
-   */
-  @Test(expected = CalendarException.class)
-  public void testEditEvent_InvalidStatusValue() throws CalendarException {
-    Event event = calendar.createEvent("Status Test", today9AM, today10AM);
-    calendar.editEvent(event.getId(), Property.STATUS, "INVALID_STATUS");
-  }
+
 
   /**
    * Tests the {@code editEvent} method when attempting to edit a non-existent event ID.
@@ -682,7 +661,7 @@ public class ICalendarTest {
    * @throws CalendarException expected exception for non-existent event.
    */
   @Test(expected = CalendarException.class)
-  public void testEditEvent_NonExistentID() throws CalendarException {
+  public void testEditEventNonExistentID() throws CalendarException {
     calendar.editEvent(UUID.randomUUID(), Property.SUBJECT, "Should Fail");
   }
 
@@ -699,7 +678,7 @@ public class ICalendarTest {
    *         to cross day boundaries.
    */
   @Test(expected = CalendarException.class)
-  public void testEditSeries_EndTimeChangesAllEventsDuration() throws CalendarException {
+  public void testEditSeriesEndTimeChangesAllEventsDuration() throws CalendarException {
     Set<Days> days = EnumSet.of(Days.WEDNESDAY);
     calendar.createEventSeries("Duration Series Test", LocalTime.of(9, 0), LocalTime.of(10, 0),
             days, LocalDate.of(2025, 6, 4), null, 1,
@@ -721,7 +700,7 @@ public class ICalendarTest {
    * @throws CalendarException if event creation or editing fails.
    */
   @Test
-  public void testEditEvent_BreaksSeriesMembership() throws CalendarException {
+  public void testEditEventBreaksSeriesMembership() throws CalendarException {
     Set<Days> days = EnumSet.of(Days.WEDNESDAY);
     calendar.createEventSeries("Series Event", LocalTime.of(9, 0),
             LocalTime.of(10, 0),
@@ -750,7 +729,7 @@ public class ICalendarTest {
    * @throws CalendarException if event series creation or editing fails.
    */
   @Test
-  public void testEditSeriesFromDate_Subject() throws CalendarException {
+  public void testEditSeriesFromDateSubject() throws CalendarException {
     Set<Days> days = EnumSet.of(Days.MONDAY, Days.WEDNESDAY);
     calendar.createEventSeries("Series Subject Test", LocalTime.of(9, 0),
             LocalTime.of(10, 0),
@@ -794,7 +773,7 @@ public class ICalendarTest {
    * @throws CalendarException if event series creation or editing fails.
    */
   @Test
-  public void testEditSeriesFromDate_StartTime() throws CalendarException {
+  public void testEditSeriesFromDateStartTime() throws CalendarException {
     Set<Days> days = EnumSet.of(Days.WEDNESDAY);
     calendar.createEventSeries("Edit Start Time Series", LocalTime.of(10,
                     0), LocalTime.of(11, 0),
@@ -839,7 +818,7 @@ public class ICalendarTest {
    * @throws CalendarException if event series creation or editing fails.
    */
   @Test
-  public void testEditSeriesFromDate_NonSeriesPropertiesIgnoredBySeriesEdit()
+  public void testEditSeriesFromDateNonSeriesPropertiesIgnoredBySeriesEdit()
           throws CalendarException {
     Set<Days> days = EnumSet.of(Days.WEDNESDAY);
     calendar.createEventSeries("Ignore Property Test", LocalTime.of(10, 0),
@@ -864,7 +843,7 @@ public class ICalendarTest {
    * @throws CalendarException if event series editing fails (unexpected for non-existent ID).
    */
   @Test
-  public void testEditSeriesFromDate_NonExistentSeriesID() throws CalendarException {
+  public void testEditSeriesFromDateNonExistentSeriesID() throws CalendarException {
 
     calendar.editSeriesFromDate(UUID.randomUUID(), Property.SUBJECT, "No effect");
     assertTrue(calendar.getEventsList(today9AM.toLocalDate()).isEmpty());
@@ -877,7 +856,7 @@ public class ICalendarTest {
    * @throws CalendarException if event series creation or editing fails.
    */
   @Test
-  public void testEditSeries_Subject() throws CalendarException {
+  public void testEditSeriesSubject() throws CalendarException {
     Set<Days> days = EnumSet.of(Days.MONDAY, Days.WEDNESDAY);
     calendar.createEventSeries("Old Series Subject", LocalTime.of(9, 0),
             LocalTime.of(10, 0),
@@ -917,7 +896,7 @@ public class ICalendarTest {
    * @throws CalendarException if event series creation or editing fails.
    */
   @Test
-  public void testEditSeries_StartTimeChangesAllEvents() throws CalendarException {
+  public void testEditSeriesStartTimeChangesAllEvents() throws CalendarException {
     Set<Days> days = EnumSet.of(Days.WEDNESDAY);
     calendar.createEventSeries("Series Edit Test", LocalTime.of(9, 0),
             LocalTime.of(10, 0),
@@ -952,14 +931,14 @@ public class ICalendarTest {
    * Tests the {@code editSeries} method for changing the end time of an entire series
    * when the change would result in events crossing a day boundary.
    * Expects a {@link CalendarException}. This is a duplicate of
-   * {@code testEditSeries_EndTimeChangesAllEventsDuration} but kept for emphasis
+   * {@code testEditSeriesEndTimeChangesAllEventsDuration} but kept for emphasis
    * on the specific exception condition.
    *
    * @throws CalendarException expected exception if the end time causes events to
    * cross day boundaries.
    */
   @Test(expected = CalendarException.class)
-  public void testEditSeries_EndTimeChangesAllEventsDuration_Exception() throws CalendarException {
+  public void testEditSeriesEndTimeChangesAllEventsDurationException() throws CalendarException {
     Set<Days> days = EnumSet.of(Days.WEDNESDAY);
     calendar.createEventSeries("Duration Series Test", LocalTime.of(9,
                     0), LocalTime.of(10, 0),
@@ -977,14 +956,14 @@ public class ICalendarTest {
    * Tests the {@code editSeries} method for changing the end time of an entire series
    * when the change would cause events to cross a day boundary.
    * Expects a {@link CalendarException}. This is a duplicate of
-   * {@code testEditSeries_EndTimeChangesAllEventsDuration} but kept for emphasis
+   * {@code testEditSeriesEndTimeChangesAllEventsDuration} but kept for emphasis
    * on the specific exception condition.
    *
    * @throws CalendarException expected exception if the end time causes events to
    *         cross day boundaries.
    */
   @Test(expected = CalendarException.class)
-  public void testEditSeries_EndTimeCrossesDayBoundary() throws CalendarException {
+  public void testEditSeriesEndTimeCrossesDayBoundary() throws CalendarException {
     Set<Days> days = EnumSet.of(Days.WEDNESDAY);
     calendar.createEventSeries("Cross Day Boundary Test", LocalTime.of(9,
                     0), LocalTime.of(10, 0),
@@ -1009,7 +988,7 @@ public class ICalendarTest {
    * @throws CalendarException if event series creation or editing fails.
    */
   @Test
-  public void testEditSeries_NonSeriesPropertiesIgnored() throws CalendarException {
+  public void testEditSeriesNonSeriesPropertiesIgnored() throws CalendarException {
     Set<Days> days = EnumSet.of(Days.WEDNESDAY);
     calendar.createEventSeries("Ignore Property Test", LocalTime.of(10, 0),
             LocalTime.of(11, 0),
@@ -1034,9 +1013,437 @@ public class ICalendarTest {
    * @throws CalendarException if event series editing fails (unexpected for non-existent ID).
    */
   @Test
-  public void testEditSeries_NonExistentSeriesID() throws CalendarException {
+  public void testEditSeriesNonExistentSeriesID() throws CalendarException {
 
     calendar.editSeries(UUID.randomUUID(), Property.SUBJECT, "No effect");
     assertTrue(calendar.getEventsList(today9AM.toLocalDate()).isEmpty());
+  }
+
+  /**
+   * Tests the creation of a singular event where the start and end times are identical,
+   * representing a zero-duration event.
+   *
+   * @throws CalendarException if the event creation fails due to business rules.
+   */
+  @Test
+  public void testCreateEventSameStartAndEndTime() throws CalendarException {
+    Event event = calendar.createEvent("Zero Duration", today9AM, today9AM);
+    assertNotNull(event);
+    assertEquals(today9AM, event.getStart());
+    assertEquals(today9AM, event.getEnd());
+  }
+
+  /**
+   * Tests the creation of a singular event that spans across multiple calendar days.
+   * Verifies that the event is correctly retrievable on all days it spans.
+   *
+   * @throws CalendarException if the event creation fails due to business rules.
+   */
+  @Test
+  public void testCreateEventSpanningMultipleDays() throws CalendarException {
+    LocalDateTime start = LocalDateTime.of(2025, 6, 4, 22, 0);
+    LocalDateTime end = LocalDateTime.of(2025, 6, 6, 10, 0);
+    Event event = calendar.createEvent("Multi-day Conference", start, end);
+
+    List<Event> day1Events = calendar.getEventsList(LocalDate.of(2025, 6, 
+            4));
+    List<Event> day2Events = calendar.getEventsList(LocalDate.of(2025, 6, 
+            5));
+    List<Event> day3Events = calendar.getEventsList(LocalDate.of(2025, 6, 
+            6));
+
+    assertTrue(day1Events.contains(event));
+    assertTrue(day2Events.contains(event));
+    assertTrue(day3Events.contains(event));
+  }
+
+  /**
+   * Tests the creation of an event series with an empty set of days of the week.
+   * Expects a {@link CalendarException} as a series must occur on at least one specified day.
+   *
+   * @throws CalendarException expected exception if the days set is empty.
+   */
+  @Test(expected = CalendarException.class)
+  public void testCreateEventSeriesEmptyDaysSet() throws CalendarException {
+    Set<Days> emptyDays = EnumSet.noneOf(Days.class);
+    calendar.createEventSeries("Empty Days", LocalTime.of(9, 0),
+            LocalTime.of(10, 0),
+            emptyDays, LocalDate.of(2025, 6, 2), null, 1,
+            null, null, null);
+  }
+
+  /**
+   * Tests the scenario where creating an event series would result in a conflict
+   * with an already existing singular event.
+   * Expects a {@link CalendarException} due to the event overlap.
+   *
+   * @throws CalendarException expected exception if a conflict occurs.
+   */
+  @Test(expected = CalendarException.class)
+  public void testCreateEventSeriesSeriesConflictWithExistingEvent() throws CalendarException {
+    // Create single event first
+    calendar.createEvent("Existing Meeting",
+            LocalDateTime.of(2025, 6, 2, 9, 0),
+            LocalDateTime.of(2025, 6, 2, 10, 0));
+
+    Set<Days> days = EnumSet.of(Days.MONDAY);
+    calendar.createEventSeries("Existing Meeting", LocalTime.of(9, 0),
+            LocalTime.of(10, 0),
+            days, LocalDate.of(2025, 6, 2), null, 1,
+            null, null, null);
+  }
+
+  /**
+   * Tests that all individual events generated as part of an event series
+   * are correctly assigned the same unique series ID.
+   *
+   * @throws CalendarException if the event series creation fails.
+   */
+  @Test
+  public void testCreateEventSeriesSeriesEventsHaveCorrectSeriesId() throws CalendarException {
+    Set<Days> days = EnumSet.of(Days.MONDAY, Days.WEDNESDAY);
+    calendar.createEventSeries("ID Test Series", LocalTime.of(9, 0),
+            LocalTime.of(10, 0),
+            days, LocalDate.of(2025, 6, 2), null, 4,
+            "Test Description", Location.ONLINE, EventStatus.PUBLIC);
+
+    List<Event> mondayEvents = calendar.getEventsList(LocalDate.of(2025, 6, 
+            2));
+    List<Event> wednesdayEvents = calendar.getEventsList(LocalDate.of(2025, 6, 
+            4));
+
+    Event mondayEvent = mondayEvents.get(0);
+    Event wednesdayEvent = wednesdayEvents.get(0);
+
+    assertNotNull(mondayEvent.getSeriesID());
+    assertNotNull(wednesdayEvent.getSeriesID());
+    assertEquals(mondayEvent.getSeriesID(), wednesdayEvent.getSeriesID());
+  }
+
+  /**
+   * Tests retrieving events by subject and start time when the calendar might
+   * contain other events with similar start times but different subjects,
+   * or vice-versa. Ensures correct filtering.
+   * (Note: The comment "This shouldn't happen due to uniqueness constraint" implies
+   * that subject and start time combined might be unique identifiers in the system,
+   * making exact duplicates unlikely in a real scenario, but this test verifies method behavior.)
+   *
+   * @throws CalendarException if event creation fails.
+   */
+  @Test
+  public void testGetEventsBySubjectAndStartTimeMultipleMatchesWithDifferentEndTimes()
+          throws CalendarException {
+    Event event1 = calendar.createEvent("Same Subject", today9AM, today10AM);
+    Event event2 = calendar.createEvent("Different Subject", today9AM,
+            today10AM.plusHours(1));
+
+    List<Event> results = calendar.getEventsBySubjectAndStartTime("Same Subject", today9AM);
+    assertEquals(1, results.size());
+    assertTrue(results.contains(event1));
+    assertFalse(results.contains(event2));
+  }
+
+  /**
+   * Tests the case-insensitive behavior of the {@code getEventsBySubjectAndStartTime} method.
+   * Verifies that events can be retrieved regardless of the casing of the subject string provided.
+   *
+   * @throws CalendarException if event creation fails.
+   */
+  @Test
+  public void testGetEventsBySubjectAndStartTimeCaseInsensitiveBehavior()
+          throws CalendarException {
+    Event event = calendar.createEvent("Test Event", today9AM, today10AM);
+
+    List<Event> results1 = calendar.getEventsBySubjectAndStartTime("test event", today9AM);
+    List<Event> results2 = calendar.getEventsBySubjectAndStartTime("TEST EVENT", today9AM);
+    List<Event> results3 = calendar.getEventsBySubjectAndStartTime("Test Event", today9AM);
+
+    assertEquals(1, results1.size());
+    assertEquals(1, results2.size());
+    assertEquals(1, results3.size());
+    assertTrue(results1.contains(event));
+    assertTrue(results2.contains(event));
+    assertTrue(results3.contains(event));
+  }
+
+  /**
+   * Tests retrieving events within a date range where an event's duration
+   * overlaps with a query range that itself has zero duration (e.g., a single point in time).
+   *
+   * @throws CalendarException if event creation fails.
+   */
+  @Test
+  public void testGetEventsListInDateRangeEventOverlapsZeroDurationRange()
+          throws CalendarException {
+    LocalDateTime exactTime = LocalDateTime.of(2025, 6, 4,
+            10, 0);
+    Event event = calendar.createEvent("Overlapping Event",
+            exactTime.minusMinutes(30), exactTime.plusMinutes(30));
+
+    List<Event> results = calendar.getEventsListInDateRange(
+            exactTime.minusMinutes(15), exactTime.plusMinutes(15));
+
+    assertEquals("Should find the overlapping event", 1, results.size());
+    assertTrue(results.contains(event));
+  }
+
+  /**
+   * Tests retrieving events within a date range when events' start or end times
+   * precisely align with the boundaries of the query range.
+   *
+   * @throws CalendarException if event creation fails.
+   */
+  @Test
+  public void testGetEventsListInDateRangeEventExactlyAtBoundary() throws CalendarException {
+    LocalDateTime start = LocalDateTime.of(2025, 6, 4, 9, 0);
+    LocalDateTime end = LocalDateTime.of(2025, 6, 4, 17, 0);
+
+    Event eventAtStart = calendar.createEvent("At Start", start, start.plusHours(1));
+    Event eventAtEnd = calendar.createEvent("At End", end.minusHours(1), end);
+
+    List<Event> results = calendar.getEventsListInDateRange(start, end);
+    assertEquals(2, results.size());
+    assertTrue(results.contains(eventAtStart));
+    assertTrue(results.contains(eventAtEnd));
+  }
+
+  /**
+   * Tests the {@code isBusyAt} method when multiple events overlap at a specific point in time,
+   * expecting the calendar to report as busy.
+   *
+   * @throws CalendarException if event creation fails.
+   */
+  @Test
+  public void testIsBusyAtMultipleOverlappingEvents() throws CalendarException {
+    LocalDateTime time = LocalDateTime.of(2025, 6, 4, 10, 30);
+
+    calendar.createEvent("Event 1", today9AM, today10AM.plusHours(1));
+    calendar.createEvent("Event 2", today10AM, today10AM.plusHours(2));
+
+    assertTrue(calendar.isBusyAt(time));
+  }
+
+  /**
+   * Tests the {@code isBusyAt} method at the exact start and end boundaries of an event.
+   * Asserts that it is busy at the start time (inclusive) and free at the end time (exclusive).
+   *
+   * @throws CalendarException if event creation fails.
+   */
+  @Test
+  public void testIsBusyAtExactBoundaryTimes() throws CalendarException {
+    calendar.createEvent("Boundary Test", today9AM, today10AM);
+
+    assertTrue(calendar.isBusyAt(today9AM));
+    assertFalse(calendar.isBusyAt(today10AM));
+    assertTrue(calendar.isBusyAt(today9AM.plusMinutes(30)));
+  }
+
+  /**
+   * Tests editing an event such that it would create a duplicate event
+   * (i.e., an event with the same subject, start, and end times as another existing event).
+   * Expects a {@link CalendarException} to be thrown.
+   *
+   * @throws CalendarException expected exception if the edit would create a duplicate.
+   */
+  @Test(expected = CalendarException.class)
+  public void testEditEventCreatesDuplicateAfterEdit() throws CalendarException {
+    Event event1 = calendar.createEvent("Event1", today9AM, today10AM);
+    Event event2 = calendar.createEvent("Event2", tomorrow9AM, tomorrow10AM);
+
+    // Edit event2 to match event1 exactly - should fail
+    calendar.editEvent(event2.getId(), Property.SUBJECT, "Event1");
+    calendar.editEvent(event2.getId(), Property.START, today9AM.toString());
+    calendar.editEvent(event2.getId(), Property.END, today10AM.toString());
+  }
+
+  /**
+   * Tests that changing an event's start and end dates through the edit mechanism
+   * correctly updates its mapping within the calendar's internal date-based storage.
+   *
+   * @throws CalendarException if the event creation or editing fails.
+   */
+  @Test
+  public void testEditEventDateChangeUpdatesCalendarMapping() throws CalendarException {
+    Event event = calendar.createEvent("Test Move", today9AM, today10AM);
+    UUID eventId = event.getId();
+
+    // Move event to tomorrow - need to edit END time first to avoid validation error
+    calendar.editEvent(eventId, Property.END, tomorrow10AM.toString());
+    calendar.editEvent(eventId, Property.START, tomorrow9AM.toString());
+
+    // Verify event moved from today to tomorrow
+    List<Event> todayEvents = calendar.getEventsList(today9AM.toLocalDate());
+    List<Event> tomorrowEvents = calendar.getEventsList(tomorrow9AM.toLocalDate());
+
+    assertTrue("Today should have no events", todayEvents.isEmpty());
+    assertEquals("Tomorrow should have one event", 1, tomorrowEvents.size());
+    assertEquals("Event should have moved", eventId, tomorrowEvents.get(0).getId());
+  }
+
+  /**
+   * Tests editing a multi-day event to become a single-day event.
+   * Verifies that the event is correctly removed from days it no longer spans.
+   *
+   * @throws CalendarException if event creation or editing fails.
+   */
+  @Test
+  public void testEditEventMultiDayEventDateChange() throws CalendarException {
+    LocalDateTime start = LocalDateTime.of(2025, 6, 4, 22, 0);
+    LocalDateTime end = LocalDateTime.of(2025, 6, 5, 2, 0);
+    Event event = calendar.createEvent("Multi-day Event", start, end);
+
+    LocalDateTime newEnd = LocalDateTime.of(2025, 6, 4, 23, 0);
+    calendar.editEvent(event.getId(), Property.END, newEnd.toString());
+
+    List<Event> day1Events = calendar.getEventsList(LocalDate.of(2025, 6,
+            4));
+    assertEquals("First day should have the event", 1, day1Events.size());
+
+    Event updatedEvent = day1Events.get(0);
+    assertEquals("Event should end on same day now",
+            start.toLocalDate(), updatedEvent.getEnd().toLocalDate());
+  }
+
+  /**
+   * Tests that editing the start time of an entire event series (using its series ID)
+   * correctly propagates the time change to all individual events belonging to that series.
+   *
+   * @throws CalendarException if the event series creation or editing fails.
+   */
+  @Test
+  public void testEditSeriesStartTimeUpdatesAllEvents() throws CalendarException {
+    Set<Days> days = EnumSet.of(Days.WEDNESDAY);
+    calendar.createEventSeries("Time Update Test", LocalTime.of(9, 0),
+            LocalTime.of(10, 30),
+            days, LocalDate.of(2025, 6, 4), null, 1,
+            null, null, null);
+
+    Event originalEvent = calendar.getEventsList(LocalDate.of(2025, 6, 
+            4)).get(0);
+    UUID seriesId = originalEvent.getSeriesID();
+
+    // Change start time
+    calendar.editSeries(seriesId, Property.START, "08:00");
+
+    Event updatedEvent = calendar.getEventsList(LocalDate.of(2025, 6, 
+            4)).get(0);
+
+    assertEquals("Start time should be 8:00", LocalTime.of(8, 0),
+            updatedEvent.getStart().toLocalTime());
+    assertTrue("End time should be after start time",
+            updatedEvent.getEnd().isAfter(updatedEvent.getStart()));
+  }
+
+  /**
+   * Tests editing an event series from a specific date onwards.
+   * Verifies that events in the series occurring before the specified date remain unchanged,
+   * while those on or after the date are updated.
+   *
+   * @throws CalendarException if the event series creation or editing fails.
+   */
+  @Test
+  public void testEditSeriesFromDatePartialSeriesEdit() throws CalendarException {
+    Set<Days> days = EnumSet.of(Days.MONDAY, Days.WEDNESDAY);
+    calendar.createEventSeries("Partial Edit Test", LocalTime.of(9, 0),
+            LocalTime.of(10, 0),
+            days, LocalDate.of(2025, 6, 2), LocalDate.of(2025,
+                    6, 11), 0,
+            null, null, null);
+
+    Event wednesdayEvent = calendar.getEventsList(LocalDate.of(2025, 6, 
+            4)).get(0);
+    UUID seriesId = wednesdayEvent.getSeriesID();
+
+    // Edit from Wednesday onwards
+    calendar.editSeriesFromDate(seriesId, Property.SUBJECT, "Updated Subject");
+
+    List<Event> mondayJun2 = calendar.getEventsBySubjectAndStartTime("Partial Edit Test",
+            LocalDateTime.of(2025, 6, 2, 9, 0));
+    List<Event> wednesdayJun4 = calendar.getEventsBySubjectAndStartTime("Updated Subject",
+            LocalDateTime.of(2025, 6, 4, 9, 0));
+    List<Event> mondayJun9 = calendar.getEventsBySubjectAndStartTime("Updated Subject",
+            LocalDateTime.of(2025, 6, 9, 9, 0));
+
+    assertEquals(1, mondayJun2.size());
+    assertEquals(1, wednesdayJun4.size());
+    assertEquals(1, mondayJun9.size());
+  }
+
+  /**
+   * Tests editing an event's time-related properties with an invalid date-time string format.
+   * Expects a {@link CalendarException} due to parsing failure.
+   *
+   * @throws CalendarException expected exception if the date-time format is invalid.
+   */
+  @Test(expected = CalendarException.class)
+  public void testEditEventInvalidDateTimeFormat() throws CalendarException {
+    Event event = calendar.createEvent("Test", today9AM, today10AM);
+    calendar.editEvent(event.getId(), Property.START, "invalid-date-format");
+  }
+
+  /**
+   * Tests editing an event's location with a string value that does not correspond
+   * to a valid {@link Location} enum member.
+   * Expects a {@link CalendarException}.
+   *
+   * @throws CalendarException expected exception if the location value is invalid.
+   */
+  @Test(expected = CalendarException.class)
+  public void testEditEventInvalidLocationValue() throws CalendarException {
+    Event event = calendar.createEvent("Test", today9AM, today10AM);
+    calendar.editEvent(event.getId(), Property.LOCATION, "INVALIDLOCATION");
+  }
+
+  /**
+   * Tests editing an event's status with a string value that does not correspond
+   * to a valid {@link EventStatus} enum member.
+   * Expects a {@link CalendarException}.
+   *
+   * @throws CalendarException expected exception if the status value is invalid.
+   */
+  @Test(expected = CalendarException.class)
+  public void testEditEventInvalidStatusValue() throws CalendarException {
+    Event event = calendar.createEvent("Test", today9AM, today10AM);
+    calendar.editEvent(event.getId(), Property.STATUS, "INVALIDSTATUS");
+  }
+
+  /**
+   * Tests editing an event's location with valid string values (case-insensitive)
+   * and asserts that the {@link Event} object's location property is correctly updated.
+   *
+   * @throws CalendarException if event creation or editing fails.
+   */
+  @Test
+  public void testEditEventValidLocationValues() throws CalendarException {
+    Event event = calendar.createEvent("Test", today9AM, today10AM);
+
+    calendar.editEvent(event.getId(), Property.LOCATION, "physical");
+    assertEquals(Location.PHYSICAL, event.getLocation());
+
+    calendar.editEvent(event.getId(), Property.LOCATION, "online");
+    assertEquals(Location.ONLINE, event.getLocation());
+
+    calendar.editEvent(event.getId(), Property.LOCATION, "PHYSICAL");
+    assertEquals(Location.PHYSICAL, event.getLocation());
+  }
+
+  /**
+   * Tests editing an event's status with valid string values (case-insensitive)
+   * and asserts that the {@link Event} object's status property is correctly updated.
+   *
+   * @throws CalendarException if event creation or editing fails.
+   */
+  @Test
+  public void testEditEventValidStatusValues() throws CalendarException {
+    Event event = calendar.createEvent("Test", today9AM, today10AM);
+
+    calendar.editEvent(event.getId(), Property.STATUS, "private");
+    assertEquals(EventStatus.PRIVATE, event.getStatus());
+
+    calendar.editEvent(event.getId(), Property.STATUS, "public");
+    assertEquals(EventStatus.PUBLIC, event.getStatus());
+
+    calendar.editEvent(event.getId(), Property.STATUS, "PRIVATE");
+    assertEquals(EventStatus.PRIVATE, event.getStatus());
   }
 }
