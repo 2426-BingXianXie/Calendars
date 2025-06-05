@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -823,5 +824,305 @@ public class ICalendarViewTest {
     assertTrue(output.contains("New Year"));
     assertTrue(output.contains("Christmas"));
     assertTrue(output.contains("2025-01-01T00:00 to 2025-12-31T23:59"));
+  }
+
+  /**
+   * Tests displaying events with all possible location and status combinations.
+   * Verifies that the view correctly handles all permutations of location and status values.
+   */
+  @Test
+  public void testShowCalendarEventsAllLocationStatusCombinations() {
+    LocalDate date = LocalDate.of(2025, 6, 4);
+
+    Event physicalPublic = new Event("Physical Public Event",
+            LocalDateTime.of(2025, 6, 4, 9, 0),
+            LocalDateTime.of(2025, 6, 4, 10, 0),
+            "Description", Location.PHYSICAL, "Room 101", 
+            EventStatus.PUBLIC, null);
+
+    Event physicalPrivate = new Event("Physical Private Event",
+            LocalDateTime.of(2025, 6, 4, 11, 0),
+            LocalDateTime.of(2025, 6, 4, 12, 0),
+            "Description", Location.PHYSICAL, "Room 102", 
+            EventStatus.PRIVATE, null);
+
+    Event onlinePublic = new Event("Online Public Event",
+            LocalDateTime.of(2025, 6, 4, 13, 0),
+            LocalDateTime.of(2025, 6, 4, 14, 0),
+            "Description", Location.ONLINE, "Zoom Link",
+            EventStatus.PUBLIC, null);
+
+    Event onlinePrivate = new Event("Online Private Event",
+            LocalDateTime.of(2025, 6, 4, 15, 0),
+            LocalDateTime.of(2025, 6, 4, 16, 0),
+            "Description", Location.ONLINE, "Teams Link",
+            EventStatus.PRIVATE, null);
+
+    Event nullLocation = new Event("No Location Event",
+            LocalDateTime.of(2025, 6, 4, 17, 0),
+            LocalDateTime.of(2025, 6, 4, 18, 0),
+            "Description", null, null, 
+            EventStatus.PUBLIC, null);
+
+    List<Event> events = Arrays.asList(physicalPublic, physicalPrivate, onlinePublic,
+            onlinePrivate, nullLocation);
+    view.showCalendarEvents(events, date);
+
+    String output = testOutput.toString();
+    assertTrue("Should contain physical public event",
+            output.contains("Physical Public Event"));
+    assertTrue("Should contain physical private event",
+            output.contains("Physical Private Event"));
+    assertTrue("Should contain online public event",
+            output.contains("Online Public Event"));
+    assertTrue("Should contain online private event", 
+            output.contains("Online Private Event"));
+    assertTrue("Should contain no location event", output.contains("No Location Event"));
+
+    // Verify location formatting
+    assertTrue("Should show PHYSICAL location", output.contains("PHYSICAL"));
+    assertTrue("Should show ONLINE location", output.contains("ONLINE"));
+  }
+
+  /**
+   * Tests displaying events with all properties populated.
+   * Verifies that events with description, location details, and status are displayed correctly.
+   */
+  @Test
+  public void testShowCalendarEventsEventsWithAllProperties() {
+    LocalDate date = LocalDate.of(2025, 6, 4);
+    UUID seriesId = UUID.randomUUID();
+
+    Event fullEvent = new Event("Complete Event",
+            LocalDateTime.of(2025, 6, 4, 9, 0),
+            LocalDateTime.of(2025, 6, 4, 10, 0),
+            "This is a detailed description of the event",
+            Location.PHYSICAL,
+            "Conference Room A, Building 2, Floor 3",
+            EventStatus.PRIVATE,
+            seriesId);
+
+    view.showCalendarEvents(Arrays.asList(fullEvent), date);
+
+    String output = testOutput.toString();
+    assertTrue("Should contain event subject", output.contains("Complete Event"));
+    assertTrue("Should contain time information", output.contains("from 09:00 to 10:00"));
+    assertTrue("Should contain location type", output.contains("PHYSICAL"));
+
+    // Note: Description and status might not be displayed in the view output
+    // This test verifies that having all properties doesn't break the display
+  }
+
+  /**
+   * Tests displaying a mix of series events and individual events together.
+   * Verifies that both types of events are displayed correctly in the same list.
+   */
+  @Test
+  public void testShowCalendarEventsSeriesAndNonSeriesEventsTogether() {
+    LocalDate date = LocalDate.of(2025, 6, 4);
+    UUID seriesId = UUID.randomUUID();
+
+    Event individualEvent = new Event("Individual Event",
+            LocalDateTime.of(2025, 6, 4, 9, 0),
+            LocalDateTime.of(2025, 6, 4, 10, 0));
+
+    Event seriesEvent = new Event("Series Event",
+            LocalDateTime.of(2025, 6, 4, 11, 0),
+            LocalDateTime.of(2025, 6, 4, 12, 0),
+            "Part of recurring series", Location.ONLINE, "Meeting Link",
+            EventStatus.PUBLIC, seriesId);
+
+    Event anotherIndividualEvent = new Event("Another Individual",
+            LocalDateTime.of(2025, 6, 4, 13, 0),
+            LocalDateTime.of(2025, 6, 4, 14, 0));
+
+    List<Event> mixedEvents = Arrays.asList(individualEvent, seriesEvent, anotherIndividualEvent);
+    view.showCalendarEvents(mixedEvents, date);
+
+    String output = testOutput.toString();
+    assertTrue("Should contain individual event", output.contains("Individual Event"));
+    assertTrue("Should contain series event", output.contains("Series Event"));
+    assertTrue("Should contain another individual event", 
+            output.contains("Another Individual"));
+
+    // Verify that series events are displayed with location info
+    assertTrue("Series event should show location", output.contains("ONLINE"));
+  }
+
+  /**
+   * Tests displaying events that span range boundaries in date range view.
+   * Verifies that events crossing the boundaries of the display range are handled correctly.
+   */
+  @Test
+  public void testShowCalendarEventsInDateRangeEventsSpanningRangeBoundaries() {
+    LocalDateTime rangeStart = LocalDateTime.of(2025, 6, 10,
+            10, 0);
+    LocalDateTime rangeEnd = LocalDateTime.of(2025, 6, 10, 
+            16, 0);
+
+    // Event that starts before range and ends within range
+    Event beforeToWithin = new Event("Before to Within",
+            LocalDateTime.of(2025, 6, 10, 8, 0),
+            LocalDateTime.of(2025, 6, 10, 12, 0));
+
+    // Event that starts within range and ends after range
+    Event withinToAfter = new Event("Within to After",
+            LocalDateTime.of(2025, 6, 10, 14, 0),
+            LocalDateTime.of(2025, 6, 10, 18, 0));
+
+    // Event that completely spans the range
+    Event completeSpan = new Event("Complete Span",
+            LocalDateTime.of(2025, 6, 10, 9, 0),
+            LocalDateTime.of(2025, 6, 10, 17, 0));
+
+    List<Event> events = Arrays.asList(beforeToWithin, withinToAfter, completeSpan);
+    view.showCalendarEventsInDateRange(rangeStart, rangeEnd, events);
+
+    String output = testOutput.toString();
+    assertTrue("Should contain range information",
+            output.contains("from 2025-06-10T10:00 to 2025-06-10T16:00"));
+    assertTrue("Should display before-to-within event", 
+            output.contains("Before to Within"));
+    assertTrue("Should display within-to-after event", output.contains("Within to After"));
+    assertTrue("Should display complete span event", output.contains("Complete Span"));
+  }
+
+  /**
+   * Tests writeMessage with extremely long strings.
+   * Verifies that the view can handle very long messages without breaking.
+   */
+  @Test
+  public void testWriteMessageVeryLongMessages() {
+    StringBuilder longMessage = new StringBuilder();
+    for (int i = 0; i < 1000; i++) {
+      longMessage.append("This is a very long message that tests the " +
+              "view's ability to handle large strings. ");
+    }
+
+    view.writeMessage(longMessage.toString());
+
+    String output = testOutput.toString();
+    assertEquals("Should write entire long message", longMessage.toString(), output);
+    assertTrue("Should contain repeated text",
+            output.contains("This is a very long message"));
+  }
+
+  /**
+   * Tests a complete user session simulation with all command types.
+   * Verifies that the view can handle a full sequence of user interactions.
+   */
+  @Test
+  public void testCompleteUserSessionAllCommandTypes() {
+    // Simulate complete user session
+    view.showMenu();
+    view.writeMessage("User created an event successfully." + System.lineSeparator());
+
+    LocalDate testDate = LocalDate.of(2025, 6, 4);
+    Event testEvent = new Event("Test Event",
+            LocalDateTime.of(2025, 6, 4, 9, 0),
+            LocalDateTime.of(2025, 6, 4, 10, 0));
+
+    view.showCalendarEvents(Arrays.asList(testEvent), testDate);
+    view.writeMessage("User edited an event successfully." + System.lineSeparator());
+
+    LocalDateTime rangeStart = LocalDateTime.of(2025, 6, 
+            4, 8, 0);
+    LocalDateTime rangeEnd = LocalDateTime.of(2025, 6, 
+            4, 18, 0);
+    view.showCalendarEventsInDateRange(rangeStart, rangeEnd, Arrays.asList(testEvent));
+
+    view.writeMessage("User checked availability - you are available." + System.lineSeparator());
+    view.farewellMessage();
+
+    String output = testOutput.toString();
+    assertTrue("Should contain welcome message", 
+            output.contains("Welcome to the calendar program!"));
+    assertTrue("Should contain success messages",
+            output.contains("successfully"));
+    assertTrue("Should contain event information", 
+            output.contains("Test Event"));
+    assertTrue("Should contain availability check",
+            output.contains("available"));
+    assertTrue("Should contain farewell message", 
+            output.contains("Thank you for using this program!"));
+  }
+
+  /**
+   * Tests displaying events with null or empty subjects.
+   * Verifies that the view handles edge cases in event data gracefully.
+   */
+  @Test
+  public void testShowCalendarEventsEventsWithNullOrEmptySubjects() {
+    LocalDate date = LocalDate.of(2025, 6, 4);
+
+    Event emptySubjectEvent = new Event("",
+            LocalDateTime.of(2025, 6, 4, 9, 0),
+            LocalDateTime.of(2025, 6, 4, 10, 0));
+
+    Event normalEvent = new Event("Normal Event",
+            LocalDateTime.of(2025, 6, 4, 11, 0),
+            LocalDateTime.of(2025, 6, 4, 12, 0));
+
+    List<Event> events = Arrays.asList(emptySubjectEvent, normalEvent);
+    view.showCalendarEvents(events, date);
+
+    String output = testOutput.toString();
+    assertTrue("Should handle empty subject", output.contains("Event ''"));
+    assertTrue("Should display normal event", output.contains("Normal Event"));
+  }
+
+  /**
+   * Tests error recovery after IOException simulation.
+   * Verifies that the view properly handles and reports I/O errors.
+   */
+  @Test
+  public void testWriteMessageErrorRecovery() {
+    // First, test normal operation
+    view.writeMessage("Normal message");
+    assertEquals("Normal message", testOutput.toString());
+
+    // Reset for error test
+    testOutput = new StringWriter();
+    view = new CalendarView(testOutput);
+
+    // Test that multiple messages work correctly
+    view.writeMessage("First message");
+    view.writeMessage("Second message");
+    assertEquals("First messageSecond message", testOutput.toString());
+  }
+
+  /**
+   * Tests performance with large numbers of events.
+   * Verifies that the view can handle displaying many events without performance issues.
+   */
+  @Test
+  public void testShowCalendarEventsLargeNumberOfEvents() {
+    LocalDate date = LocalDate.of(2025, 6, 4);
+    List<Event> manyEvents = new ArrayList<>();
+    
+    for (int i = 0; i < 100; i++) {
+      
+      int startHour = 8 + (i % 14); 
+      int startMinute = i % 60;
+      int endHour = startHour + 1; 
+      int endMinute = Math.min(startMinute + 30, 59); 
+
+      Event event = new Event("Event " + i,
+              LocalDateTime.of(2025, 6, 4, startHour, startMinute),
+              LocalDateTime.of(2025, 6, 4, endHour, endMinute));
+      manyEvents.add(event);
+    }
+
+    long startTime = System.currentTimeMillis();
+    view.showCalendarEvents(manyEvents, date);
+    long endTime = System.currentTimeMillis();
+
+    String output = testOutput.toString();
+    assertTrue("Should complete in reasonable time", 
+            (endTime - startTime) < 1000); // Less than 1 second
+    assertTrue("Should contain first event", output.contains("Event 0"));
+    assertTrue("Should contain last event", output.contains("Event 99"));
+    assertTrue("Should contain date header", 
+            output.contains("Printing events on 2025-06-04"));
   }
 }

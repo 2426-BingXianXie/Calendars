@@ -473,4 +473,117 @@ public class EventSeriesTest {
     Set<DayOfWeek> mixedDays = EnumSet.of(DayOfWeek.FRIDAY, DayOfWeek.SUNDAY);
     assertEquals(mixedDays.size(), 2);
   }
+
+  /**
+   * Tests series generation with mixed weekend and weekday combinations.
+   * Verifies that events are correctly generated for series that span weekends and weekdays.
+   */
+  @Test
+  public void testGenerateEventsMixedWeekendWeekdays() throws CalendarException {
+    Set<DayOfWeek> mixedDays = EnumSet.of(DayOfWeek.FRIDAY, DayOfWeek.SATURDAY,
+            DayOfWeek.SUNDAY, DayOfWeek.MONDAY);
+    EventSeries series = new EventSeries(subject, startDateTime, endDateTime,
+            mixedDays, 8, null);
+    Set<Event> generatedEvents = series.generateEvents();
+
+    assertEquals(8, generatedEvents.size());
+
+    Set<DayOfWeek> actualDays = new HashSet<>();
+    for (Event event : generatedEvents) {
+      actualDays.add(event.getStart().getDayOfWeek());
+    }
+
+    // Should contain all specified days
+    for (DayOfWeek day : mixedDays) {
+      assertTrue("Should contain " + day, actualDays.contains(day));
+    }
+  }
+
+  /**
+   * Tests series generation with all seven days of the week.
+   * Verifies that daily recurring events are generated correctly.
+   */
+  @Test
+  public void testGenerateEventsAllSevenDays() throws CalendarException {
+    Set<DayOfWeek> allDays = EnumSet.allOf(DayOfWeek.class);
+    EventSeries series = new EventSeries(subject, startDateTime, endDateTime,
+            allDays, 14, null);
+    Set<Event> generatedEvents = series.generateEvents();
+
+    assertEquals(14, generatedEvents.size());
+
+    Set<DayOfWeek> actualDays = new HashSet<>();
+    for (Event event : generatedEvents) {
+      actualDays.add(event.getStart().getDayOfWeek());
+    }
+
+    assertEquals("Should have events on all 7 days", 7, actualDays.size());
+    assertTrue("Should contain all weekdays", actualDays.containsAll(allDays));
+  }
+
+  /**
+   * Tests series generation across leap year boundary.
+   * Ensures that series generation handles leap year dates correctly.
+   */
+  @Test
+  public void testGenerateEventsLeapYearHandling() throws CalendarException {
+    // Create series that spans Feb 28 - Mar 1 in a leap year
+    LocalDateTime leapYearStart = LocalDateTime.of(2024, 2, 28,
+            9, 0); // 2024 is a leap year
+    LocalDateTime leapYearEnd = LocalDateTime.of(2024, 2, 28,
+            10, 0);
+
+    Set<DayOfWeek> dailyRecurrence = EnumSet.of(DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY,
+            DayOfWeek.FRIDAY);
+    EventSeries series = new EventSeries("Leap Year Test", leapYearStart, leapYearEnd,
+            dailyRecurrence, null, LocalDate.of(2024, 3, 1));
+
+    Set<Event> generatedEvents = series.generateEvents();
+
+    assertTrue("Should generate at least 2 events", generatedEvents.size() >= 2);
+
+    boolean hasLeapDay = generatedEvents.stream()
+            .anyMatch(e -> e.getStart().toLocalDate().equals(LocalDate.of(2024,
+                    2, 29)));
+
+    assertTrue("Should include leap day event", hasLeapDay);
+  }
+
+  /**
+   * Tests series generation with very short duration (1 minute).
+   * Verifies that the series handles minimal duration events correctly.
+   */
+  @Test
+  public void testGenerateEventsVeryShortDuration() throws CalendarException {
+    LocalDateTime shortStart = LocalDateTime.of(2025, 6, 2,
+            9, 0);
+    LocalDateTime shortEnd = LocalDateTime.of(2025, 6, 2,
+            9, 1);
+
+    Set<DayOfWeek> daysOfRecurrence = EnumSet.of(DayOfWeek.MONDAY);
+    EventSeries series = new EventSeries("Short Event", shortStart, shortEnd,
+            daysOfRecurrence, 1, null);
+
+    Set<Event> generatedEvents = series.generateEvents();
+    assertEquals(1, generatedEvents.size());
+
+    Event event = generatedEvents.iterator().next();
+    assertEquals(Duration.ofMinutes(1), Duration.between(event.getStart(), event.getEnd()));
+  }
+
+  /**
+   * Tests series validation with duration that would cross day boundary in different time zones.
+   * Verifies that validation correctly prevents events from spanning multiple days.
+   */
+  @Test(expected = CalendarException.class)
+  public void testConstructorDurationCrossingDayBoundaryAtMidnight() throws CalendarException {
+    LocalDateTime lateStart = LocalDateTime.of(2025, 6, 2, 23,
+            59);
+    LocalDateTime earlyEnd = LocalDateTime.of(2025, 6, 3, 0,
+            1);
+
+    Set<DayOfWeek> daysOfRecurrence = EnumSet.of(DayOfWeek.MONDAY);
+    new EventSeries("Midnight Crosser", lateStart, earlyEnd, daysOfRecurrence,
+            1, null);
+  }
 }
