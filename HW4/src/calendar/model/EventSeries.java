@@ -19,8 +19,8 @@ import calendar.CalendarException;
 public class EventSeries {
   private String subject;
   private LocalTime startTime;
-  private LocalDate seriesStartDate;
-  private LocalDate seriesEndDate;
+  private final LocalDate seriesStartDate;
+  private final LocalDate seriesEndDate;
   private final int numOccurrences;
   private UUID id;
   private Set<DayOfWeek> daysOfRecurrence = new HashSet<>();
