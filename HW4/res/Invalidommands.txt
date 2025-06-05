@@ -1,0 +1,8 @@
+create event "Meeting" from invalid-date to 2025-06-04T10:00
+create event from 2025-06-04T09:00 to 2025-06-04T10:00
+print events invalid-date
+show status on invalid-datetime
+edit event invalid-property "Meeting" from 2025-06-04T09:00 with "new value"
+invalid command here
+create event "Test" from 2025-06-04T09:00 to 2025-06-04T08:00
+exit
