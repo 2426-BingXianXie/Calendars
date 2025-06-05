@@ -25,7 +25,7 @@ public abstract class AbstractCommand implements CalendarCommand {
 
   protected LocalDate parseDate(Scanner sc) throws CalendarException {
     // check that there is a valid date input
-    if (!sc.hasNext()) throw new CalendarException("Missing <dateString> after 'on'.");
+    if (!sc.hasNext()) throw new CalendarException("Missing <dateString>.");
     String dateString = sc.next();
     try { // check for valid date format
       return LocalDate.parse(dateString);

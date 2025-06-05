@@ -60,7 +60,7 @@ public enum Days {
    */
   public static Days fromSymbol(char c) throws CalendarException {
     for (Days day : values()) {
-      if (day.symbol == c) {
+      if (day.symbol == Character.toUpperCase(c)) {
         return day;
       }
     }

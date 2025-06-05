@@ -128,7 +128,7 @@ public class Create extends AbstractCommand {
   private void handleSeriesDetails(String subject, LocalDateTime startDate, boolean isAllDay,
                                    Scanner sc, ICalendar model, LocalTime startTime,
                                    LocalTime endTime) throws CalendarException {
-    if (!sc.hasNext()) throw new CalendarException("Missing <dateString> after 'on'.");
+    if (!sc.hasNext()) throw new CalendarException("Missing days to repeat");
     String daysString = sc.next();
     Set<Days> daysOfWeek = new HashSet<Days>();
     char[] chars = daysString.toCharArray();
