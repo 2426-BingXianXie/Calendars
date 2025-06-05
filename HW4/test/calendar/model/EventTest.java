@@ -309,7 +309,7 @@ public class EventTest {
    * Should return true.
    */
   @Test
-  public void testEquals_SameObject() {
+  public void testEqualsSameObject() {
     assertEquals(testEvent1, testEvent1);
   }
 
@@ -318,7 +318,7 @@ public class EventTest {
    * for subject, start, and end. Should return true.
    */
   @Test
-  public void testEquals_IdenticalContent() {
+  public void testEqualsIdenticalContent() {
     Event identicalEvent = new Event("Meeting", now, future);
     assertEquals(testEvent1, identicalEvent);
   }
@@ -328,7 +328,7 @@ public class EventTest {
    * Should return false.
    */
   @Test
-  public void testEquals_DifferentSubject() {
+  public void testEqualsDifferentSubject() {
     Event differentSubject = new Event("Different Meeting", now, future);
     assertFalse(testEvent1.equals(differentSubject));
   }
@@ -338,7 +338,7 @@ public class EventTest {
    * Should return false.
    */
   @Test
-  public void testEquals_DifferentStartTime() {
+  public void testEqualsDifferentStartTime() {
     Event differentStartTime = new Event("Meeting", now.plusHours(1), future);
     assertFalse(testEvent1.equals(differentStartTime));
   }
@@ -348,7 +348,7 @@ public class EventTest {
    * Should return false.
    */
   @Test
-  public void testEquals_DifferentEndTime() {
+  public void testEqualsDifferentEndTime() {
     Event differentEndTime = new Event("Meeting", now, future.plusHours(1));
     assertFalse(testEvent1.equals(differentEndTime));
   }
@@ -361,7 +361,7 @@ public class EventTest {
    * to be considered equal. Should still return true.
    */
   @Test
-  public void testEquals_DifferentDescriptionLocationStatusSeriesID() {
+  public void testEqualsDifferentDescriptionLocationStatusSeriesID() {
     // These fields are intentionally not part of equals/hashCode
     Event eventWithMoreDetails = new Event("Meeting", now, future,
             "description", Location.ONLINE, null,
@@ -374,7 +374,7 @@ public class EventTest {
    * Should return false.
    */
   @Test
-  public void testEquals_NullObject() {
+  public void testEqualsNullObject() {
     assertFalse(testEvent1.equals(null));
   }
 
@@ -383,7 +383,7 @@ public class EventTest {
    * Should return false.
    */
   @Test
-  public void testEquals_DifferentClass() {
+  public void testEqualsDifferentClass() {
     assertFalse(testEvent1.equals("Not an Event"));
   }
 
@@ -393,7 +393,7 @@ public class EventTest {
    * Two objects that are equal should have the same hash code.
    */
   @Test
-  public void testHashCode_ConsistentWithEquals() {
+  public void testHashCodeConsistentWithEquals() {
     Event identicalEvent = new Event("Meeting", now, future);
     assertEquals(testEvent1.hashCode(), identicalEvent.hashCode());
   }
@@ -403,7 +403,7 @@ public class EventTest {
    * Objects that are not equal should generally have different hash codes.
    */
   @Test
-  public void testHashCode_DifferentObjects() {
+  public void testHashCodeDifferentObjects() {
     Event differentEvent = new Event("Different Meeting", now, future);
     assertNotEquals(testEvent1.hashCode(), differentEvent.hashCode());
   }
@@ -414,7 +414,7 @@ public class EventTest {
    * Should return an empty string.
    */
   @Test
-  public void testGetLocationDisplay_NoLocation() {
+  public void testGetLocationDisplayNoLocation() {
     // testEvent1 has null location
     assertEquals("", testEvent1.getLocationDisplay());
   }
@@ -424,7 +424,7 @@ public class EventTest {
    * Should return only the location type as a string.
    */
   @Test
-  public void testGetLocationDisplay_WithLocationNoDetail() {
+  public void testGetLocationDisplayWithLocationNoDetail() {
     Event event = new Event("Test", now, future, null, Location.PHYSICAL,
             null, null, null);
     assertEquals("PHYSICAL", event.getLocationDisplay());
@@ -436,7 +436,7 @@ public class EventTest {
    * Should return the location type followed by the detail, separated by a colon and space.
    */
   @Test
-  public void testGetLocationDisplay_WithLocationAndDetail() {
+  public void testGetLocationDisplayWithLocationAndDetail() {
     Event event = new Event("Test", now, future, null, Location.ONLINE,
             "Google Meet", null, null);
     assertEquals("ONLINE: Google Meet", event.getLocationDisplay());
@@ -448,7 +448,7 @@ public class EventTest {
    * Should return only the location type as a string, similar to no detail.
    */
   @Test
-  public void testGetLocationDisplay_WithLocationEmptyDetail() {
+  public void testGetLocationDisplayWithLocationEmptyDetail() {
     Event event = new Event("Test", now, future, null, Location.PHYSICAL,
             "", null, null);
     assertEquals("PHYSICAL", event.getLocationDisplay());
@@ -460,7 +460,7 @@ public class EventTest {
    * Should return a string containing the subject and the start and end times.
    */
   @Test
-  public void testToString_NoLocation() {
+  public void testToStringNoLocation() {
     assertEquals("Meeting (2025-06-01T10:00 to 2025-06-01T11:00)", testEvent1.toString());
   }
 
@@ -469,7 +469,7 @@ public class EventTest {
    * Should return a string containing the subject, start/end times, and the full location display.
    */
   @Test
-  public void testToString_WithLocation() {
+  public void testToStringWithLocation() {
     Event eventWithLocation = new Event("Presentation",
             LocalDateTime.of(2025, 6, 2, 9, 0),
             LocalDateTime.of(2025, 6, 2, 10, 0),
@@ -488,7 +488,7 @@ public class EventTest {
    * Should return a string containing the subject, start/end times, and only the location type.
    */
   @Test
-  public void testToString_WithLocationNoDetail() {
+  public void testToStringWithLocationNoDetail() {
     Event event = new Event("Event", now, future, null, Location.PHYSICAL,
             null, null, null);
     assertEquals("Event (2025-06-01T10:00 to 2025-06-01T11:00) @ PHYSICAL",

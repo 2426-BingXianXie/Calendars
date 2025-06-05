@@ -107,7 +107,7 @@ public class ICalendarViewTest {
    * but kept for demonstration.
    */
   @Test
-  public void testShowMenu_ExactContent() {
+  public void testShowMenuExactContent() {
     view.showMenu();
     String expected = "Welcome to the calendar program!"
             + System.lineSeparator()
@@ -182,7 +182,7 @@ public class ICalendarViewTest {
    * a specified location.
    */
   @Test
-  public void testShowCalendarEvents_WithEventsNoLocation() {
+  public void testShowCalendarEventsWithEventsNoLocation() {
     LocalDate date = LocalDate.of(2025, 6, 4);
     Event event1 = new Event("Meeting",
             LocalDateTime.of(2025, 6, 4, 9, 0),
@@ -208,7 +208,7 @@ public class ICalendarViewTest {
    * specified locations (online and physical).
    */
   @Test
-  public void testShowCalendarEvents_WithEventsWithLocation() {
+  public void testShowCalendarEventsWithEventsWithLocation() {
     LocalDate date = LocalDate.of(2025, 6, 5);
     Event event1 = new Event("Online Call",
             LocalDateTime.of(2025, 6, 5, 9, 0),
@@ -239,7 +239,7 @@ public class ICalendarViewTest {
    * specified date.
    */
   @Test
-  public void testShowCalendarEvents_NoEvents() {
+  public void testShowCalendarEventsNoEvents() {
     LocalDate date = LocalDate.of(2025, 6, 6);
     List<Event> events = Collections.emptyList();
 
@@ -257,7 +257,7 @@ public class ICalendarViewTest {
    * Verifies correct printing for both days involved.
    */
   @Test
-  public void testShowCalendarEvents_EventOverlappingMidnight() {
+  public void testShowCalendarEventsEventOverlappingMidnight() {
     LocalDate date1 = LocalDate.of(2025, 6, 7);
     LocalDate date2 = LocalDate.of(2025, 6, 8);
     Event overnightEvent = new Event("Overnight Trip",
@@ -286,7 +286,7 @@ public class ICalendarViewTest {
    * fall within the specified date range.
    */
   @Test
-  public void testShowCalendarEventsInDateRange_WithEvents() {
+  public void testShowCalendarEventsInDateRangeWithEvents() {
     LocalDateTime start = LocalDateTime.of(2025, 6, 4, 9, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 5, 17, 0);
     Event event1 = new Event("Event Day 1",
@@ -314,7 +314,7 @@ public class ICalendarViewTest {
    * overlap with the specified date range.
    */
   @Test
-  public void testShowCalendarEventsInDateRange_OverlappingEvents() {
+  public void testShowCalendarEventsInDateRangeOverlappingEvents() {
     LocalDateTime rangeStart
             = LocalDateTime.of(2025, 6, 10, 8, 0);
     LocalDateTime rangeEnd
@@ -347,7 +347,7 @@ public class ICalendarViewTest {
    * within the specified date range.
    */
   @Test
-  public void testShowCalendarEventsInDateRange_NoEvents() {
+  public void testShowCalendarEventsInDateRangeNoEvents() {
     LocalDateTime start = LocalDateTime.of(2025, 6, 7, 9, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 8, 17, 0);
     List<Event> events = Collections.emptyList();
@@ -366,7 +366,7 @@ public class ICalendarViewTest {
    * (start and end times are the same).
    */
   @Test
-  public void testShowCalendarEventsInDateRange_EmptyRange() {
+  public void testShowCalendarEventsInDateRangeEmptyRange() {
     LocalDateTime start = LocalDateTime.of(2025, 6, 11, 10, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 11, 10, 0);
     Event event = new Event("Test", LocalDateTime.of(2025, 6, 11,
@@ -386,7 +386,7 @@ public class ICalendarViewTest {
    * Tests the {@code writeMessage} method with a standard message.
    */
   @Test
-  public void testWriteMessage_StandardMessage() {
+  public void testWriteMessageStandardMessage() {
     String message = "Hello, world!";
     view.writeMessage(message);
     assertEquals(message, testOutput.toString());
@@ -396,7 +396,7 @@ public class ICalendarViewTest {
    * Tests the {@code writeMessage} method with an empty string message.
    */
   @Test
-  public void testWriteMessage_EmptyMessage() {
+  public void testWriteMessageEmptyMessage() {
     String message = "";
     view.writeMessage(message);
     assertEquals(message, testOutput.toString());
@@ -406,7 +406,7 @@ public class ICalendarViewTest {
    * Tests the {@code writeMessage} method with a message containing line separators.
    */
   @Test
-  public void testWriteMessage_MessageWithLineSeparators() {
+  public void testWriteMessageMessageWithLineSeparators() {
     String message = "Line 1" + System.lineSeparator() + "Line 2";
     view.writeMessage(message);
     assertEquals(message, testOutput.toString());
@@ -417,7 +417,7 @@ public class ICalendarViewTest {
    * Expects "null" to be printed.
    */
   @Test
-  public void testWriteMessage_NullMessage() {
+  public void testWriteMessageNullMessage() {
     String message = null;
     view.writeMessage(message);
     assertEquals("null", testOutput.toString());
@@ -428,7 +428,7 @@ public class ICalendarViewTest {
    * during writing. It expects an IllegalStateException to be thrown.
    */
   @Test(expected = IllegalStateException.class)
-  public void testWriteMessage_IOException() {
+  public void testWriteMessageIOException() {
     // Creates a mock Appendable that always throws an IOException.
     Appendable brokenAppendable = new Appendable() {
       @Override

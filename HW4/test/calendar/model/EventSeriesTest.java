@@ -51,7 +51,7 @@ public class EventSeriesTest {
    * @throws CalendarException if there's an issue with calendar operations.
    */
   @Test
-  public void testConstructor_ValidInputs_CountBased() throws CalendarException {
+  public void testConstructorValidInputsCountBased() throws CalendarException {
     occurrenceCount = 5;
     EventSeries series = new EventSeries(subject, startDateTime, endDateTime,
             daysOfRecurrence, occurrenceCount, null);
@@ -73,7 +73,7 @@ public class EventSeriesTest {
    * @throws CalendarException if there's an issue with calendar operations.
    */
   @Test
-  public void testConstructor_ValidInputs_DateBased() throws CalendarException {
+  public void testConstructorValidInputsDateBased() throws CalendarException {
 
     endDate = LocalDate.of(2025, 6, 16);
     EventSeries series = new EventSeries(subject, startDateTime, endDateTime,
@@ -98,7 +98,7 @@ public class EventSeriesTest {
    * @throws CalendarException expected exception if the event duration is invalid.
    */
   @Test(expected = CalendarException.class)
-  public void testConstructor_StartDateAfterEndDate_DurationError() throws CalendarException {
+  public void testConstructorStartDateAfterEndDateDurationError() throws CalendarException {
 
     LocalDateTime seriesStart = LocalDateTime.of(2025, 6, 2,
             23, 0);
@@ -116,7 +116,7 @@ public class EventSeriesTest {
    * @throws CalendarException expected exception if a single event crosses a day boundary.
    */
   @Test(expected = CalendarException.class)
-  public void testConstructor_EventSpansMultipleDays() throws CalendarException {
+  public void testConstructorEventSpansMultipleDays() throws CalendarException {
 
     new EventSeries(subject,
             LocalDateTime.of(2025, 6, 2, 9, 0),
@@ -131,7 +131,7 @@ public class EventSeriesTest {
    * @throws CalendarException expected exception if days of recurrence is null.
    */
   @Test(expected = CalendarException.class)
-  public void testConstructor_NullDaysOfRecurrence() throws CalendarException {
+  public void testConstructorNullDaysOfRecurrence() throws CalendarException {
     new EventSeries(subject, startDateTime, endDateTime, null, 1,
             null);
   }
@@ -143,7 +143,7 @@ public class EventSeriesTest {
    * @throws CalendarException expected exception if days of recurrence is empty.
    */
   @Test(expected = CalendarException.class)
-  public void testConstructor_EmptyDaysOfRecurrence() throws CalendarException {
+  public void testConstructorEmptyDaysOfRecurrence() throws CalendarException {
     new EventSeries(subject, startDateTime, endDateTime, EnumSet.noneOf(DayOfWeek.class),
             1, null);
   }
@@ -155,7 +155,7 @@ public class EventSeriesTest {
    * @throws CalendarException expected exception if no termination condition is provided.
    */
   @Test(expected = CalendarException.class)
-  public void testConstructor_NoTerminationCondition() throws CalendarException {
+  public void testConstructorNoTerminationCondition() throws CalendarException {
     new EventSeries(subject, startDateTime, endDateTime, daysOfRecurrence, null,
             null);
   }
@@ -167,7 +167,7 @@ public class EventSeriesTest {
    * @throws CalendarException expected exception if occurrence count is zero and no end date.
    */
   @Test(expected = CalendarException.class)
-  public void testConstructor_ZeroOccurrencesAndNoEndDate() throws CalendarException {
+  public void testConstructorZeroOccurrencesAndNoEndDate() throws CalendarException {
     new EventSeries(subject, startDateTime, endDateTime, daysOfRecurrence, 0,
             null);
   }
@@ -291,7 +291,7 @@ public class EventSeriesTest {
    * @throws CalendarException if there's an issue with calendar operations.
    */
   @Test
-  public void testSetDuration_Valid() throws CalendarException {
+  public void testSetDurationValid() throws CalendarException {
     EventSeries series = new EventSeries(subject, startDateTime, endDateTime, daysOfRecurrence,
             1, null);
     Duration newDuration = Duration.ofMinutes(45);
@@ -308,7 +308,7 @@ public class EventSeriesTest {
    *         a day boundary.
    */
   @Test(expected = CalendarException.class)
-  public void testSetDuration_CrossesDayBoundary() throws CalendarException {
+  public void testSetDurationCrossesDayBoundary() throws CalendarException {
     EventSeries series = new EventSeries(subject, startDateTime, endDateTime, daysOfRecurrence,
             1, null);
     LocalTime seriesStartTime = LocalTime.of(23, 0);
@@ -341,7 +341,7 @@ public class EventSeriesTest {
    * @throws CalendarException if there's an issue during event generation.
    */
   @Test
-  public void testGenerateEvents_CountBased() throws CalendarException {
+  public void testGenerateEventsCountBased() throws CalendarException {
     occurrenceCount = 5;
     EventSeries series = new EventSeries(subject, startDateTime, endDateTime, daysOfRecurrence,
             occurrenceCount, null);
@@ -374,7 +374,7 @@ public class EventSeriesTest {
    * @throws CalendarException if there's an issue during event generation.
    */
   @Test
-  public void testGenerateEvents_DateBased() throws CalendarException {
+  public void testGenerateEventsDateBased() throws CalendarException {
     endDate = LocalDate.of(2025, 6, 10);
     EventSeries series = new EventSeries(subject, startDateTime, endDateTime, daysOfRecurrence,
             null, endDate);
@@ -400,7 +400,7 @@ public class EventSeriesTest {
    * @throws CalendarException if there's an issue during event generation.
    */
   @Test
-  public void testGenerateEvents_NoRecurrenceDaysMatch() throws CalendarException {
+  public void testGenerateEventsNoRecurrenceDaysMatch() throws CalendarException {
 
     Set<DayOfWeek> singleDayRecurrence = EnumSet.of(DayOfWeek.FRIDAY);
     // startDateTime is Monday, June 2nd. The next Friday is June 6th.
@@ -421,7 +421,7 @@ public class EventSeriesTest {
    * @throws CalendarException if there's an issue during event generation.
    */
   @Test
-  public void testGenerateEvents_ZeroOccurrences() throws CalendarException {
+  public void testGenerateEventsZeroOccurrences() throws CalendarException {
     endDate = LocalDate.of(2025, 6, 1); // Before startDateTime (June 2)
     EventSeries series = new EventSeries(subject, startDateTime, endDateTime, daysOfRecurrence,
             null, endDate);
@@ -437,7 +437,7 @@ public class EventSeriesTest {
    * @throws CalendarException if there's an issue during event generation.
    */
   @Test
-  public void testGenerateEvents_SeriesEndDateBeforeStartDate() throws CalendarException {
+  public void testGenerateEventsSeriesEndDateBeforeStartDate() throws CalendarException {
     endDate = LocalDate.of(2025, 5, 1); // Before startDateTime (June 2)
     EventSeries series = new EventSeries(subject, startDateTime, endDateTime, daysOfRecurrence,
             null, endDate);
@@ -453,7 +453,7 @@ public class EventSeriesTest {
    * @throws CalendarException if there's an issue during event generation.
    */
   @Test
-  public void testGenerateEvents_NoMatchingDayInDateRange() throws CalendarException {
+  public void testGenerateEventsNoMatchingDayInDateRange() throws CalendarException {
     startDateTime = LocalDateTime.of(2025, 6, 2, 9, 0);
     endDateTime = LocalDateTime.of(2025, 6, 2, 10, 0);
     daysOfRecurrence = EnumSet.of(DayOfWeek.SUNDAY); // Only Sunday
