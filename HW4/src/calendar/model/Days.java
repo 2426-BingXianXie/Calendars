@@ -6,6 +6,10 @@ import java.util.Set;
 
 import calendar.CalendarException;
 
+/**
+ * Represents the days of the week with their corresponding symbols and DayOfWeek enums.
+ * Each day is associated with a character symbol for easy representation.
+ */
 public enum Days {
   MONDAY('M', DayOfWeek.MONDAY),
   TUESDAY('T', DayOfWeek.TUESDAY),
@@ -18,6 +22,12 @@ public enum Days {
   private final char symbol;
   private final DayOfWeek dayOfWeek;
 
+  /**
+   * Constructs a Days enum with the specified character symbol and corresponding DayOfWeek.
+   *
+   * @param symbol     the character symbol representing the day
+   * @param dayOfWeek  the DayOfWeek enum corresponding to this day
+   */
   Days(char symbol, DayOfWeek dayOfWeek) {
     this.symbol = symbol;
     this.dayOfWeek = dayOfWeek;
