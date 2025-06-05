@@ -25,6 +25,22 @@ public class CalendarView implements ICalendarView {
   }
 
   /**
+   * Writes a given message string to the output stream.
+   *
+   * @param message The string message to be written.
+   * @throws IllegalStateException if an {@link IOException} occurs during the write operation.
+   */
+  public void writeMessage(String message) throws IllegalStateException {
+    try {
+      out.append(message);
+
+    } catch (IOException e) {
+      // Wraps IOException in an IllegalStateException to conform to the interface.
+      throw new IllegalStateException(e.getMessage());
+    }
+  }
+
+  /**
    * Displays the main menu of the calendar program to the user.
    * This includes a welcome message and a list of supported instructions.
    *
@@ -105,22 +121,6 @@ public class CalendarView implements ICalendarView {
                 event.getStart().toLocalDate() + "' from " + event.getStart().toLocalTime()
                 + " to " + event.getEnd().toLocalTime() + System.lineSeparator());
       }
-    }
-  }
-
-  /**
-   * Writes a given message string to the output stream.
-   *
-   * @param message The string message to be written.
-   * @throws IllegalStateException if an {@link IOException} occurs during the write operation.
-   */
-  public void writeMessage(String message) throws IllegalStateException {
-    try {
-      out.append(message);
-
-    } catch (IOException e) {
-      // Wraps IOException in an IllegalStateException to conform to the interface.
-      throw new IllegalStateException(e.getMessage());
     }
   }
 
