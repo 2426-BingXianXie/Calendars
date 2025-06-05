@@ -160,8 +160,14 @@ public class Create extends AbstractCommand {
             seriesEndDate, repeatsCount != null ? repeatsCount : 0,
             null, null, null);
 
-    view.writeMessage("Event series '" + subject + "' created on " + startDate.toLocalDate() +
-            " from " + startTime + " to " + endTime + " repeating on " + daysOfWeek + " " +
-            repeatsCount + " times." + System.lineSeparator());
+    if (terminatorKeyword.equalsIgnoreCase("for")) {
+      view.writeMessage("Event series '" + subject + "' created on " + startDate.toLocalDate() +
+              " from " + startTime + " to " + endTime + " repeating on " + daysOfWeek + " " +
+              repeatsCount + " times." + System.lineSeparator());
+    } else {
+      view.writeMessage("Event series '" + subject + "' created on " + startDate.toLocalDate() +
+              " from " + startTime + " to " + endTime + " repeating on " + daysOfWeek + " until " +
+              seriesEndDate + "." + System.lineSeparator());
+    }
   }
 }

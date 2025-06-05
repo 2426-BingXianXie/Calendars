@@ -52,6 +52,12 @@ public class EventSeries {
       throw new CalendarException("Series events must start and end on the same day");
     }
 
+    if (endDate != null) {
+      if (endDate.isBefore(startDateTime.toLocalDate())) {
+        throw new CalendarException("End date cannot be before start date");
+      }
+    }
+
     // Validate that at least one day of recurrence has been specified.
     if (daysOfRecurrence == null || daysOfRecurrence.isEmpty()) {
       throw new CalendarException("At least one recurrence day required");

@@ -180,24 +180,51 @@ public class ICalendarControllerTest {
     // Welcome message
     sb.append("Welcome to the calendar program!").append(System.lineSeparator());
     sb.append("Supported user instructions are: ").append(System.lineSeparator());
-    sb.append("create event <eventSubject> from <dateStringTtimeString> to <dateStringTtimeString> (Create a singular event)").append(System.lineSeparator());
-    sb.append("create event <eventSubject> from <dateStringTtimeString> to <dateStringTtimeString> repeats <weekdays> for <N> times (Creates an event series that repeats N times on specific weekdays)").append(System.lineSeparator());
-    sb.append("create event <eventSubject> from <dateStringTtimeString> to <dateStringTtimeString> repeats <weekdays> until <dateString> (Creates an event series until a specific date (inclusive))").append(System.lineSeparator());
-    sb.append("create event <eventSubject> on <dateString> (Creates a single all day event.)").append(System.lineSeparator());
-    sb.append("create event <eventSubject> on <dateString> repeats <weekdays> for <N> times(Creates a series of all day events that repeats N times on specific weekdays)").append(System.lineSeparator());
-    sb.append("create event <eventSubject> on <dateString> repeats <weekdays> until <dateString>(Creates a series of all day events until a specific date (inclusive).").append(System.lineSeparator());
+    sb.append("create event <eventSubject> from <dateStringTtimeString> to " +
+            "<dateStringTtimeString> (Create a singular event)").append(System.lineSeparator());
+    sb.append("create event <eventSubject> from <dateStringTtimeString> to " +
+            "<dateStringTtimeString> repeats <weekdays> for <N> times (Creates an event series " +
+            "that repeats N times on specific weekdays)").append(System.lineSeparator());
+    sb.append("create event <eventSubject> from <dateStringTtimeString> to " +
+            "<dateStringTtimeString> repeats <weekdays> until <dateString> " +
+            "(Creates an event series until a specific date (inclusive))")
+            .append(System.lineSeparator());
+    sb.append("create event <eventSubject> on <dateString> (Creates a single all day event.)")
+            .append(System.lineSeparator());
+    sb.append("create event <eventSubject> on <dateString> repeats <weekdays> for <N> times" +
+            "(Creates a series of all day events that repeats N times on specific weekdays)")
+            .append(System.lineSeparator());
+    sb.append("create event <eventSubject> on <dateString> repeats <weekdays> until " +
+            "<dateString>(Creates a series of all day events until a specific date (inclusive).")
+            .append(System.lineSeparator());
 
     // Edit options
-    sb.append("edit event <property> <eventSubject> from <dateStringTtimeString> to <dateStringTtimeString> with <NewPropertyValue>(Changes the property of the given event).").append(System.lineSeparator());
-    sb.append("edit events <property> <eventSubject> from <dateStringTtimeString> with <NewPropertyValue>(Identify the event that has the given subject and starts at the given date and time and edit its property. If this event is part of a series then the properties of all events in that series that start at or after the given date and time is changed).").append(System.lineSeparator());
-    sb.append("edit series <property> <eventSubject> from <dateStringTtimeString> with <NewPropertyValue>(Identify the event that has the given subject and starts at the given date and time and edit its property. If this event is part of a series then the properties of all events in that series is changed).").append(System.lineSeparator());
+    sb.append("edit event <property> <eventSubject> from <dateStringTtimeString> to " +
+            "<dateStringTtimeString> with <NewPropertyValue>(Changes the property of the" +
+            " given event).").append(System.lineSeparator());
+    sb.append("edit events <property> <eventSubject> from <dateStringTtimeString> with" +
+            " <NewPropertyValue>(Identify the event that has the given subject and starts" +
+            " at the given date and time and edit its property. If this event is part of a " +
+            "series then the properties of all events in that series that start at or after " +
+            "the given date and time is changed).").append(System.lineSeparator());
+    sb.append("edit series <property> <eventSubject> from <dateStringTtimeString> with " +
+            "<NewPropertyValue>(Identify the event that has the given subject and starts at " +
+            "the given date and time and edit its property. If this event is part of a series " +
+            "then the properties of all events in that series is changed).")
+            .append(System.lineSeparator());
 
     // Print options
-    sb.append("print events on <dateString>(Prints a bulleted list of all events on that day along with their start and end time and location (if any)).").append(System.lineSeparator());
-    sb.append("print events from <dateStringTtimeString> to <dateStringTtimeString>(Prints a bulleted list of all events in the given interval including their start and end times and location (if any)).").append(System.lineSeparator());
-    sb.append("show status on <dateStringTtimeString>(Prints busy status if the user has events scheduled on a given day and time, otherwise, available).").append(System.lineSeparator());
+    sb.append("print events on <dateString>(Prints a bulleted list of all events on that day " +
+            "along with their start and end time and location (if any)).")
+            .append(System.lineSeparator());
+    sb.append("print events from <dateStringTtimeString> to <dateStringTtimeString>" +
+            "(Prints a bulleted list of all events in the given interval including their " +
+            "start and end times and location (if any)).").append(System.lineSeparator());
+    sb.append("show status on <dateStringTtimeString>(Prints busy status if the user has " +
+            "events scheduled on a given day and time, otherwise, available).")
+            .append(System.lineSeparator());
     sb.append("menu (Print supported instruction list)").append(System.lineSeparator());
-    sb.append("q or quit (quit the program) ").append(System.lineSeparator()); // Note the trailing space in your view, if intentional
+    sb.append("q or quit (quit the program) ").append(System.lineSeparator());
     return sb.toString();
   }
 
@@ -217,12 +244,20 @@ public class ICalendarControllerTest {
     return "Event '" + subject + "' created from 8am to 5pm on " + date + "\n";
   }
 
-  private static String getSuccessfulSeriesMessage(String subject, LocalDate startDate,
+  private static String getSuccessfulForSeriesMessage(String subject, LocalDate startDate,
                                                    LocalTime startTime, LocalTime endTime,
                                                    Set<Days> daysOfWeek, int repeatCount) {
     return "Event series '" + subject + "' created on " + startDate +
             " from " + startTime + " to " + endTime + " repeating on " + daysOfWeek + " " +
             repeatCount + " times.\n";
+  }
+
+  private static String getSuccessfulUntilSeriesMessage(String subject, LocalDate startDate,
+                                                        LocalTime startTime, LocalTime endTime,
+                                                        Set<Days> daysOfWeek, LocalDate endDate) {
+    return "Event series '" + subject + "' created on " + startDate +
+            " from " + startTime + " to " + endTime + " repeating on " + daysOfWeek + " until " +
+            endDate + ".\n";
   }
 
 
@@ -556,6 +591,18 @@ public class ICalendarControllerTest {
   }
 
   @Test
+  public void testInputDateTime() throws CalendarException {
+    String errorMessage = "Invalid date format for <dateString>. Expected YYYY-MM-DD\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test on 2025-04-31T09:00"), // input Apr 31 2025 09:00
+            // given LocalDateTime instade of LocalDate, throw an error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
   public void testInputValidDate() throws CalendarException {
     testRun(model,
             prints(getExpectedFullMenuOutput()),
@@ -829,7 +876,7 @@ public class ICalendarControllerTest {
             inputs("create event test on " + dateString + " repeats " + days + " for " + repeats +
                     " times"),
             // given valid input, should successfully create a event series
-            prints(getSuccessfulSeriesMessage("test", date, startTime, endTime, daysOfWeek,
+            prints(getSuccessfulForSeriesMessage("test", date, startTime, endTime, daysOfWeek,
                     repeats)),
             prints(getExpectedEnterCommandPrompt()));
   }
@@ -856,7 +903,7 @@ public class ICalendarControllerTest {
             inputs("create event " + subject + " on " + dateString + " repeats " + days + " for "
                     + repeats + " times\n"),
             // given valid input, should successfully create a event series
-            prints(getSuccessfulSeriesMessage("test", date, startTime, endTime, daysOfWeek,
+            prints(getSuccessfulForSeriesMessage("test", date, startTime, endTime, daysOfWeek,
                     repeats)),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on " + dateString + " repeats " + days + " for " + repeats +
@@ -887,7 +934,7 @@ public class ICalendarControllerTest {
             inputs("create event " + subject + " on " + dateString + " repeats " + days + " for "
                     + repeats + " times\n"),
             // given valid input, should successfully create a event series
-            prints(getSuccessfulSeriesMessage("test", date, startTime, endTime, daysOfWeek,
+            prints(getSuccessfulForSeriesMessage("test", date, startTime, endTime, daysOfWeek,
                     repeats)),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2024-02-29"),
@@ -906,6 +953,150 @@ public class ICalendarControllerTest {
             // should ignore capitalization
             inputs("create event test on 2024-02-29 repeats " + input + " until"),
             // expected is end date after 'until', throw an error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputOnlyUntilCapitalizedAfterDays() throws CalendarException {
+    String input = "mwf"; // mon, wed, fri
+    String errorMessage = "Missing <dateString>.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input valid weekday string
+            // should ignore capitalization
+            inputs("create event test on 2024-02-29 repeats " + input + " UNTIL"),
+            // expected is end date after 'until', throw an error
+            // should ignore capitalization, return same error as test above
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInvalidInputAfterUntil() throws CalendarException {
+    String input = "mwf"; // mon, wed, fri
+    String errorMessage = "Invalid date format for <dateString>. Expected YYYY-MM-DD\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input valid weekday string
+            // should ignore capitalization
+            inputs("create event test on 2024-02-29 repeats " + input + " until test"),
+            // given invalid input after 'until', throw error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInvalidDateAfterUntil() throws CalendarException {
+    String input = "mwf"; // mon, wed, fri
+    String errorMessage = "Invalid date format for <dateString>. Expected YYYY-MM-DD\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input valid weekday string
+            // should ignore capitalization
+            inputs("create event test on 2024-02-29 repeats " + input + " until 2025-02-29"),
+            // given invalid date, throw error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputDateTimeAfterUntil() throws CalendarException {
+    String input = "mwf"; // mon, wed, fri
+    String errorMessage = "Invalid date format for <dateString>. Expected YYYY-MM-DD\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input valid weekday string
+            // should ignore capitalization
+            inputs("create event test on 2024-02-29 repeats " + input + " until 2024-05-05T08:00"),
+            // given LocalDateTime instead of LocalDate after 'until', throw error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEndDateBeforeStartDateAfterUntil() throws CalendarException {
+    String input = "mwf"; // mon, wed, fri
+    String errorMessage = "End date cannot be before start date\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input valid weekday string
+            // should ignore capitalization
+            inputs("create event test on 2024-02-29 repeats " + input + " until 2024-02-28"),
+            // end date is before start date, throw error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testValidInputAfterUntil() throws CalendarException {
+    String days = "mwf"; // mon, wed, fri
+    Set<Days> daysOfWeek = new HashSet<Days>();
+    char[] chars = days.toCharArray();
+    for (char c : chars) {
+      daysOfWeek.add(Days.fromSymbol(c));
+    }
+    String startDateString = "2024-02-29";
+    String endDateString = "2024-05-05";
+    LocalDate startDate = LocalDate.parse(startDateString);
+    LocalDate endDate = LocalDate.parse(endDateString);
+    LocalTime startTime = LocalTime.of(8, 0);
+    LocalTime endTime = LocalTime.of(17, 0);
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test on " + startDateString + " repeats " + days + " until " +
+                    endDateString),
+            // given valid input, should successfully create an event series
+            prints(getSuccessfulUntilSeriesMessage("test", startDate, startTime, endTime, daysOfWeek,
+                    endDate)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testDuplicateEventAfterEndDate() throws CalendarException {
+    String subject = "test";
+    String errorMessage = "Event already exists\n";
+    String days = "mwrf"; // mon, wed, thur, fri
+    int repeats = 5;
+    Set<Days> daysOfWeek = new HashSet<Days>();
+    char[] chars = days.toCharArray();
+    for (char c : chars) {
+      daysOfWeek.add(Days.fromSymbol(c));
+    }
+    String startDateString = "2024-02-29";
+    String endDateString = "2024-05-05";
+    LocalDate startDate = LocalDate.parse(startDateString);
+    LocalDate endDate = LocalDate.parse(endDateString);
+    LocalTime startTime = LocalTime.of(8, 0);
+    LocalTime endTime = LocalTime.of(17, 0);
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input valid weekday string
+            inputs("create event test on " + startDateString + " repeats " + days + " until " +
+                    endDateString + "\n"),
+            // given valid input, should successfully create a event series
+            prints(getSuccessfulUntilSeriesMessage("test", startDate, startTime, endTime, daysOfWeek,
+                    endDate)),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test on 2024-02-29"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputOnlyFromAfterSubject() throws CalendarException {
+    String errorMessage = "Missing <dateStringTtimeString>.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from"), // input 'from' keyword without date
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
   }

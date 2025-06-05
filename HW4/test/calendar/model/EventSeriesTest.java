@@ -413,36 +413,32 @@ public class EventSeriesTest {
   }
 
   /**
-   * Tests the {@code generateEvents} method when the number of occurrences is zero
+   * Tests the EventSeries constructor when the number of occurrences is zero
    * and there's no end date (covered by constructor tests). This specifically tests
    * when the end date is set to a date before any events can be generated.
-   * Asserts that no events are generated.
+   * Asserts that an error is thrown.
    *
-   * @throws CalendarException if there's an issue during event generation.
+   * @throws CalendarException if there's an issue during event series creation.
    */
-  @Test
+  @Test(expected = CalendarException.class)
   public void testGenerateEventsZeroOccurrences() throws CalendarException {
     endDate = LocalDate.of(2025, 6, 1); // Before startDateTime (June 2)
     EventSeries series = new EventSeries(subject, startDateTime, endDateTime, daysOfRecurrence,
             null, endDate);
-    Set<Event> generatedEvents = series.generateEvents();
-    assertTrue(generatedEvents.isEmpty());
   }
 
   /**
    * Tests the {@code generateEvents} method when the series end date is before the series
    * start date.
-   * Asserts that no events are generated.
+   * Asserts that an error is thrown.
    *
-   * @throws CalendarException if there's an issue during event generation.
+   * @throws CalendarException if there's an issue during event series creation.
    */
-  @Test
+  @Test(expected = CalendarException.class)
   public void testGenerateEventsSeriesEndDateBeforeStartDate() throws CalendarException {
     endDate = LocalDate.of(2025, 5, 1); // Before startDateTime (June 2)
     EventSeries series = new EventSeries(subject, startDateTime, endDateTime, daysOfRecurrence,
             null, endDate);
-    Set<Event> generatedEvents = series.generateEvents();
-    assertTrue(generatedEvents.isEmpty());
   }
 
   /**
