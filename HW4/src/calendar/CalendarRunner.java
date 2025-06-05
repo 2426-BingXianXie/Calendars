@@ -24,7 +24,7 @@ public class CalendarRunner {
         System.out.println("Please select mode:");
         System.out.println("1. Interactive");
         System.out.println("2. Headless");
-        System.out.print("Enter choice 1 or 2 : ");
+        System.out.print("Enter choice Interactive or Headless : ");
 
         Scanner scanner = new Scanner(System.in);
         int choice = scanner.nextInt();
