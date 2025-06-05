@@ -209,7 +209,6 @@ public class ICalendarControllerTest {
   }
 
 
-
   @Test
   public void testNoInput() throws CalendarException {
     // controller should always print the menu of commands and enter prompt upon creation
@@ -380,7 +379,35 @@ public class ICalendarControllerTest {
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
   }
+
+  @Test
+  public void testInputOnlyOnAfterSubjectWithMultipleWords() throws CalendarException {
+    String errorMessage = "Missing <dateString> after 'on'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input 'on' keyword without date
+            // controller should register all words before 'on' as subject name
+            inputs("create event test test test on"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testOnAllCapitalLetters() throws CalendarException {
+    String errorMessage = "Missing <dateString> after 'on'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input 'on' keyword without date in all capital letters
+            // controller should disregard capital letters
+            inputs("create event test ON"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
 }
+
+
 
 
 
