@@ -104,7 +104,7 @@ public class Create extends AbstractCommand {
     // attempt to parse second date input
     LocalDateTime toDate = parseDateTime(sc);
     if (toDate.isBefore(fromDate)) { // check for valid end date input
-      throw new IllegalArgumentException("End date must be after start date");
+      throw new CalendarException("End date must be after start date");
     }
     // check if there's a 'repeats' keyword next
     if (sc.hasNext()) {
@@ -112,7 +112,7 @@ public class Create extends AbstractCommand {
       if (repeatsKeyword.equalsIgnoreCase("repeats")) { // is a series of events
         // check that each event in a series only lasts 1 day
         if (!fromDate.toLocalDate().isEqual(toDate.toLocalDate())) {
-          throw new IllegalArgumentException("Each event in a series can only last one day");
+          throw new CalendarException("Each event in a series can only last one day");
         }
         handleSeriesDetails(subject, fromDate, false, sc, model, fromDate.toLocalTime(), toDate.toLocalTime());
       } else {

@@ -244,6 +244,11 @@ public class ICalendarControllerTest {
     return "Event '" + subject + "' created from 8am to 5pm on " + date + "\n";
   }
 
+  private static String getSuccessfulEventMessage(
+          String subject, LocalDateTime start, LocalDateTime end) {
+    return "Event '" + subject + "' created from " + start + " to " + end + ".\n";
+  }
+
   private static String getSuccessfulForSeriesMessage(String subject, LocalDate startDate,
                                                    LocalTime startTime, LocalTime endTime,
                                                    Set<Days> daysOfWeek, int repeatCount) {
@@ -610,6 +615,18 @@ public class ICalendarControllerTest {
             inputs("create event test on 2025-06-05"), // input Jun 5 2025
             // date is valid, print success message
             prints(getSuccessfulAllDayMessage("test", LocalDate.of(2025, 6, 5))),
+            // prompt user for next command
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputValidDateWithSubjectAsNumber() throws CalendarException {
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event 123 on 2025-06-05"), // input Jun 5 2025
+            // date is valid, print success message
+            prints(getSuccessfulAllDayMessage("123", LocalDate.of(2025, 6, 5))),
             // prompt user for next command
             prints(getExpectedEnterCommandPrompt()));
   }
@@ -1092,7 +1109,7 @@ public class ICalendarControllerTest {
 
   @Test
   public void testInputOnlyFromAfterSubject() throws CalendarException {
-    String errorMessage = "Missing <dateStringTtimeString>.\n";
+    String errorMessage = "Missing <dateStringTtimeString>\n";
     testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
@@ -1100,6 +1117,404 @@ public class ICalendarControllerTest {
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
   }
+
+  @Test
+  public void testInvalidInputAfterFrom() throws CalendarException {
+    String errorMessage = "Invalid date format for <dateStringTtimeString>. " +
+            "Expected YYYY-MM-DDThh:mm\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from test"), // input invalid date
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputDateAfterFrom() throws CalendarException {
+    String errorMessage = "Invalid date format for <dateStringTtimeString>. " +
+            "Expected YYYY-MM-DDThh:mm\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from 2024-11-12"), // input date instead of datetime
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputInvalidMinutesAfterFrom() throws CalendarException {
+    String errorMessage = "Invalid date format for <dateStringTtimeString>. " +
+            "Expected YYYY-MM-DDThh:mm\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from 2024-11-12T00:61"), // input mm as 61
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputInvalidHoursAfterFrom() throws CalendarException {
+    String errorMessage = "Invalid date format for <dateStringTtimeString>. " +
+            "Expected YYYY-MM-DDThh:mm\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from 2024-11-12T24:00"), // input hh as 24
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputInvalidDateTimeAfterFrom() throws CalendarException {
+    String errorMessage = "Invalid date format for <dateStringTtimeString>. " +
+            "Expected YYYY-MM-DDThh:mm\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from 2024-11-31T00:00"), // input nov 31
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testNoInputAfterDateTime() throws CalendarException {
+    String errorMessage = "Missing 'to' keyword.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from 2024-11-12T00:00"), // input valid date
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInvalidInputAfterDateTime() throws CalendarException {
+    String errorMessage = "Missing 'to' keyword.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from 2024-11-12T00:00 test"), // not 'to', throw error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testNoInputAfterTo() throws CalendarException {
+    String errorMessage = "Missing <dateStringTtimeString>\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from 2024-11-12T00:00 to"), // no input after 'to', error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputToCapitalized() throws CalendarException {
+    String errorMessage = "Missing <dateStringTtimeString>\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // should ignore capitalization, return same error as above
+            inputs("create event test from 2024-11-12T00:00 TO"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInvalidInputAfterTo() throws CalendarException {
+    String errorMessage = "Invalid date format for <dateStringTtimeString>. " +
+            "Expected YYYY-MM-DDThh:mm\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from 2024-11-12T00:00 to test"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputDateTimeAfterTo() throws CalendarException {
+    String errorMessage = "Invalid date format for <dateStringTtimeString>. " +
+            "Expected YYYY-MM-DDThh:mm\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from 2024-11-12T00:00 to 2024-11-13"), // input date, error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEndDateBeforeStartDateAfterTo() throws CalendarException {
+    String errorMessage = "End date must be after start date\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input end date that is before start date
+            inputs("create event test from 2024-11-12T00:00 to 2024-11-11T00:00"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEndDateTimeBeforeStartDateTimeAfterTo() throws CalendarException {
+    String errorMessage = "End date must be after start date\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input same day, earlier hour for end date
+            inputs("create event test from 2024-11-12T01:00 to 2024-11-12T00:00"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInvalidEndDateTimeAfterTo() throws CalendarException {
+    String errorMessage = "Invalid date format for <dateStringTtimeString>. " +
+            "Expected YYYY-MM-DDThh:mm\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from 2024-11-12T00:00 to 2024-11-31T00:00"), // input nov 31
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testValidEndDateTimeAfterTo() throws CalendarException {
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-13T00:00";
+    LocalDateTime startDateTime = LocalDateTime.parse(startDateTimeString);
+    LocalDateTime endDateTime = LocalDateTime.parse(endDateTimeString);
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString),
+            // date is valid, print success message
+            prints(getSuccessfulEventMessage("test", startDateTime, endDateTime)),
+            // prompt user for next command
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testValidEndDateTimeAfterTo2() throws CalendarException {
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00"; // same day, different time
+    LocalDateTime startDateTime = LocalDateTime.parse(startDateTimeString);
+    LocalDateTime endDateTime = LocalDateTime.parse(endDateTimeString);
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString),
+            // date is valid, print success message
+            prints(getSuccessfulEventMessage("test", startDateTime, endDateTime)),
+            // prompt user for next command
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testMinDateToMaxDate() throws CalendarException {
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-13T00:00";
+    LocalDateTime startDateTime = LocalDateTime.parse(startDateTimeString);
+    LocalDateTime endDateTime = LocalDateTime.parse(endDateTimeString);
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString),
+            // date is valid, print success message
+            prints(getSuccessfulEventMessage("test", startDateTime, endDateTime)),
+            // prompt user for next command
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInvalidInputAfterToDate() throws CalendarException {
+    String errorMessage = "Expected 'repeats' or end of command for single timed event.\n";
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00"; // same day, different time
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+            + " test"), // invalid input 'test' after end date
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputRepeatsAfterToDate() throws CalendarException {
+    String errorMessage = "Missing days to repeat\n";
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00"; // same day, different time
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats"), // no input after 'repeats', throw error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEventSeriesLongerThanOneDayAfterRepeats() throws CalendarException {
+    String errorMessage = "Each event in a series can only last one day\n";
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-13T01:00"; // end date goes overnight
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats"), // each event goes overnight, throw error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInvalidInputAfterRepeats() throws CalendarException {
+    String errorMessage = "Invalid weekday symbol: X\n";
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats XYZ"), // input invalid days string
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInvalidDaysWithValidDaysAfterRepeats() throws CalendarException {
+    String errorMessage = "Invalid weekday symbol: X\n";
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats MWFX"), // input invalid days string
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputValidDaysAfterRepeats() throws CalendarException {
+    String input = "MWF"; // mon, wed, fri
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00";
+    String errorMessage = "Missing 'for' or 'until'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input valid weekday string
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats " + input),
+            // expected is 'from' or 'until' after, throw error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputForAfterDays() throws CalendarException {
+    String input = "MWF"; // mon, wed, fri
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00";
+    String errorMessage = "Missing <N> after 'for'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input valid weekday string
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats " + input + " for"),
+            // expected <N> after 'for', throw error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testNonNumberAfterFor() throws CalendarException {
+    String input = "MWF"; // mon, wed, fri
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00";
+    String errorMessage = "Missing <N> after 'for'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input valid weekday string
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats " + input + " for x"),
+            // inputted non-number, throw error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testValidNumberAfterFor() throws CalendarException {
+    String input = "MWF"; // mon, wed, fri
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00";
+    String errorMessage = "Missing 'times' after 'for <N>'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input valid weekday string
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats " + input + " for 5"),
+            // inputted number but missing 'times', throw error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInvalidInputAfterNumber2() throws CalendarException {
+    String input = "MWF"; // mon, wed, fri
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00";
+    String errorMessage = "Missing 'times' after 'for <N>'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input valid weekday string
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats " + input + " for 5 test"),
+            // expected 'times' but given 'test', throw error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testValidInputAfterNumber2() throws CalendarException {
+    String days = "mwf"; // mon, wed, fri
+    int repeats = 5;
+    Set<Days> daysOfWeek = new HashSet<Days>();
+    char[] chars = days.toCharArray();
+    for (char c : chars) {
+      daysOfWeek.add(Days.fromSymbol(c));
+    }
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00";
+    LocalDateTime startDateTime = LocalDateTime.parse(startDateTimeString);
+    LocalDate startDate = startDateTime.toLocalDate();
+    LocalTime startTime = LocalTime.of(0, 0);
+    LocalTime endTime = LocalTime.of(1, 0);
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input valid weekday string
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats " + days + " for 5 times"),
+            // given valid input, should successfully create an event series
+            prints(getSuccessfulForSeriesMessage("test", startDate, startTime, endTime, daysOfWeek,
+                    repeats)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+
+
 
 }
 
