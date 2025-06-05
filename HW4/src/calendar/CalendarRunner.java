@@ -20,8 +20,7 @@ public class CalendarRunner {
 
     try {
       // check that first input is '--mode'
-      String firstInput = args[0];
-      if (args.length >= 2 && firstInput.equalsIgnoreCase("--mode")) {
+      if (args.length >= 2 && args[0].equalsIgnoreCase("--mode")) {
         String mode = args[1].toLowerCase();
         if ("interactive".equals(mode)) {
           if (args.length != 2) { // check that the input is '--mode interactive'
