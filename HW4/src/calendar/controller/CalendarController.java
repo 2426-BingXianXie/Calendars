@@ -2,7 +2,6 @@ package calendar.controller;
 
 import java.util.Scanner;
 
-
 import calendar.CalendarException;
 import calendar.controller.commands.Create;
 import calendar.controller.commands.Edit;
