@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
-import java.util.Scanner;
+
 import calendar.controller.CalendarController;
 import calendar.view.CalendarView;
 import calendar.model.ICalendar;
@@ -19,67 +19,42 @@ public class CalendarRunner {
     ICalendarController controller = null;
 
     try {
-      // If no arguments provided, prompt user for mode
-      if (args.length == 0) {
-        System.out.println("Please select mode:");
-        System.out.println("1. Interactive");
-        System.out.println("2. Headless");
-        System.out.print("Enter choice (1, 2, 'interactive', or 'headless'): ");
-
-        Scanner scanner = new Scanner(System.in);
-        String input = scanner.nextLine().trim().toLowerCase();
-
-        if (input.equals("1") || input.equals("interactive")) {
-          args = new String[]{"--mode", "interactive"};
-        } else if (input.equals("2") || input.equals("headless")) {
-          System.out.print("Enter command file path: ");
-          String filePath = scanner.nextLine();
-          args = new String[]{"--mode", "headless", filePath};
-        } else {
-          System.err.println("Invalid choice: " + input);
-          System.err.println("Valid choices: 1, 2, interactive, headless");
-          System.exit(1);
-        }
-      }
-
-      // Process arguments
-      if (args.length >= 2 && args[0].equalsIgnoreCase("--mode")) {
+      // check that first input is '--mode'
+      String firstInput = args[0];
+      if (args.length >= 2 && firstInput.equalsIgnoreCase("--mode")) {
         String mode = args[1].toLowerCase();
-
         if ("interactive".equals(mode)) {
-          if (args.length != 2) {
-            System.err.println("Usage for interactive: java CalendarRunner --mode interactive");
+          if (args.length != 2) { // check that the input is '--mode interactive'
+            System.err.println("Error: expected '--mode interactive'");
             System.exit(1);
           }
-          controller = new CalendarController(model, view, new InputStreamReader(System.in));
+          Readable rd = new InputStreamReader(System.in);
+          controller = new CalendarController(model, view, rd);
           controller.go();
-        } else if ("headless".equals(mode)) {
+        } else if ("headless".equals(mode)) { // check that input is '--mode headless <filename>'
           if (args.length != 3) {
-            System.err.println("Usage for headless: java CalendarRunner --mode headless <filename>");
+            System.err.println("Error: expected '--mode headless <filename>'");
             System.exit(1);
           }
-          try (BufferedReader reader = new BufferedReader(new FileReader(args[2]))) {
-            controller = new CalendarController(model, view, reader);
+          String commandFile = args[2];
+          try (BufferedReader reader = new BufferedReader(new FileReader(commandFile))) {
+            controller = new CalendarController(model, view, reader); // pass file reader
             controller.go();
+          } catch (IOException e) { // check for valid command file
+            view.writeMessage("Error: Could not read command file '" + commandFile + "'. ");
+            System.exit(1);
           }
-        } else {
-          System.err.println("Unknown mode: " + mode);
-          System.err.println("Valid modes: interactive, headless");
+        } else { // invalid mode input
+          view.writeMessage("Error: Unknown mode '" + mode + "'. " +
+                  "Valid modes are 'interactive' or 'headless'.");
           System.exit(1);
         }
-      } else {
-        System.err.println("Usage: java CalendarRunner [--mode interactive] [--mode headless <filename>]");
-        System.err.println("Example for interactive mode: java CalendarRunner --mode interactive");
-        System.err.println("Example for headless mode: java CalendarRunner --mode headless commands.txt");
+      } else { // invalid first input
+        view.writeMessage("Error: expected '--mode <interactive | headless <filename>>'");
         System.exit(1);
       }
-    } catch (IOException e) {
-      System.err.println("I/O Error: " + e.getMessage());
-      System.err.println("Could not read file: " + (args.length > 2 ? args[2] : ""));
-      System.exit(1);
-    } catch (Exception e) {
-      System.err.println("Unexpected Error: " + e.getMessage());
-      e.printStackTrace();
+    } catch (CalendarException e) { // catch calendarExceptions from controller/model
+      view.writeMessage("Application Error");
       System.exit(1);
     }
   }
