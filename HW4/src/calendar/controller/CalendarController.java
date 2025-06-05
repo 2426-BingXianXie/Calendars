@@ -53,7 +53,7 @@ public class CalendarController implements ICalendarController {
           throws CalendarException {
     CalendarCommand cmd = null;
     try {
-      switch (userInstruction) {
+      switch (userInstruction.toLowerCase()) {
         case "create":
           cmd = new Create(sc, view);
           break;

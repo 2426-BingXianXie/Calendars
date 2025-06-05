@@ -3,7 +3,6 @@ package calendar.controller;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,7 +12,6 @@ import calendar.CalendarException;
 import calendar.model.Event;
 import calendar.model.ICalendar;
 import calendar.model.VirtualCalendar;
-import calendar.view.CalendarView;
 import calendar.view.ICalendarView;
 
 import static org.junit.Assert.*;
@@ -51,16 +49,16 @@ public class ICalendarControllerTest {
         actualOutput.append(message);
       }
 
-      public void showMenu() throws IllegalStateException {
+      public void showMenu() {
         welcomeMessage();
         showOptions();
       }
 
-      private void welcomeMessage() throws IllegalStateException {
+      private void welcomeMessage() {
         writeMessage("Welcome to the calendar program!" + System.lineSeparator());
       }
 
-      public void farewellMessage() throws IllegalStateException {
+      public void farewellMessage() {
         writeMessage("Thank you for using this program!");
       }
 
@@ -206,6 +204,10 @@ public class ICalendarControllerTest {
     return "Thank you for using this program!";
   }
 
+  private static String getErrorMessage(String errorMessage) {
+    return "Error processing command: " + errorMessage;
+  }
+
 
 
   @Test
@@ -219,15 +221,166 @@ public class ICalendarControllerTest {
   @Test
   public void testUnknownCommand() throws CalendarException {
     String unknownCommand = "hello";
-    String expectedErrorMessage = "Error processing command: Unknown instruction: "
+    String expectedErrorMessage = "Unknown instruction: "
             + unknownCommand + System.lineSeparator();
     testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
             // check when inputting unknown command
             inputs(unknownCommand + "\n"),
+            // should print out error message
+            prints(getErrorMessage(expectedErrorMessage)),
+            // prompt user to type in again
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputNumber() throws CalendarException {
+    String unknownCommand = "123";
+    String expectedErrorMessage = "Error processing command: Unknown instruction: "
+            + unknownCommand + "\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // check when inputting a number as a prompt
+            inputs(unknownCommand + "\n"),
+            // should print out error message
             prints(expectedErrorMessage),
+            // prompt user to type in again
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputQ() throws CalendarException {
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("q\n")); // program should end after inputting 'q'
+  }
+
+  @Test
+  public void testInputQuit() throws CalendarException {
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("quit\n")); // program should end after inputting 'quit'
+  }
+
+  @Test
+  public void testInputMenu() throws CalendarException {
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("menu\n"), // program should re-print menu and command prompt
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputOnlyCreate() throws CalendarException {
+    String errorMessage = "Missing 'event' keyword after 'create'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create\n"),
+            prints(getErrorMessage(errorMessage)),
+            // program should always prompt user for next command
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputOnlyCreateAllCapitalLetters() throws CalendarException {
+    String errorMessage = "Missing 'event' keyword after 'create'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("CREATE\n"), // input 'create' in all capital letters
+            // controller should register input disregarding capitalization, output should be
+            // the same as the above test
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInvalidInputAfterCreate() throws CalendarException {
+    String input = "hello";
+    String errorMessage = "Invalid command 'create " + input + "'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create " + input), // input "create hello"
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInvalidInputNumberAfterCreate() throws CalendarException {
+    String input = "1";
+    String errorMessage = "Invalid command 'create " + input + "'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create " + input), // input "create 1"
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputOnlyCreateEvent() throws CalendarException {
+    String errorMessage = "Missing event subject.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputOnlyCreateEventCapitalized() throws CalendarException {
+    String errorMessage = "Missing event subject.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("CREATE EVENT"), // input 'create event' all capitalized
+            // again, controller disregards capitalization, output should be same as above test
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputOnlyCreateEventSubject() throws CalendarException {
+    String errorMessage = "Incomplete command, expected 'on' or 'from'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test"), // input subject without 'on' or 'from' afterward
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputOnlySubjectWithMultipleWords() throws CalendarException {
+    String errorMessage = "Incomplete command, expected 'on' or 'from'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test test"), // input subject without 'on' or 'from' afterward
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputOnlyOnAfterSubject() throws CalendarException {
+    String errorMessage = "Missing <dateString> after 'on'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test on"), // input 'on' keyword without date
+            prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
   }
 }
+
+
 
