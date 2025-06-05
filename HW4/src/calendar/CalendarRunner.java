@@ -12,7 +12,18 @@ import calendar.controller.ICalendarController;
 import calendar.view.ICalendarView;
 import calendar.model.VirtualCalendar;
 
+/**
+ * The driver of the calendar application.
+ * This class is responsible for initializing the model, view, and controller,
+ * and starting the application based on the command line arguments.
+ */
 public class CalendarRunner {
+  /**
+   * The main method of the calendar application.
+   * It initializes the model, view, and controller based on the command line arguments.
+   *
+   * @param args command line arguments to determine the mode of operation
+   */
   public static void main(String[] args) {
     ICalendar model = new VirtualCalendar();
     ICalendarView view = new CalendarView(System.out);
