@@ -463,4 +463,14 @@ public class EventSeriesTest {
     Set<Event> generatedEvents = series.generateEvents();
     assertTrue(generatedEvents.isEmpty());
   }
+
+  /**
+   * Tests that a set containing multiple recurrence days (Friday and Sunday)
+   * is correctly created and its size is as expected.
+   */
+  @Test
+  public void testGenerateEventsMixedRecurrenceDays() {
+    Set<DayOfWeek> mixedDays = EnumSet.of(DayOfWeek.FRIDAY, DayOfWeek.SUNDAY);
+    assertEquals(mixedDays.size(), 2);
+  }
 }

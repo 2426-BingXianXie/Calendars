@@ -494,4 +494,21 @@ public class EventTest {
     assertEquals("Event (2025-06-01T10:00 to 2025-06-01T11:00) @ PHYSICAL",
             event.toString());
   }
+
+  /**
+   * Tests that setting the end time before the start time throws an IllegalArgumentException.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void testSetEndBeforeStartTime() {
+    testEvent1.setEnd(testEvent1.getStart().minusMinutes(1));
+  }
+
+  /**
+   * Tests the {@code toString} method when the event's end time is null.
+   */
+  @Test
+  public void testToStringNullEndTime() {
+    Event event = new Event("Now", now);
+    assertEquals("Now (2025-06-01T10:00 to null)", event.toString());
+  }
 }

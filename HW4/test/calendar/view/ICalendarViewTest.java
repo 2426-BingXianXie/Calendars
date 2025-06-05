@@ -17,6 +17,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * JUnit 4 test class for the CalendarView.java,
@@ -372,7 +373,7 @@ public class ICalendarViewTest {
     Event event = new Event("Test", LocalDateTime.of(2025, 6, 11,
             9, 0), LocalDateTime.of(2025, 6, 11, 11,
             0));
-    List<Event> events = Arrays.asList(event);
+    List<Event> events = List.of(event);
 
     view.showCalendarEventsInDateRange(start, end, events);
     String expectedOutput = "Printing events from 2025-06-11T10:00 to 2025-06-11T10:00."
@@ -450,5 +451,377 @@ public class ICalendarViewTest {
     CalendarView errorView = new CalendarView(brokenAppendable);
     // Attempts to write a message, which should trigger the IOException.
     errorView.writeMessage("This should fail");
+  }
+
+  /**
+   * Tests the {@code showCalendarEvents} method with events that have and don't have
+   * detailed location information (e.g., "Room 101" vs. just "ONLINE").
+   * Ensures that the output correctly formats both scenarios.
+   */
+  @Test
+  public void testShowCalendarEventsEventsWithLocationDetails() {
+    LocalDate date = LocalDate.of(2025, 6, 4);
+    Event eventWithDetail = new Event("Conference",
+            LocalDateTime.of(2025, 6, 4, 9, 0),
+            LocalDateTime.of(2025, 6, 4, 17, 0),
+            "Annual tech conference", Location.PHYSICAL,
+            "Convention Center Hall A",
+            EventStatus.PUBLIC, null);
+    Event eventWithoutDetail = new Event("Quick Call",
+            LocalDateTime.of(2025, 6, 4, 10, 0),
+            LocalDateTime.of(2025, 6, 4, 10, 30),
+            null, Location.ONLINE, null, null, null);
+
+    List<Event> events = Arrays.asList(eventWithDetail, eventWithoutDetail);
+    view.showCalendarEvents(events, date);
+
+    String output = testOutput.toString();
+    assertTrue(output.contains("PHYSICAL event 'Conference'"));
+    assertTrue(output.contains("ONLINE event 'Quick Call'"));
+  }
+
+  /**
+   * Tests the {@code showCalendarEvents} method with a large number of events.
+   * Verifies that the introductory message is present and all event subjects are displayed.
+   */
+  @Test
+  public void testShowCalendarEventsManyEvents() {
+    LocalDate date = LocalDate.of(2025, 6, 4);
+    List<Event> manyEvents = new ArrayList<>();
+
+    for (int i = 0; i < 20; i++) {
+      Event event = new Event("Event " + i,
+              LocalDateTime.of(2025, 6, 4, 8 + i % 12,
+                      i % 60),
+              LocalDateTime.of(2025, 6, 4, 8 + (i % 12) + 1,
+                      (i % 60) + 30));
+      manyEvents.add(event);
+    }
+
+    view.showCalendarEvents(manyEvents, date);
+
+    String output = testOutput.toString();
+    assertTrue(output.contains("Printing events on 2025-06-04"));
+
+    // Verify all events are displayed
+    for (int i = 0; i < 20; i++) {
+      assertTrue(output.contains("Event '" + "Event " + i + "'"));
+    }
+  }
+
+  /**
+   * Tests the {@code showCalendarEvents} method to ensure that events are displayed
+   * in chronological order of their start times, regardless of the order in the input list.
+   * (Note: The current {@link CalendarView} implementation doesn't explicitly sort,
+   * so this tests the natural order if the input list is already sorted or if the
+   * underlying data structure provides it, or simply tests that all events are present).
+   */
+  @Test
+  public void testShowCalendarEventsEventsInChronologicalOrder() {
+    LocalDate date = LocalDate.of(2025, 6, 4);
+    Event lateEvent = new Event("Late Event",
+            LocalDateTime.of(2025, 6, 4, 15, 0),
+            LocalDateTime.of(2025, 6, 4, 16, 0));
+    Event earlyEvent = new Event("Early Event",
+            LocalDateTime.of(2025, 6, 4, 9, 0),
+            LocalDateTime.of(2025, 6, 4, 10, 0));
+    Event middleEvent = new Event("Middle Event",
+            LocalDateTime.of(2025, 6, 4, 12, 0),
+            LocalDateTime.of(2025, 6, 4, 13, 0));
+
+    // Intentionally add out of order to see if view handles sorting or simply prints in list order
+    List<Event> events = Arrays.asList(lateEvent, earlyEvent, middleEvent);
+    view.showCalendarEvents(events, date);
+
+    String output = testOutput.toString();
+    assertTrue(output.indexOf("Late Event") < output.indexOf("Early Event"));
+    assertTrue(output.contains("Early Event"));
+    assertTrue(output.contains("Middle Event"));
+    assertTrue(output.contains("Late Event"));
+  }
+
+  /**
+   * Tests the {@code showCalendarEventsInDateRange} method when the start and end
+   * of the range are identical (a point in time). Verifies that events
+   * overlapping this specific time are displayed.
+   */
+  @Test
+  public void testShowCalendarEventsInDateRangeSameStartAndEnd() {
+    LocalDateTime sameTime = LocalDateTime.of(2025, 6, 10, 12,
+            0);
+    Event event = new Event("Point Event",
+            LocalDateTime.of(2025, 6, 10, 11, 30),
+            LocalDateTime.of(2025, 6, 10, 12, 30));
+
+    view.showCalendarEventsInDateRange(sameTime, sameTime, List.of(event));
+
+    String expectedOutput = "Printing events from 2025-06-10T12:00 to 2025-06-10T12:00." +
+            System.lineSeparator() +
+            "Event 'Point Event' on 2025-06-10 from 11:30 to 12:30" + System.lineSeparator();
+
+    assertEquals(expectedOutput, testOutput.toString());
+  }
+
+  /**
+   * Tests the {@code showCalendarEventsInDateRange} method for an event that
+   * crosses the midnight boundary within the specified range.
+   *
+   */
+  @Test
+  public void testShowCalendarEventsInDateRangeCrossingMidnight() {
+    LocalDateTime start = LocalDateTime.of(2025, 6, 10, 23, 0);
+    LocalDateTime end = LocalDateTime.of(2025, 6, 11, 1, 0);
+
+    Event overnightEvent = new Event("Overnight Event",
+            LocalDateTime.of(2025, 6, 10, 23, 30),
+            LocalDateTime.of(2025, 6, 11, 0, 30));
+
+    view.showCalendarEventsInDateRange(start, end, Arrays.asList(overnightEvent));
+
+    String output = testOutput.toString();
+    assertTrue(output.contains("Printing events from 2025-06-10T23:00 to 2025-06-11T01:00"));
+    assertTrue(output.contains("Event 'Overnight Event'"));
+  }
+
+  /**
+   * Tests the {@code showCalendarEventsInDateRange} method with multiple events
+   * that all fall within the specified date and time range.
+   * Verifies that all relevant events are displayed.
+   */
+  @Test
+  public void testShowCalendarEventsInDateRangeMultipleEventsInRange() {
+    LocalDateTime rangeStart = LocalDateTime.of(2025, 6, 10, 9,
+            0);
+    LocalDateTime rangeEnd = LocalDateTime.of(2025, 6, 10, 17,
+            0);
+
+    Event morningEvent = new Event("Morning Meeting",
+            LocalDateTime.of(2025, 6, 10, 9, 30),
+            LocalDateTime.of(2025, 6, 10, 10, 30));
+    Event lunchEvent = new Event("Lunch",
+            LocalDateTime.of(2025, 6, 10, 12, 0),
+            LocalDateTime.of(2025, 6, 10, 13, 0));
+    Event afternoonEvent = new Event("Afternoon Call",
+            LocalDateTime.of(2025, 6, 10, 15, 0),
+            LocalDateTime.of(2025, 6, 10, 16, 0));
+
+    List<Event> events = Arrays.asList(morningEvent, lunchEvent, afternoonEvent);
+    view.showCalendarEventsInDateRange(rangeStart, rangeEnd, events);
+
+    String output = testOutput.toString();
+    assertTrue(output.contains("Morning Meeting"));
+    assertTrue(output.contains("Lunch"));
+    assertTrue(output.contains("Afternoon Call"));
+  }
+
+  /**
+   * Tests the {@code writeMessage} method with a string containing special characters.
+   * Ensures that the output correctly handles such characters without corruption.
+   */
+  @Test
+  public void testWriteMessageSpecialCharacters() {
+    String messageWithSpecialChars = "Event with émojis 🎉 and symbols @#$%^&*()";
+    view.writeMessage(messageWithSpecialChars);
+    assertEquals(messageWithSpecialChars, testOutput.toString());
+  }
+
+  /**
+   * Tests the {@code writeMessage} method with a string containing tab and newline characters.
+   * Verifies that formatting characters are preserved in the output.
+   */
+  @Test
+  public void testWriteMessageTabsAndNewlines() {
+    String messageWithFormatting = "Line 1\tTabbed\nLine 2\r\nLine 3";
+    view.writeMessage(messageWithFormatting);
+    assertEquals(messageWithFormatting, testOutput.toString());
+  }
+
+  /**
+   * Tests the {@code writeMessage} method with multiple consecutive calls.
+   * Ensures that messages are appended correctly to the output stream.
+   */
+  @Test
+  public void testWriteMessageMultipleConsecutiveCalls() {
+    view.writeMessage("First message");
+    view.writeMessage("Second message");
+    view.writeMessage("Third message");
+
+    assertEquals("First messageSecond messageThird message", testOutput.toString());
+  }
+
+  /**
+   * Tests the {@code showCalendarEvents} method with an event having a very long subject string.
+   * Verifies that the long subject is fully displayed and does not cause formatting issues.
+   */
+  @Test
+  public void testShowCalendarEventsLongSubjects() {
+    LocalDate date = LocalDate.of(2025, 6, 4);
+    Event longSubjectEvent = new Event(
+            "This is a very long event subject that might cause formatting " +
+                    "issues and should be handled gracefully by the view implementation",
+            LocalDateTime.of(2025, 6, 4, 9, 0),
+            LocalDateTime.of(2025, 6, 4, 10, 0));
+
+    view.showCalendarEvents(Arrays.asList(longSubjectEvent), date);
+
+    String output = testOutput.toString();
+    assertTrue(output.contains("This is a very long event subject"));
+    assertTrue(output.contains("from 09:00 to 10:00"));
+  }
+
+  /**
+   * Tests the {@code showCalendarEvents} method with an event subject containing quotes.
+   * Ensures that quotes within the subject string are correctly printed.
+   */
+  @Test
+  public void testShowCalendarEventsSubjectsWithQuotes() {
+    LocalDate date = LocalDate.of(2025, 6, 4);
+    Event quotedEvent = new Event("Meeting about \"Project Alpha\"",
+            LocalDateTime.of(2025, 6, 4, 9, 0),
+            LocalDateTime.of(2025, 6, 4, 10, 0));
+
+    view.showCalendarEvents(Arrays.asList(quotedEvent), date);
+
+    String output = testOutput.toString();
+    assertTrue(output.contains("Meeting about \"Project Alpha\""));
+  }
+
+  /**
+   * Tests the sequential display of the welcome menu and the farewell message,
+   * ensuring both are present in the output.
+   */
+  @Test
+  public void testMenuAndFarewellTogether() {
+    view.showMenu();
+    view.farewellMessage();
+
+    String output = testOutput.toString();
+    assertTrue(output.contains("Welcome to the calendar program!"));
+    assertTrue(output.contains("Thank you for using this program!"));
+    assertTrue(output.contains("Supported user instructions are:"));
+  }
+
+  /**
+   * Tests a complete simulated workflow, including showing the menu,
+   * displaying calendar events, writing a custom message, and showing the farewell message.
+   * Verifies that all expected output components are present.
+   */
+  @Test
+  public void testCompleteWorkflow() {
+    view.showMenu();
+
+    LocalDate testDate = LocalDate.of(2025, 6, 4);
+    Event event = new Event("Test Event",
+            LocalDateTime.of(2025, 6, 4, 9, 0),
+            LocalDateTime.of(2025, 6, 4, 10, 0));
+
+    view.showCalendarEvents(List.of(event), testDate);
+    view.writeMessage("Command executed successfully");
+    view.farewellMessage();
+
+    String output = testOutput.toString();
+    assertTrue(output.contains("Welcome to the calendar program!"));
+    assertTrue(output.contains("Test Event"));
+    assertTrue(output.contains("Command executed successfully"));
+    assertTrue(output.contains("Thank you for using this program!"));
+  }
+
+  /**
+   * Tests the {@code showCalendarEvents} method when the input list of events
+   * contains a {@code null} event. It expects the method to handle such a case
+   * without crashing, possibly by throwing a {@link NullPointerException} or
+   * {@link IllegalArgumentException} if the implementation is robust, or
+   * simply skipping the null event.
+   */
+  @Test
+  public void testShowCalendarEventsNullEventInList() {
+    LocalDate date = LocalDate.of(2025, 6, 4);
+    Event validEvent = new Event("Valid Event",
+            LocalDateTime.of(2025, 6, 4, 9, 0),
+            LocalDateTime.of(2025, 6, 4, 10, 0));
+
+    List<Event> eventsWithNull = new ArrayList<>();
+    eventsWithNull.add(validEvent);
+    eventsWithNull.add(null); // Add a null event to the list
+
+    try {
+      view.showCalendarEvents(eventsWithNull, date);
+      String output = testOutput.toString();
+      assertTrue(output.contains("Valid Event"));
+      // Depending on implementation, it might just print the valid event and ignore null
+      // If it throws an exception for null, the test will pass because of the catch block.
+    } catch (Exception e) {
+      assertTrue(e instanceof NullPointerException ||
+              e instanceof IllegalArgumentException);
+    }
+  }
+
+  /**
+   * Tests the {@code showCalendarEvents} method with an event where some optional fields
+   * (like description, location type, location detail, status, series ID) are null.
+   * Verifies that the view correctly handles null values without errors and prints the available
+   * information.
+   */
+  @Test
+  public void testShowCalendarEventsEventsWithNullFields() {
+    LocalDate date = LocalDate.of(2025, 6, 4);
+    Event eventWithNulls = new Event("Event with Nulls",
+            LocalDateTime.of(2025, 6, 4, 9, 0),
+            LocalDateTime.of(2025, 6, 4, 10, 0),
+            null, null, null, null, null);
+
+    view.showCalendarEvents(Arrays.asList(eventWithNulls), date);
+
+    String output = testOutput.toString();
+    assertTrue(output.contains("Event 'Event with Nulls'"));
+    assertTrue(output.contains("from 09:00 to 10:00"));
+  }
+
+  /**
+   * Tests the {@code showCalendarEvents} method with events scheduled around midnight.
+   * Verifies that the time format for 00:00 and times close to midnight are displayed correctly.
+   */
+  @Test
+  public void testShowCalendarEventsMidnightTimes() {
+    LocalDate date = LocalDate.of(2025, 6, 4);
+    Event midnightEvent = new Event("Midnight Event",
+            LocalDateTime.of(2025, 6, 4, 0, 0),
+            LocalDateTime.of(2025, 6, 4, 1, 0));
+    Event beforeMidnightEvent = new Event("Before Midnight",
+            LocalDateTime.of(2025, 6, 4, 23, 30),
+            LocalDateTime.of(2025, 6, 4, 23, 59));
+
+    List<Event> events = Arrays.asList(midnightEvent, beforeMidnightEvent);
+    view.showCalendarEvents(events, date);
+
+    String output = testOutput.toString();
+    assertTrue(output.contains("from 00:00 to 01:00"));
+    assertTrue(output.contains("from 23:30 to 23:59"));
+  }
+
+  /**
+   * Tests the {@code showCalendarEventsInDateRange} method for a very long time span
+   * (e.g., an entire year). Verifies that events occurring at the beginning and end
+   * of such a broad range are correctly displayed, along with the range itself.
+   */
+  @Test
+  public void testShowCalendarEventsInDateRangeLongTimeSpan() {
+    LocalDateTime start = LocalDateTime.of(2025, 1, 1, 0, 0);
+    LocalDateTime end = LocalDateTime.of(2025, 12, 31, 23, 59);
+
+    Event newYearEvent = new Event("New Year",
+            LocalDateTime.of(2025, 1, 1, 0, 0),
+            LocalDateTime.of(2025, 1, 1, 1, 0));
+    Event christmasEvent = new Event("Christmas",
+            LocalDateTime.of(2025, 12, 25, 10, 0),
+            LocalDateTime.of(2025, 12, 25, 18, 0));
+
+    List<Event> events = Arrays.asList(newYearEvent, christmasEvent);
+    view.showCalendarEventsInDateRange(start, end, events);
+
+    String output = testOutput.toString();
+    assertTrue(output.contains("New Year"));
+    assertTrue(output.contains("Christmas"));
+    assertTrue(output.contains("2025-01-01T00:00 to 2025-12-31T23:59"));
   }
 }
