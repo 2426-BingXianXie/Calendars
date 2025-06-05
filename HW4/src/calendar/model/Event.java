@@ -6,7 +6,8 @@ import java.util.UUID;
 
 /**
  * Represents an event in a calendar.
- * Each event has a unique ID, subject, start and end times, description, location, status, and optional series ID.
+ * Each event has a unique ID, subject, start and end times, description, location, status,
+ * and optional series ID.
  */
 public class Event {
   private final UUID id;
@@ -19,6 +20,18 @@ public class Event {
   private EventStatus status;
   private UUID seriesID;
 
+  /**
+   * Constructs an Event with the specified details.
+   *
+   * @param subject        the subject of the event
+   * @param startDate      the start time of the event
+   * @param endDate        the end time of the event
+   * @param description    an optional description of the event
+   * @param location       an optional location for the event
+   * @param locationDetail additional details about the location, if applicable
+   * @param status         the status of the event (e.g., PUBLIC, PRIVATE)
+   * @param seriesID       an optional UUID for a series this event belongs to
+   */
   public Event(String subject, LocalDateTime startDate, LocalDateTime endDate, String description,
                Location location, String locationDetail, EventStatus status, UUID seriesID) {
     this.id = UUID.randomUUID();
@@ -32,18 +45,34 @@ public class Event {
     this.seriesID = seriesID;
   }
 
-  // constructor without description, location, status and series id
+  /**
+   * Constructs an Event with the specified subject, start and end times.
+   * Optional fields like description, location, status, and series ID are set to null.
+   *
+   * @param subject   the subject of the event
+   * @param startDate the start time of the event
+   * @param endDate   the end time of the event
+   */
   public Event(String subject, LocalDateTime startDate, LocalDateTime endDate) {
-    this(subject, startDate, endDate, null, null, null, null, null);
+    this(subject, startDate, endDate, null, null, null, null,
+            null);
   }
 
-  // constructor without all optional details
+  /**
+   * Constructs an Event with the specified subject and start time.
+   * The end time is set to null, and other optional fields are set to null.
+   *
+   * @param subject   the subject of the event
+   * @param startDate the start time of the event
+   */
   public Event(String subject, LocalDateTime startDate) {
-    this(subject, startDate, null, null, null, null, null, null);
+    this(subject, startDate, null, null, null, null,
+            null, null);
   }
 
   /**
    * Returns the unique identifier for this event.
+   *
    * @return the UUID of the event
    */
   public UUID getId() {
@@ -52,6 +81,7 @@ public class Event {
 
   /**
    * Returns the subject of this event.
+   *
    * @return the subject of the event
    */
   public String getSubject() {
@@ -60,6 +90,7 @@ public class Event {
 
   /**
    * Sets the subject of this event.
+   *
    * @param subject the new subject for the event
    */
   public void setSubject(String subject) {
@@ -68,6 +99,7 @@ public class Event {
 
   /**
    * Returns the start time of this event.
+   *
    * @return the start time as a LocalDateTime
    */
   public LocalDateTime getStart() {
@@ -76,6 +108,7 @@ public class Event {
 
   /**
    * Sets the start time of this event.
+   *
    * @param start the new start time for the event
    */
   public void setStart(LocalDateTime start) {
@@ -84,6 +117,7 @@ public class Event {
 
   /**
    * Returns the end time of this event.
+   *
    * @return the end time as a LocalDateTime
    */
   public LocalDateTime getEnd() {
@@ -92,14 +126,19 @@ public class Event {
 
   /**
    * Sets the end time of this event.
+   *
    * @param end the new end time for the event
    */
   public void setEnd(LocalDateTime end) {
+    if (end.isBefore(this.startDate)) {
+      throw new IllegalArgumentException("End cannot be before start");
+    }
     this.endDate = end;
   }
 
   /**
    * Returns the description of this event.
+   *
    * @return the description as a String
    */
   public String getDescription() {
@@ -108,6 +147,7 @@ public class Event {
 
   /**
    * Sets the description of this event.
+   *
    * @param description the new description for the event
    */
   public void setDescription(String description) {
@@ -116,6 +156,7 @@ public class Event {
 
   /**
    * Returns the location of this event.
+   *
    * @return the location as a String
    */
   public Location getLocation() {
@@ -124,6 +165,7 @@ public class Event {
 
   /**
    * Sets the location of this event.
+   *
    * @param location the new location for the event
    */
   public void setLocation(Location location) {
@@ -131,7 +173,18 @@ public class Event {
   }
 
   /**
+   * Sets the detail of the location for this event.
+   * This is used when the location is CUSTOM to provide additional information.
+   *
+   * @param locationDetail the detail of the location
+   */
+  public void setLocationDetail(String locationDetail) {
+    this.locationDetail = locationDetail;
+  }
+
+  /**
    * Returns the status of this event.
+   *
    * @return the status as an EventStatus enum
    */
   public EventStatus getStatus() {
@@ -140,6 +193,7 @@ public class Event {
 
   /**
    * Sets the status of this event.
+   *
    * @param status the new status for the event
    */
   public void setStatus(EventStatus status) {
@@ -148,6 +202,7 @@ public class Event {
 
   /**
    * Returns the series ID associated with this event, if any.
+   *
    * @return the UUID of the series, or null if not part of a series
    */
   public UUID getSeriesID() {
@@ -156,6 +211,7 @@ public class Event {
 
   /**
    * Sets the series ID for this event.
+   *
    * @param seriesID the UUID of the series to associate with this event
    */
   public void setSeriesId(UUID seriesID) {
@@ -164,12 +220,15 @@ public class Event {
 
   /**
    * @param o the object to compare with this event
-   * @return true if the object is an Event with the same subject, start, and end times; false otherwise
+   * @return true if the object is an Event with the same subject, start, and end times;
+   *         false otherwise
    */
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
     Event event = (Event) o;
     return subject.equals(event.subject) &&
             startDate.equals(event.startDate) &&
@@ -179,6 +238,7 @@ public class Event {
   /**
    * Returns a hash code for this event.
    * The hash code is based on the subject, start, and end times.
+   *
    * @return the hash code as an int
    */
   @Override
@@ -190,6 +250,7 @@ public class Event {
    * Returns a string representation of the event's location.
    * If the location is CUSTOM, it returns the custom location detail.
    * Otherwise, it returns the name of the location along with any additional details.
+   *
    * @return a formatted string representing the event's location
    */
   public String getLocationDisplay() {
@@ -203,6 +264,7 @@ public class Event {
   /**
    * Returns a string representation of the event.
    * The format includes the subject, start and end times, and location if available.
+   *
    * @return a formatted string representing the event
    */
   @Override
@@ -214,6 +276,11 @@ public class Event {
             location != null ? " @ " + getLocationDisplay() : "");
   }
 
+  /**
+   * Returns the detail of the location for this event.
+   *
+   * @return the location detail as a String
+   */
   public String getLocationDetail() {
     return locationDetail;
   }
