@@ -14,6 +14,15 @@ public class CalendarView implements ICalendarView {
     this.out = out;
   }
 
+  @Override
+  public void writeMessage(String message) throws IllegalStateException {
+    try {
+      out.append(message);
+
+    } catch (IOException e) {
+      throw new IllegalStateException(e.getMessage());
+    }
+  }
 
   public void showMenu() throws IllegalStateException {
     welcomeMessage();
@@ -54,15 +63,6 @@ public class CalendarView implements ICalendarView {
                         event.getStart().toLocalDate() + "' from " + event.getStart().toLocalTime()
                 + " to " + event.getEnd().toLocalTime() + System.lineSeparator());
       }
-    }
-  }
-
-  public void writeMessage(String message) throws IllegalStateException {
-    try {
-      out.append(message);
-
-    } catch (IOException e) {
-      throw new IllegalStateException(e.getMessage());
     }
   }
 
