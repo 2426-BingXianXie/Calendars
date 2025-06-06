@@ -98,7 +98,7 @@ public class CalendarController implements ICalendarController {
         default:
           throw new CalendarException("Unknown instruction: " + userInstruction);
       }
-      cmd.go(calendar);
+      cmd.execute(calendar);
     } catch (CalendarException e) {
       view.writeMessage("Error processing command: " + e.getMessage() + System.lineSeparator());
     }

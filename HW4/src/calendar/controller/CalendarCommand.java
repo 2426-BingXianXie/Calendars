@@ -16,5 +16,5 @@ public interface CalendarCommand {
    * @param calendar The {@link ICalendar} model on which the command will operate.
    * @throws CalendarException if an error occurs during command execution.
    */
-  void go(ICalendar calendar) throws CalendarException;
+  void execute(ICalendar calendar) throws CalendarException;
 }

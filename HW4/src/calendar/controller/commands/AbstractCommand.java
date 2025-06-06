@@ -38,7 +38,7 @@ public abstract class AbstractCommand implements CalendarCommand {
    * @throws CalendarException if an error occurs during command execution.
    */
   @Override
-  public abstract void go(ICalendar calendar) throws CalendarException;
+  public abstract void execute(ICalendar calendar) throws CalendarException;
 
   /**
    * Parses a date string from the scanner.

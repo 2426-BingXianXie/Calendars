@@ -167,7 +167,7 @@ public abstract class CommandTestHelper {
     try {
       Scanner scanner = new Scanner(scannerInput);
       CalendarCommand cmd = createCommand(commandClass, scanner);
-      cmd.go(calendar);
+      cmd.execute(calendar);
       fail("Expected CalendarException but none was thrown");
     } catch (CalendarException e) {
       // Expected
@@ -184,7 +184,7 @@ public abstract class CommandTestHelper {
     try {
       Scanner scanner = new Scanner(scannerInput);
       CalendarCommand cmd = createCommand(commandClass, scanner);
-      cmd.go(calendar);
+      cmd.execute(calendar);
       fail("Expected IllegalArgumentException but none was thrown");
     } catch (IllegalArgumentException e) {
       // Expected
@@ -212,7 +212,7 @@ public abstract class CommandTestHelper {
     Scanner scanner = new Scanner(input);
     try {
       CalendarCommand cmd = createCommand(commandClass, scanner);
-      cmd.go(calendar);
+      cmd.execute(calendar);
     } catch (Exception e) {
       if (e instanceof CalendarException) {
         throw (CalendarException) e;

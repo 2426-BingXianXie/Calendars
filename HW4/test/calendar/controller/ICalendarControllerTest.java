@@ -20,9 +20,21 @@ import calendar.view.ICalendarView;
 
 import static org.junit.Assert.*;
 
+
+/**
+ * Test class for the ICalendarController implementation.
+ * Contains tests for various calendar operations including creating, editing,
+ * and managing calendar events.
+ */
 public class ICalendarControllerTest {
   ICalendar model;
 
+  /**
+   * Creates an Interaction that simulates system output.
+   *
+   * @param lines The lines of text that should be output by the system
+   * @return An Interaction object that will append the given lines to the output
+   */
   static Interaction prints(String... lines) {
     return (input, output) -> {
       for (String line : lines) {
@@ -31,6 +43,12 @@ public class ICalendarControllerTest {
     };
   }
 
+  /**
+   * Creates an Interaction that simulates user input.
+   *
+   * @param in The text to be provided as user input
+   * @return An Interaction object that will append the given input to the input buffer
+   */
   static Interaction inputs(String in) {
     return (input, output) -> {
       input.append(in);

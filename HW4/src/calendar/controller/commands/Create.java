@@ -36,7 +36,7 @@ public class Create extends AbstractCommand {
    * @throws CalendarException if an error occurs during command execution.
    */
   @Override
-  public void go(ICalendar calendar) throws CalendarException {
+  public void execute(ICalendar calendar) throws CalendarException {
     handleCreate(calendar);
   }
 
