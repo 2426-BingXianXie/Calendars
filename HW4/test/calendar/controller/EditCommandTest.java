@@ -6,7 +6,8 @@ import calendar.model.Event;
 import org.junit.Test;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+
 
 /**
  * Test class for the Edit command.
