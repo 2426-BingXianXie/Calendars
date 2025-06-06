@@ -49,7 +49,9 @@ public abstract class AbstractCommand implements CalendarCommand {
    */
   protected LocalDate parseDate(Scanner sc) throws CalendarException {
     // check that there is a valid date input
-    if (!sc.hasNext()) throw new CalendarException("Missing <dateString>.");
+    if (!sc.hasNext()) {
+      throw new CalendarException("Missing <dateString>.");
+    }
     String dateString = sc.next();
     try { // check for valid date format
       return LocalDate.parse(dateString);
@@ -68,7 +70,9 @@ public abstract class AbstractCommand implements CalendarCommand {
    */
   protected LocalDateTime parseDateTime(Scanner sc) throws CalendarException {
     // check that there is a valid date input
-    if (!sc.hasNext()) throw new CalendarException("Missing <dateStringTtimeString>");
+    if (!sc.hasNext()) {
+      throw new CalendarException("Missing <dateStringTtimeString>");
+    }
     String dateString = sc.next();
     try { // check for valid starting date format
       return LocalDateTime.parse(dateString);

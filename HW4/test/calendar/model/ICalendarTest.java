@@ -2,9 +2,9 @@ package calendar.model;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import calendar.CalendarException;
 
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -448,11 +448,10 @@ public class ICalendarTest {
    * start date/time is after the end date/time.
    * Expects an {@link IllegalArgumentException}.
    *
-   * @throws CalendarException if event creation fails.
    * @throws IllegalArgumentException expected exception for invalid date range.
    */
   @Test(expected = IllegalArgumentException.class)
-  public void testGetEventsListInDateRangeStartAfterEnd() throws CalendarException {
+  public void testGetEventsListInDateRangeStartAfterEnd() {
     calendar.getEventsListInDateRange(today10AM, today9AM);
   }
 
@@ -659,7 +658,6 @@ public class ICalendarTest {
   }
 
 
-
   /**
    * Tests the {@code editEvent} method when attempting to edit a non-existent event ID.
    * Expects a {@link CalendarException}.
@@ -681,7 +679,7 @@ public class ICalendarTest {
    * span into the next day, triggering the expected {@link CalendarException}.
    *
    * @throws CalendarException Expected exception if the end time causes events
-   *         to cross day boundaries.
+   *                           to cross day boundaries.
    */
   @Test(expected = CalendarException.class)
   public void testEditSeriesEndTimeChangesAllEventsDuration() throws CalendarException {
@@ -750,9 +748,8 @@ public class ICalendarTest {
                     59)).stream().distinct().collect(Collectors.toList());
 
     Event firstEventBeforeEdit =
-            allSeriesEventsBeforeEdit.stream().filter(
-                    e -> e.getStart().toLocalDate().equals(LocalDate.of(2025,
-                            6, 2))).findFirst().orElse(null);
+            allSeriesEventsBeforeEdit.stream().filter(e -> e.getStart().toLocalDate()
+                    .equals(LocalDate.of(2025, 6, 2))).findFirst().orElse(null);
     assertNotNull(firstEventBeforeEdit);
     UUID seriesId = firstEventBeforeEdit.getSeriesID();
 
@@ -874,12 +871,11 @@ public class ICalendarTest {
     List<Event> allSeriesEventsBeforeEdit =
             calendar.getEventsListInDateRange(LocalDate.of(2025, 6,
                             2).atStartOfDay(),
-            LocalDate.of(2025, 6, 11).atTime(23,
-                    59, 59)).stream().distinct().collect(Collectors.toList());
+                    LocalDate.of(2025, 6, 11).atTime(23,
+                            59, 59)).stream().distinct().collect(Collectors.toList());
 
-    Event firstEventBeforeEdit = allSeriesEventsBeforeEdit.stream().filter(
-            e -> e.getStart().toLocalDate().equals(LocalDate.of(2025,
-                    6, 2))).findFirst().orElse(null);
+    Event firstEventBeforeEdit = allSeriesEventsBeforeEdit.stream().filter(e -> e.getStart()
+            .toLocalDate().equals(LocalDate.of(2025, 6, 2))).findFirst().orElse(null);
     assertNotNull(firstEventBeforeEdit);
     UUID seriesId = firstEventBeforeEdit.getSeriesID();
 
@@ -941,7 +937,7 @@ public class ICalendarTest {
    * on the specific exception condition.
    *
    * @throws CalendarException expected exception if the end time causes events to
-   * cross day boundaries.
+   *                           cross day boundaries.
    */
   @Test(expected = CalendarException.class)
   public void testEditSeriesEndTimeChangesAllEventsDurationException() throws CalendarException {
@@ -966,7 +962,7 @@ public class ICalendarTest {
    * on the specific exception condition.
    *
    * @throws CalendarException expected exception if the end time causes events to
-   *         cross day boundaries.
+   *                           cross day boundaries.
    */
   @Test(expected = CalendarException.class)
   public void testEditSeriesEndTimeCrossesDayBoundary() throws CalendarException {
@@ -1051,11 +1047,11 @@ public class ICalendarTest {
     LocalDateTime end = LocalDateTime.of(2025, 6, 6, 10, 0);
     Event event = calendar.createEvent("Multi-day Conference", start, end);
 
-    List<Event> day1Events = calendar.getEventsList(LocalDate.of(2025, 6, 
+    List<Event> day1Events = calendar.getEventsList(LocalDate.of(2025, 6,
             4));
-    List<Event> day2Events = calendar.getEventsList(LocalDate.of(2025, 6, 
+    List<Event> day2Events = calendar.getEventsList(LocalDate.of(2025, 6,
             5));
-    List<Event> day3Events = calendar.getEventsList(LocalDate.of(2025, 6, 
+    List<Event> day3Events = calendar.getEventsList(LocalDate.of(2025, 6,
             6));
 
     assertTrue(day1Events.contains(event));
@@ -1113,9 +1109,9 @@ public class ICalendarTest {
             days, LocalDate.of(2025, 6, 2), null, 4,
             "Test Description", Location.ONLINE, EventStatus.PUBLIC);
 
-    List<Event> mondayEvents = calendar.getEventsList(LocalDate.of(2025, 6, 
+    List<Event> mondayEvents = calendar.getEventsList(LocalDate.of(2025, 6,
             2));
-    List<Event> wednesdayEvents = calendar.getEventsList(LocalDate.of(2025, 6, 
+    List<Event> wednesdayEvents = calendar.getEventsList(LocalDate.of(2025, 6,
             4));
 
     Event mondayEvent = mondayEvents.get(0);
@@ -1324,14 +1320,14 @@ public class ICalendarTest {
             days, LocalDate.of(2025, 6, 4), null, 1,
             null, null, null);
 
-    Event originalEvent = calendar.getEventsList(LocalDate.of(2025, 6, 
+    Event originalEvent = calendar.getEventsList(LocalDate.of(2025, 6,
             4)).get(0);
     UUID seriesId = originalEvent.getSeriesID();
 
     // Change start time
     calendar.editSeries(seriesId, Property.START, "08:00");
 
-    Event updatedEvent = calendar.getEventsList(LocalDate.of(2025, 6, 
+    Event updatedEvent = calendar.getEventsList(LocalDate.of(2025, 6,
             4)).get(0);
 
     assertEquals("Start time should be 8:00", LocalTime.of(8, 0),
@@ -1356,7 +1352,7 @@ public class ICalendarTest {
                     6, 11), 0,
             null, null, null);
 
-    Event wednesdayEvent = calendar.getEventsList(LocalDate.of(2025, 6, 
+    Event wednesdayEvent = calendar.getEventsList(LocalDate.of(2025, 6,
             4)).get(0);
     UUID seriesId = wednesdayEvent.getSeriesID();
 

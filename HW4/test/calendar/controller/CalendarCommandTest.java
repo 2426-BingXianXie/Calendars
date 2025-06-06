@@ -1,8 +1,13 @@
 package calendar.controller;
 
+import calendar.model.VirtualCalendar;
+import calendar.controller.commands.Create;
+import calendar.controller.commands.Edit;
+import calendar.controller.commands.Show;
+import calendar.model.Days;
+import calendar.controller.commands.Print;
+import calendar.model.Event;
 import calendar.CalendarException;
-import calendar.controller.commands.*;
-import calendar.model.*;
 import calendar.view.CalendarView;
 import calendar.view.ICalendarView;
 import org.junit.Before;
@@ -12,9 +17,17 @@ import java.io.StringWriter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertFalse;
+
+import java.util.Scanner;
+import java.util.List;
+import java.util.UUID;
+import java.util.Set;
+import java.util.EnumSet;
 
 /**
  * Comprehensive test suite for all calendar commands using real implementations.
@@ -1029,7 +1042,9 @@ public class CalendarCommandTest {
       LocalDate checkDate = LocalDate.of(2025, 6, 2).plusDays(i);
       if (checkDate.getDayOfWeek() == java.time.DayOfWeek.MONDAY) {
         List<Event> events = calendar.getEventsList(checkDate);
-        if (!events.isEmpty()) mondayCount++;
+        if (!events.isEmpty()) {
+          mondayCount++;
+        }
       }
     }
     assertEquals(4, mondayCount);

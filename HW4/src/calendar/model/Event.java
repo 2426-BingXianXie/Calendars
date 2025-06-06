@@ -219,13 +219,17 @@ public class Event {
   }
 
   /**
+   * Checks if two events are equal.
+   *
    * @param o the object to compare with this event
    * @return true if the object is an Event with the same subject, start, and end times;
    *         false otherwise
    */
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
+    if (this == o) {
+      return true;
+    }
     if (o == null || getClass() != o.getClass()) {
       return false;
     }

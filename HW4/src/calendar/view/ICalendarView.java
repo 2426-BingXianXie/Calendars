@@ -9,7 +9,7 @@ import calendar.model.Event;
 /**
  * Represents the view interface for a calendar application.
  *
- * This interface defines methods for displaying calendar information to the user,
+ * <p>This interface defines methods for displaying calendar information to the user,
  * including events, menus, messages, and application status. Implementations of this
  * interface handle the presentation layer of the calendar application and can target
  * different output destinations such as console, GUI, or files.
@@ -19,7 +19,7 @@ public interface ICalendarView {
   /**
    * Displays the main menu with available commands and instructions.
    *
-   * The menu should include all supported user commands such as creating events,
+   * <p>The menu should include all supported user commands such as creating events,
    * editing events, printing schedules, and checking availability status. This method
    * is typically called when the application starts or when the user requests help.
    */
@@ -28,20 +28,20 @@ public interface ICalendarView {
   /**
    * Displays a general message to the user.
    *
-   * This method is used for displaying various types of feedback including
+   * <p>This method is used for displaying various types of feedback including
    * success confirmations, error messages, status updates, and general information.
    * The message is displayed as-is without additional formatting.
    *
    * @param message the message to display to the user
-   * @throws IllegalStateException if there is an error writing the message to 
-   *                              the output destination
+   * @throws IllegalStateException if there is an error writing the message to
+   *                               the output destination
    */
   void writeMessage(String message);
 
   /**
    * Displays all events scheduled for a specific date.
    *
-   * This method presents a formatted list of events occurring on the specified date,
+   * <p>This method presents a formatted list of events occurring on the specified date,
    * including event details such as subject, start time, end time, and location if
    * available. If no events are found for the date, an appropriate message is displayed.
    *
@@ -53,7 +53,7 @@ public interface ICalendarView {
   /**
    * Displays all events scheduled within a specific date and time range.
    *
-   * This method presents a formatted list of events occurring between the specified
+   * <p>This method presents a formatted list of events occurring between the specified
    * start and end times, including event details such as subject, start time, end time,
    * and location if available. Events that partially overlap with the range are included.
    * If no events are found in the range, an appropriate message is displayed.
@@ -68,7 +68,7 @@ public interface ICalendarView {
   /**
    * Displays a farewell message when the application is terminating.
    *
-   * This method is called when the user exits the application and should display
+   * <p>This method is called when the user exits the application and should display
    * an appropriate goodbye message. It provides closure to the user session and
    * confirms that the application is shutting down properly.
    */

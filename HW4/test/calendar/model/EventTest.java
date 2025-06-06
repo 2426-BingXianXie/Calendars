@@ -2,15 +2,22 @@ package calendar.model;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+
+import calendar.model.Location;
+import calendar.model.EventStatus;
+
+// Static imports for JUnit Assertions
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+
 
 /**
  * JUnit 4 test class for the {@link Event} model.
@@ -375,7 +382,7 @@ public class EventTest {
    */
   @Test
   public void testEqualsNullObject() {
-    assertFalse(testEvent1.equals(null));
+    assertFalse(testEvent1 == null);
   }
 
   /**
@@ -542,24 +549,16 @@ public class EventTest {
     Event event1 = new Event("Same Event", now);
     Event event2 = new Event("Same Event", now);
 
-    try {
-      boolean result = event1.equals(event2);
-      assertTrue("Events with same subject, start, and null end should be equal", result);
-    } catch (NullPointerException e) {
-      assertTrue("Current implementation throws NPE for null end dates in equals()",
-              true);
-    }
+
+    boolean result = event1.equals(event2);
+    assertTrue("Events with same subject, start, and null end should be equal", result);
+
+
     Event event3 = new Event("Same Event", now, future);
-    try {
-      assertFalse("Event with end time should not equal event without end time",
-              event1.equals(event3));
-      assertFalse("Event without end time should not equal event with end time",
-              event3.equals(event1));
-    } catch (NullPointerException e) {
-      // This is also expected with current implementation
-      assertTrue("Current implementation throws NPE when comparing null and non-null" +
-              " end dates", true);
-    }
+    assertFalse("Event with end time should not equal event without end time",
+            event1.equals(event3));
+    assertFalse("Event without end time should not equal event with end time",
+            event3.equals(event1));
   }
 
   /**

@@ -110,9 +110,9 @@ public class Create extends AbstractCommand {
    * Handles the creation of events when the "on" keyword is used, which typically implies
    * all-day events or all-day event series.
    *
-   * @param subject  The subject of the event(s).
-   * @param sc       The {@link Scanner} for further command input.
-   * @param model    The {@link ICalendar} model.
+   * @param subject The subject of the event(s).
+   * @param sc      The {@link Scanner} for further command input.
+   * @param model   The {@link ICalendar} model.
    * @throws CalendarException if there are missing or invalid inputs.
    */
   private void handleCreateOnVariants(String subject, Scanner sc, ICalendar model)
@@ -152,7 +152,7 @@ public class Create extends AbstractCommand {
    * @param sc      The {@link Scanner} for further command input.
    * @param model   The {@link ICalendar} model.
    * @throws CalendarException if there are missing or invalid inputs, or if
-   * a series event spans multiple days.
+   *                           a series event spans multiple days.
    */
   private void handleCreateFromVariants(String subject, Scanner sc, ICalendar model)
           throws CalendarException {
@@ -191,33 +191,39 @@ public class Create extends AbstractCommand {
    * Handles parsing and creating an event series, including repetition details
    * (days of the week, number of repeats or end date).
    *
-   * @param subject      The subject of the event series.
-   * @param startDate    The starting date and time of the series.
-   * @param isAllDay     True if the series consists of all-day events, false otherwise.
-   * @param sc           The {@link Scanner} for further command input.
-   * @param model        The {@link ICalendar} model.
-   * @param startTime    The start time of individual events in the series.
-   * @param endTime      The end time of individual events in the series.
+   * @param subject   The subject of the event series.
+   * @param startDate The starting date and time of the series.
+   * @param isAllDay  True if the series consists of all-day events, false otherwise.
+   * @param sc        The {@link Scanner} for further command input.
+   * @param model     The {@link ICalendar} model.
+   * @param startTime The start time of individual events in the series.
+   * @param endTime   The end time of individual events in the series.
    * @throws CalendarException if there are missing or invalid inputs for series details.
    */
   private void handleSeriesDetails(String subject, LocalDateTime startDate, boolean isAllDay,
                                    Scanner sc, ICalendar model, LocalTime startTime,
                                    LocalTime endTime) throws CalendarException {
-    if (!sc.hasNext()) throw new CalendarException("Missing days to repeat");
+    if (!sc.hasNext()) {
+      throw new CalendarException("Missing days to repeat");
+    }
     String daysString = sc.next();
     Set<Days> daysOfWeek = new HashSet<Days>();
     char[] chars = daysString.toCharArray();
     for (char c : chars) { // parse through weekday string to get the given days
       daysOfWeek.add(Days.fromSymbol(c));
     }
-    if (!sc.hasNext()) throw new CalendarException("Missing 'for' or 'until'.");
+    if (!sc.hasNext()) {
+      throw new CalendarException("Missing 'for' or 'until'.");
+    }
     String terminatorKeyword = sc.next();
     Integer repeatsCount = null;
     LocalDate seriesEndDate = null;
 
     if (terminatorKeyword.equalsIgnoreCase("for")) {
       // check that there is a valid input for number of repeated times
-      if (!sc.hasNextInt()) throw new CalendarException("Missing <N> after 'for'.");
+      if (!sc.hasNextInt()) {
+        throw new CalendarException("Missing <N> after 'for'.");
+      }
       // has valid input, set repeatsCount as input, will throw error if not integer
       repeatsCount = sc.nextInt();
       // check that user inputted "times" after number

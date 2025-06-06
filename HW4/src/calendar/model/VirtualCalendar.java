@@ -21,7 +21,7 @@ import calendar.CalendarException;
  * Represents a virtual calendar that allows you to create events and store them
  * in the calendar.
  *
- * This calendar mimics the features found in widely-used calendar apps, such as
+ * <p>This calendar mimics the features found in widely-used calendar apps, such as
  * Google Calendar.
  */
 public class VirtualCalendar implements ICalendar {
@@ -212,8 +212,7 @@ public class VirtualCalendar implements ICalendar {
    * Retrieves a list of events for a specific date.
    *
    * @param date the date for which to retrieve events
-   * @return a list of events on the specified date, or an empty list if no events are
-   *         found for that date.
+   * @return a list of events on the specified date, or an empty list if no events are found.
    */
   @Override
   public List<Event> getEventsList(LocalDate date) {
@@ -271,8 +270,7 @@ public class VirtualCalendar implements ICalendar {
    * Checks if the user is busy at a specific date and time.
    *
    * @param dateTime the date and time to check
-   * @return true if the user has any event scheduled at the given time,
-   * false otherwise
+   * @return true if the user has any event scheduled at the given time, false otherwise
    */
   @Override
   public boolean isBusyAt(LocalDateTime dateTime) {
@@ -298,8 +296,7 @@ public class VirtualCalendar implements ICalendar {
    *
    * @param event    The event to check.
    * @param dateTime The time to verify.
-   * @return true if the time is within the event's start (inclusive) and end (exclusive) range,
-   *         false otherwise.
+   * @return true if the time is within the event's start (inclusive) and end (exclusive) range.
    */
   private boolean isDuringEvent(Event event, LocalDateTime dateTime) {
     // Gets the start time of the event.
@@ -405,6 +402,8 @@ public class VirtualCalendar implements ICalendar {
           EventStatus newStatus = EventStatus.fromStr(newValue);
           event.setStatus(newStatus);
           break;
+        default:
+          break;
       }
     } catch (IllegalArgumentException | DateTimeParseException e) {
       // Catches exceptions related to invalid input (e.g., malformed date/time string).
@@ -502,7 +501,9 @@ public class VirtualCalendar implements ICalendar {
       }
     }
     // If no events are found for this series, return.
-    if (firstEventStart == null) return;
+    if (firstEventStart == null) {
+      return;
+    }
 
     // Collects all events in the series that need to be edited (on or after firstEventStart).
     // Collect events to edit to avoid concurrent modification
@@ -584,6 +585,8 @@ public class VirtualCalendar implements ICalendar {
 
         // Sets the new duration for the series.
         series.setDuration(newDuration);
+        break;
+      default:
         break;
     }
 
