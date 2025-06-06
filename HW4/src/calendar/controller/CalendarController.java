@@ -41,7 +41,7 @@ public class CalendarController implements ICalendarController {
    *
    * @throws CalendarException if an unrecoverable error occurs during command processing.
    */
-  public void go() throws CalendarException {
+  public void execute() throws CalendarException {
     Scanner sc = new Scanner(in);
     boolean quit = false;
     view.showMenu(); //prompt for the instruction name

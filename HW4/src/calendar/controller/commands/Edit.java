@@ -51,17 +51,19 @@ public class Edit extends AbstractCommand {
             "Missing 'event' keyword after 'create'.");
     String next = sc.next();
     // check for input after create
-    if (next.equalsIgnoreCase("event") ||
-            next.equalsIgnoreCase("events")) {
-      handleEditEvent(sc, model, false);
-    } else if (next.equalsIgnoreCase("series")) {
-      handleEditEvent(sc, model, true);
+    if (next.equalsIgnoreCase("event")) {
+      handleEditEvent(sc, model, false, false);
+    } else if (next.equalsIgnoreCase("events")) {
+      handleEditEvent(sc, model, false, true);
+    }
+    else if (next.equalsIgnoreCase("series")) {
+      handleEditEvent(sc, model, true, true);
     } else {
       throw new CalendarException("Unknown event keyword: " + next);
     }
   }
 
-  /**
+    /**
    * Handles the detailed editing of an event or series based on parsed properties.
    *
    * @param sc         The {@link Scanner} for further command input.
@@ -70,7 +72,7 @@ public class Edit extends AbstractCommand {
    *                   the series from a specific date should be edited.
    * @throws CalendarException if there are missing or invalid inputs.
    */
-  private void handleEditEvent(Scanner sc, ICalendar model, boolean fullSeries)
+  private void handleEditEvent(Scanner sc, ICalendar model, boolean fullSeries, boolean isSeries)
           throws CalendarException {
     Property property = checkValidProperty(sc);
     String subject = checkValidSubject(sc);
@@ -79,11 +81,9 @@ public class Edit extends AbstractCommand {
       throw new CalendarException("Missing event subject");
     }
     // check that user inputted date
-    if (!sc.hasNext()) {
-      throw new CalendarException(
-              "Incomplete command, missing <dateStringTtimeString>.");
-    }
-    handleEditFromVariants(sc, model, subject, property, fullSeries);
+    if (!sc.hasNext()) throw new CalendarException(
+            "Incomplete command, missing <dateStringTtimeString>.");
+    handleEditFromVariants(sc, model, subject, property, fullSeries, isSeries);
   }
 
   /**
@@ -139,25 +139,23 @@ public class Edit extends AbstractCommand {
    *                           events match the description.
    */
   private void handleEditFromVariants(Scanner sc, ICalendar model, String subject,
-                                      Property property, boolean editFullSeries)
-          throws CalendarException {
+                                      Property property, boolean editFullSeries, boolean isSeries) throws CalendarException {
+
     // attempt to parse from date input
     LocalDateTime fromDate = parseDateTime(sc);
     if (!sc.hasNext()) throw new CalendarException(
             "Missing 'to' after from <dateStringTTimeString>.");
     String nextKeyword = sc.next();
-    if (nextKeyword.equalsIgnoreCase("to")) { // means edit single event
+    if (nextKeyword.equalsIgnoreCase("to") && !isSeries) { // means edit single event
       // attempt to parse end date input
       LocalDateTime toDate = parseDateTime(sc);
       // check for 'with' input after end date input
-      if (!sc.hasNext()) {
-        throw new CalendarException(
-                "Missing input after 'to <dateStringTTimeString>.");
-      }
-      if (!sc.next().equalsIgnoreCase("with")) {
-        throw new CalendarException(
-                "Expected 'with' after 'to <dateStringTTimeString>.");
-      }
+      if (!sc.hasNext()) throw new CalendarException(
+              "Missing input after 'to <dateStringTTimeString>.");
+      if (!sc.next().equalsIgnoreCase("with")) throw new CalendarException(
+              "Expected 'with' after 'to <dateStringTTimeString>.");
+      if (!sc.hasNext()) throw new CalendarException(
+              "Missing <NewPropertyValue>.");
       String newProperty = sc.next();
       // retrieve events with matching details
       List<Event> events = model.getEventsByDetails(subject, fromDate, toDate);

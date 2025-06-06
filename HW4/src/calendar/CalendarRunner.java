@@ -40,7 +40,7 @@ public class CalendarRunner {
           }
           Readable rd = new InputStreamReader(System.in);
           controller = new CalendarController(model, view, rd);
-          controller.go();
+          controller.execute();
         } else if ("headless".equals(mode)) { // check that input is '--mode headless <filename>'
           if (args.length != 3) {
             System.err.println("Error: expected '--mode headless <filename>'");
@@ -49,7 +49,7 @@ public class CalendarRunner {
           String commandFile = args[2];
           try (BufferedReader reader = new BufferedReader(new FileReader(commandFile))) {
             controller = new CalendarController(model, view, reader); // pass file reader
-            controller.go();
+            controller.execute();
           } catch (IOException e) { // check for valid command file
             view.writeMessage("Error: Could not read command file '" + commandFile + "'. ");
             System.exit(1);

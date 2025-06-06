@@ -165,7 +165,7 @@ public class ICalendarControllerTest {
     Readable input = new StringReader(fakeUserInput.toString());
     ICalendarView view = new MockView();
     ICalendarController controller = new CalendarController(model, view, input);
-    controller.go();
+    controller.execute();
     // farewell message will always print due to controller logic
     // controller won't detect a next line as it's taking in a stringReader
     // instead of inputStreamReader, so it will quit automatically at the end of
@@ -263,6 +263,41 @@ public class ICalendarControllerTest {
     return "Event series '" + subject + "' created on " + startDate +
             " from " + startTime + " to " + endTime + " repeating on " + daysOfWeek + " until " +
             endDate + ".\n";
+  }
+
+  private static String getPrintOnDateMessage(LocalDate date, String eventListString) {
+    return "Printing events on " + date.toString() + "." + System.lineSeparator() + eventListString;
+  }
+
+  private static String getNoEventsFoundMessage(LocalDate date) {
+    return "Printing events on " + date.toString() + "." + System.lineSeparator() + "No events found"
+            + System.lineSeparator();
+  }
+
+  private static String getBusyStatusMessage(LocalDateTime dateTime, boolean isBusy) {
+    if (isBusy) {
+      return "User is busy, already has an event scheduled on " + dateTime + "."
+              + System.lineSeparator();
+    }
+    return "User is available on " + dateTime + "."
+            + System.lineSeparator();
+  }
+
+  private static String getSuccessfulEditMessage(String subject, String property, String newValue) {
+    return "Edited event '" + subject + "' " + property + " property to " + newValue
+            + System.lineSeparator();
+  }
+
+  private static String getSuccessfulSeriesFromDateEditMessage(String subject, String property,
+                                                               String newValue, LocalDateTime date) {
+    return "Edited event series '" + subject + "' " + property + " property to " + newValue +
+            " from " + date + System.lineSeparator();
+  }
+
+  private static String getSuccessfulSeriesEditMessage(String subject, String property,
+                                                       String newValue) {
+    return "Edited event series '" + subject + "' " + property + " property to " + newValue
+            + System.lineSeparator();
   }
 
 
@@ -1513,9 +1548,679 @@ public class ICalendarControllerTest {
             prints(getExpectedEnterCommandPrompt()));
   }
 
+  @Test
+  public void testDuplicateEventAfterSeries() throws CalendarException {
+    String errorMessage = "Event already exists\n";
+    String days = "mwft"; // mon, wed, fri, tue
+    int repeats = 5;
+    Set<Days> daysOfWeek = new HashSet<Days>();
+    char[] chars = days.toCharArray();
+    for (char c : chars) {
+      daysOfWeek.add(Days.fromSymbol(c));
+    }
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00";
+    LocalDateTime startDateTime = LocalDateTime.parse(startDateTimeString);
+    LocalDate startDate = startDateTime.toLocalDate();
+    LocalTime startTime = LocalTime.of(0, 0);
+    LocalTime endTime = LocalTime.of(1, 0);
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input valid weekday string
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats " + days + " for 5 times\n"),
+            // given valid input, should successfully create a event series
+            prints(getSuccessfulForSeriesMessage("test", startDate, startTime, endTime, daysOfWeek,
+                    repeats)),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString),
+            // event already exists, throw an error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
 
+  @Test
+  public void testDuplicateSeriesAfterSeries() throws CalendarException {
+    String errorMessage = "Duplicate event in series: test\n";
+    String days = "mwft"; // mon, wed, fri, tue
+    int repeats = 5;
+    Set<Days> daysOfWeek = new HashSet<Days>();
+    char[] chars = days.toCharArray();
+    for (char c : chars) {
+      daysOfWeek.add(Days.fromSymbol(c));
+    }
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00";
+    LocalDateTime startDateTime = LocalDateTime.parse(startDateTimeString);
+    LocalDate startDate = startDateTime.toLocalDate();
+    LocalTime startTime = LocalTime.of(0, 0);
+    LocalTime endTime = LocalTime.of(1, 0);
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input valid weekday string
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats " + days + " for 5 times\n"),
+            // given valid input, should successfully create a event series
+            prints(getSuccessfulForSeriesMessage("test", startDate, startTime, endTime, daysOfWeek,
+                    repeats)),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats " + days + " for 5 times"),
+            // event series already exists, throw error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
 
+  @Test
+  public void testInputUntilAfterDays() throws CalendarException {
+    String input = "MWF"; // mon, wed, fri
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00";
+    String errorMessage = "Missing <dateString>.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input valid weekday string
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats " + input + " until"),
+            // expected <N> after 'for', throw error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
 
+  @Test
+  public void testInvalidInputAfterUntil2() throws CalendarException {
+    String input = "MWF"; // mon, wed, fri
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00";
+    String errorMessage = "Invalid date format for <dateString>. Expected YYYY-MM-DD\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input valid weekday string
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats " + input + " until test"),
+            // given 'test' instead of date, throw error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInvalidDateAfterUntil2() throws CalendarException {
+    String input = "MWF"; // mon, wed, fri
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00";
+    String errorMessage = "Invalid date format for <dateString>. Expected YYYY-MM-DD\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input valid weekday string
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats " + input + " until 2025-02-29"),
+            // given invalid date, throw error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testInputDateTimeAfterUntil2() throws CalendarException {
+    String input = "MWF"; // mon, wed, fri
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00";
+    String errorMessage = "Invalid date format for <dateString>. Expected YYYY-MM-DD\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // input valid weekday string
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats " + input + " until 2024-11-13T00:00"),
+            // given invalid date, throw error
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEventSeriesLongerThanOneDayAfterUntil() throws CalendarException {
+    String input = "MWF"; // mon, wed, fri
+    String errorMessage = "Each event in a series can only last one day\n";
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-13T01:00"; // end date goes overnight
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats " + input + " until 2024-11-13"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEndDateBeforeStartDate() throws CalendarException {
+    String input = "MWF"; // mon, wed, fri
+    String errorMessage = "End date cannot be before start date\n";
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00"; // end date goes overnight
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats " + input + " until 2024-11-11"),
+            // end date is before start date
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testValidEndDateAfterUntil() throws CalendarException {
+    String input = "MWF"; // mon, wed, fri
+    String startDateTimeString = "2024-11-12T00:00";
+    String endDateTimeString = "2024-11-12T01:00";
+    String endDateString = "2024-11-15";
+    LocalDate endDate = LocalDate.parse(endDateString);
+    LocalDateTime startDateTime = LocalDateTime.parse(startDateTimeString);
+    LocalDateTime endDateTime = LocalDateTime.parse(endDateTimeString);
+    LocalDate startDate = startDateTime.toLocalDate();
+    LocalTime startTime = startDateTime.toLocalTime();
+    LocalTime endTime = endDateTime.toLocalTime();
+    Set<Days> daysOfWeek = new HashSet<Days>();
+    char[] chars = input.toCharArray();
+    for (char c : chars) {
+      daysOfWeek.add(Days.fromSymbol(c));
+    }
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
+                    + " repeats " + input + " until " + endDateString),
+            // end date is before start date
+            prints(getSuccessfulUntilSeriesMessage("test", startDate, startTime,
+                    endTime, daysOfWeek, endDate)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testPrintOnDateWithNoEvents() throws CalendarException {
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("print events on 2025-10-10\n"),
+            prints(getNoEventsFoundMessage(LocalDate.of(2025, 10, 10))),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testPrintOnDateWithOneEvent() throws CalendarException {
+    String subject = "test";
+    LocalDate date = LocalDate.of(2025, 11, 11);
+    // Expected output string for one event
+    String eventListOutput = "Event 'test' on 2025-11-11 from 08:00 to 17:00"
+            + System.lineSeparator();
+
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test on 2025-11-11\n"),
+            prints(getSuccessfulAllDayMessage(subject, date)),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("print events on 2025-11-11\n"),
+            prints(getPrintOnDateMessage(date, eventListOutput)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testPrintOnInvalidDate() throws CalendarException {
+    String errorMessage = "Invalid date format for <dateString>. Expected YYYY-MM-DD\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("print events on 2025/11/11\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testPrintWithMissingArgs() throws CalendarException {
+    String errorMessage = "Missing input after 'events'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("print events\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testPrintMissingEventsKeyword() throws CalendarException {
+    String errorMessage = "Expected 'events' after 'print'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("print users\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testPrintEventsInRange() throws CalendarException {
+    String event1 = "Event 'Event 1' on 2025-07-04 from 10:00 to 11:00" + System.lineSeparator();
+    String event2 = "Event 'Event 2' on 2025-07-05 from 12:00 to 13:00" + System.lineSeparator();
+
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event Event 1 from 2025-07-04T10:00 to 2025-07-04T11:00\n"),
+            prints(getSuccessfulEventMessage("Event 1", LocalDateTime.of(2025,7,4,10,0),
+                    LocalDateTime.of(2025,7,4,11,0))),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event Event 2 from 2025-07-05T12:00 to 2025-07-05T13:00\n"),
+            prints(getSuccessfulEventMessage("Event 2", LocalDateTime.of(2025,7,5,12,0),
+                    LocalDateTime.of(2025,7,5,13,0))),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("print events from 2025-07-04T09:00 to 2025-07-05T14:00\n"),
+            prints("Printing events from 2025-07-04T09:00 to 2025-07-05T14:00." +
+                    System.lineSeparator() + event1 + event2),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testPrintEventsInRangeInvalidFormat() throws CalendarException {
+    String errorMessage = "Invalid date format for <dateStringTtimeString>. Expected YYYY-MM-DDThh:mm\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("print events from 2025-07-04 to 2025-07-05\n"), // Using date, not datetime
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testPrintEventsInRangeMissingArgs() throws CalendarException {
+    String errorMessage = "Missing input after <dateStringTTimeString>.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("print events from 2025-07-04T09:00\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testShowStatusWhenAvailable() throws CalendarException {
+    LocalDateTime time = LocalDateTime.of(2025, 8, 8, 10, 0);
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("show status on 2025-08-08T10:00\n"),
+            prints(getBusyStatusMessage(time, false)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testShowStatusWhenBusy() throws CalendarException {
+    String subject = "test";
+    LocalDate date = LocalDate.of(2025, 8, 8);
+    LocalDateTime time = LocalDateTime.of(2025, 8, 8, 10, 0);
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test on 2025-08-08\n"),
+            prints(getSuccessfulAllDayMessage(subject, date)),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("show status on 2025-08-08T10:00\n"),
+            prints(getBusyStatusMessage(time, true)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testShowStatusAtEventEndTime() throws CalendarException {
+    // Should be available at the exact end time (interval is [start, end))
+    String subject = "test";
+    LocalDate date = LocalDate.of(2025, 8, 9);
+    LocalDateTime time = LocalDateTime.of(2025, 8, 9, 17, 0);
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test on 2025-08-09\n"),
+            prints(getSuccessfulAllDayMessage(subject, date)),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("show status on 2025-08-09T17:00\n"),
+            prints(getBusyStatusMessage(time, false)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testShowMissingStatus() throws CalendarException {
+    String errorMessage = "Expected 'status' after 'show'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("show availability on 2025-01-01T10:00\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testShowStatusMissingOn() throws CalendarException {
+    String errorMessage = "Expected 'on' after 'status'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("show status at 2025-01-01T10:00\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testShowStatusMissingDateTime() throws CalendarException {
+    String errorMessage = "Missing <dateStringTtimeString>\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("show status on\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("q\n"));
+  }
+
+  @Test
+  public void testEditCommandMissingEverything() throws CalendarException {
+    String errorMessage = "Missing 'event' keyword after 'create'.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("edit\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditCommandMissingProperty() throws CalendarException {
+    String errorMessage = "Missing event property.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("edit event\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditCommandInvalidProperty() throws CalendarException {
+    String errorMessage = "Invalid property: fake_prop, valid values are: [SUBJECT, START, END, " +
+            "DESCRIPTION, LOCATION, STATUS]\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("edit event fake_prop\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditCommandMissingSubject() throws CalendarException {
+    String errorMessage = "Missing event subject\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("edit event subject\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditCommandMissingFromKeyword() throws CalendarException {
+    String errorMessage = "Incomplete command, missing <dateStringTtimeString>.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("edit event subject some_event\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditCommandMissingNewValue() throws CalendarException {
+    String errorMessage = "Missing <NewPropertyValue>.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from 2025-01-01T10:00 to 2025-01-01T11:00\n"),
+            prints(getSuccessfulEventMessage("test", LocalDateTime.of(2025,1,1,10,0),
+                    LocalDateTime.of(2025,1,1,11,0))),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("edit events subject test from 2025-01-01T10:00 with\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditStandaloneEventSubject() throws CalendarException {
+    String subject = "test";
+    LocalDate date = LocalDate.of(2025, 1, 1);
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test on 2025-01-01\n"),
+            prints(getSuccessfulAllDayMessage(subject, date)),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("edit event subject test from 2025-01-01T08:00 to " +
+                    "2025-01-01T17:00 with new_subject\n"),
+            prints(getSuccessfulEditMessage(subject, "subject", "new_subject")),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditStandaloneEventSubjectUsingEvents() throws CalendarException {
+    String subject = "test";
+    LocalDate date = LocalDate.of(2025, 1, 1);
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test on 2025-01-01\n"),
+            prints(getSuccessfulAllDayMessage(subject, date)),
+            prints(getExpectedEnterCommandPrompt()),
+            // use 'events' instead of 'event', should return the same thing
+            inputs("edit events subject test from 2025-01-01T08:00 with new_subject\n"),
+            prints(getSuccessfulEditMessage(subject, "subject", "new_subject")),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditEventNotFound() throws CalendarException {
+    String errorMessage = "No events found.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("edit event subject fake from 2025-01-01T08:00 to 2025-01-01T17:00 with new\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditEventCausesDuplicateConflict() throws CalendarException {
+    String errorMessage = "Event conflicts with existing event\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event eventA on 2025-02-02\n"), // 8am-5pm
+            prints(getSuccessfulAllDayMessage("eventA", LocalDate.of(2025, 2, 2))),
+            prints(getExpectedEnterCommandPrompt()),
+            // Now create a different event to edit
+            inputs("create event eventB from 2025-02-02T08:00 to 2025-02-02T17:00\n"),
+            prints("Event 'eventB' created from 2025-02-02T08:00 to 2025-02-02T17:00.\n"),
+            prints(getExpectedEnterCommandPrompt()),
+            // Try to edit eventC to conflict with eventA
+            inputs("edit event subject eventB from 2025-02-02T08:00 to 2025-02-02T17:00 with eventA\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditSeriesAllInstances() throws CalendarException {
+    String successCreate = "Event series 'meeting' created on 2025-03-01 from 09:00 to 10:00 "
+            + "repeating on [MONDAY] 2 times." + System.lineSeparator();
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event meeting from 2025-03-01T09:00 to 2025-03-01T10:00 " +
+                    "repeats M for 2 times\n"),
+            prints(successCreate),
+            prints(getExpectedEnterCommandPrompt()),
+            // Edit all instances of the series
+            inputs("edit series subject meeting from 2025-03-03T09:00 with new_meeting\n"),
+            prints(getSuccessfulSeriesEditMessage("meeting", "subject", "new_meeting")),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditEventsThisAndFuture() throws CalendarException {
+    String successCreate = "Event series 'review' created on 2025-04-01 from 14:00 to 15:00 "
+            + "repeating on [TUESDAY] 4 times." + System.lineSeparator();
+    LocalDateTime firstInstance = LocalDateTime.of(2025, 4, 1, 14, 0);
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event review from 2025-04-01T14:00 to 2025-04-01T15:00 " +
+                    "repeats T for 4 times\n"),
+            prints(successCreate),
+            prints(getExpectedEnterCommandPrompt()),
+            // Edit the series starting from the first instance
+            inputs("edit events subject review from 2025-04-01T14:00 with sprint_review\n"),
+            prints(getSuccessfulSeriesFromDateEditMessage("review", "subject", "sprint_review",
+                    firstInstance)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditWithAmbiguousFind() throws CalendarException {
+    String errorMessage = "Error: multiple events found.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // Create two events with same subject and start, but different end
+            inputs("create event ambiguous from 2025-05-05T10:00 to 2025-05-05T11:00\n"),
+            prints("Event 'ambiguous' created from 2025-05-05T10:00 to 2025-05-05T11:00.\n"),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event ambiguous from 2025-05-05T10:00 to 2025-05-05T12:00\n"),
+            prints("Event 'ambiguous' created from 2025-05-05T10:00 to 2025-05-05T12:00.\n"),
+            prints(getExpectedEnterCommandPrompt()),
+            // Try to edit using only subject and start time, which is ambiguous
+            inputs("edit events subject ambiguous from 2025-05-05T10:00 with new_subject\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditWithOnlyKeyword() throws CalendarException {
+    String errorMessage = "Missing 'event' keyword after 'create'.\n"; // Your parser throws this
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("edit\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditEventMissingProperty() throws CalendarException {
+    String errorMessage = "Missing event property.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("edit event\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditEventInvalidProperty() throws CalendarException {
+    String errorMessage = "Invalid property: color, valid values are: " +
+            "[SUBJECT, START, END, DESCRIPTION, LOCATION, STATUS]\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("edit event color\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditEventMissingSubject() throws CalendarException {
+    String errorMessage = "Missing event subject\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("edit event subject\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditEventMissingFrom() throws CalendarException {
+    String errorMessage = "Incomplete command, missing <dateStringTtimeString>.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("edit event subject Some Event\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditEventMissingTo() throws CalendarException {
+    String errorMessage = "Missing 'to' after from <dateStringTTimeString>.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("edit event subject Some Event from 2025-01-01T10:00\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditEventMissingWith() throws CalendarException {
+    String errorMessage = "Expected 'with' after 'to <dateStringTTimeString>.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("edit event subject Some Event from 2025-01-01T10:00 to " +
+                    "2025-01-01T11:00 for new_value\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditEventMissingNewValue() throws CalendarException {
+    String errorMessage = "Missing <NewPropertyValue>.\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from 2025-01-01T10:00 to 2025-01-01T11:00\n"),
+            prints(getSuccessfulEventMessage("test", LocalDateTime.of(2025, 1, 1, 10, 0),
+                    LocalDateTime.of(2025, 1, 1, 11, 0))),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("edit event subject test from 2025-01-01T10:00 to 2025-01-01T11:00 with"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditEventStartAfterEnd() throws CalendarException {
+    String errorMessage = "New start time cannot be after current end time\n";
+    testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event original on 2025-04-04\n"),
+            prints(getSuccessfulAllDayMessage("original", LocalDate.of(2025, 4, 4))),
+            prints(getExpectedEnterCommandPrompt()),
+            // Try to edit start time to be after the 17:00 end time
+            inputs("edit event start original from 2025-04-04T08:00 to 2025-04-04T17:00 with " +
+                    "2025-04-04T18:00\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+  }
 }
 
 
