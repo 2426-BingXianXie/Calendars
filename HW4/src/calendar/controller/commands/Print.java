@@ -75,7 +75,7 @@ public class Print extends AbstractCommand {
         List<Event> events = model.getEventsListInDateRange(fromDate, toDate);
         view.showCalendarEventsInDateRange(fromDate, toDate, events);
       } else {
-        throw new IllegalArgumentException("Expected 'on' or 'from' after 'events'.");
+        throw new CalendarException("Expected 'on' or 'from' after 'events'.");
       }
     }
   }

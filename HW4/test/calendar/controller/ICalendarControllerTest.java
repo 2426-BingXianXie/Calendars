@@ -18,7 +18,7 @@ import calendar.model.ICalendar;
 import calendar.model.VirtualCalendar;
 import calendar.view.ICalendarView;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 
 /**

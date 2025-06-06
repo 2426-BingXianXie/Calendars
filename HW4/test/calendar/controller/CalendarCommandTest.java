@@ -770,7 +770,7 @@ public class CalendarCommandTest {
    *
    * @throws CalendarException expected exception.
    */
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = CalendarException.class)
   public void testPrintInvalidKeywordAfterEvents() throws CalendarException {
     Scanner scanner = new Scanner("events at 2025-06-05");
     Print cmd = new Print(scanner, view);
