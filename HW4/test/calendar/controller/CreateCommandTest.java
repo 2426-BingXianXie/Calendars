@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 /**
  * Test class for the Create command.
  */
-public class CreateCommandTest extends AbstractCommandTest {
+public class CreateCommandTest extends MethodForTest {
 
   /**
    * Tests the creation of a single all-day event.
