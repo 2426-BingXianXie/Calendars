@@ -140,8 +140,8 @@ public class ICalendarControllerTest {
         writeMessage("create event <eventSubject> on <dateString> " +
                 "(Creates a single all day event.)"
                 + System.lineSeparator());
-        writeMessage("create event <eventSubject> on <dateString> repeats <weekdays> for <N> times" +
-                "(Creates a series of all day events that repeats N times on specific weekdays)"
+        writeMessage("create event <eventSubject> on <dateString> repeats <weekdays> for <N> times"
+                + "(Creates a series of all day events that repeats N times on specific weekdays)"
                 + System.lineSeparator());
         writeMessage("create event <eventSubject> on <dateString> repeats <weekdays> until " +
                 "<dateString>" + "(Creates a series of all day events until a specific date " +
@@ -161,9 +161,10 @@ public class ICalendarControllerTest {
                 "and time is changed)." + System.lineSeparator());
         writeMessage("edit series <property> <eventSubject> from <dateStringTtimeString> " +
                 "with <NewPropertyValue>" +
-                "(Identify the event that has the given subject and starts at the given date and " +
-                "time and edit its property. If this event is part of a series then the properties " +
-                "of all events in that series is changed)." + System.lineSeparator());
+                "(Identify the event that has the given subject and starts at the given date and "
+                + "time and edit its property. If this event is part of a series then the " +
+                "properties " + "of all events in that series is changed)."
+                + System.lineSeparator());
       }
 
       private void printOptions() {
@@ -171,7 +172,8 @@ public class ICalendarControllerTest {
                 "(Prints a bulleted list of all events on that day along with their start and " +
                 "end time and location (if any))." + System.lineSeparator());
         writeMessage("print events from <dateStringTtimeString> to <dateStringTtimeString>" +
-                "(Prints a bulleted list of all events in the given interval including their start " +
+                "(Prints a bulleted list of all events in the given interval including " +
+                "their start " +
                 "and end times and location (if any))." + System.lineSeparator());
       }
     }
@@ -288,7 +290,8 @@ public class ICalendarControllerTest {
   }
 
   private static String getNoEventsFoundMessage(LocalDate date) {
-    return "Printing events on " + date.toString() + "." + System.lineSeparator() + "No events found"
+    return "Printing events on " + date.toString() + "." + System.lineSeparator()
+            + "No events found"
             + System.lineSeparator();
   }
 
@@ -307,7 +310,8 @@ public class ICalendarControllerTest {
   }
 
   private static String getSuccessfulSeriesFromDateEditMessage(String subject, String property,
-                                                               String newValue, LocalDateTime date) {
+                                                               String newValue,
+                                                               LocalDateTime date) {
     return "Edited event series '" + subject + "' " + property + " property to " + newValue +
             " from " + date + System.lineSeparator();
   }
@@ -667,7 +671,8 @@ public class ICalendarControllerTest {
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2025-06-05"), // input Jun 5 2025
             // date is valid, print success message
-            prints(getSuccessfulAllDayMessage("test", LocalDate.of(2025, 6, 5))),
+            prints(getSuccessfulAllDayMessage("test", LocalDate.of(2025, 6,
+                    5))),
             // prompt user for next command
             prints(getExpectedEnterCommandPrompt()));
   }
@@ -679,7 +684,8 @@ public class ICalendarControllerTest {
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event 123 on 2025-06-05"), // input Jun 5 2025
             // date is valid, print success message
-            prints(getSuccessfulAllDayMessage("123", LocalDate.of(2025, 6, 5))),
+            prints(getSuccessfulAllDayMessage("123", LocalDate.of(2025, 6,
+                    5))),
             // prompt user for next command
             prints(getExpectedEnterCommandPrompt()));
   }
@@ -692,7 +698,8 @@ public class ICalendarControllerTest {
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2025-06-05\n"), // input Jun 5 2025
             // date is valid, print success message
-            prints(getSuccessfulAllDayMessage("test", LocalDate.of(2025, 6, 5))),
+            prints(getSuccessfulAllDayMessage("test", LocalDate.of(2025, 6,
+                    5))),
             // prompt user for next command
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2025-06-05"),
@@ -708,7 +715,8 @@ public class ICalendarControllerTest {
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 0000-01-01"), // input Jan 1 0000
             // date is valid, print success message
-            prints(getSuccessfulAllDayMessage("test", LocalDate.of(0000, 1, 1))),
+            prints(getSuccessfulAllDayMessage("test", LocalDate.of(0000, 1,
+                    1))),
             // prompt user for next command
             prints(getExpectedEnterCommandPrompt()));
   }
@@ -720,7 +728,8 @@ public class ICalendarControllerTest {
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 9999-12-31"), // input Dec 31 9999
             // date is valid, print success message
-            prints(getSuccessfulAllDayMessage("test", LocalDate.of(9999, 12, 31))),
+            prints(getSuccessfulAllDayMessage("test", LocalDate.of(9999, 12,
+                    31))),
             // prompt user for next command
             prints(getExpectedEnterCommandPrompt()));
   }
@@ -733,7 +742,8 @@ public class ICalendarControllerTest {
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2024-02-29"), // input Feb 29 2024
             // date is valid, print success message
-            prints(getSuccessfulAllDayMessage("test", LocalDate.of(2024, 2, 29))),
+            prints(getSuccessfulAllDayMessage("test", LocalDate.of(2024, 2,
+                    29))),
             // prompt user for next command
             prints(getExpectedEnterCommandPrompt()));
   }
@@ -973,8 +983,8 @@ public class ICalendarControllerTest {
             inputs("create event " + subject + " on " + dateString + " repeats " + days + " for "
                     + repeats + " times\n"),
             // given valid input, should successfully create a event series
-            prints(getSuccessfulForSeriesMessage("test", date, startTime, endTime, daysOfWeek,
-                    repeats)),
+            prints(getSuccessfulForSeriesMessage("test", date, startTime, endTime,
+                    daysOfWeek, repeats)),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on " + dateString + " repeats " + days + " for " + repeats +
                     " times"),
@@ -1004,8 +1014,8 @@ public class ICalendarControllerTest {
             inputs("create event " + subject + " on " + dateString + " repeats " + days + " for "
                     + repeats + " times\n"),
             // given valid input, should successfully create a event series
-            prints(getSuccessfulForSeriesMessage("test", date, startTime, endTime, daysOfWeek,
-                    repeats)),
+            prints(getSuccessfulForSeriesMessage("test", date, startTime, endTime,
+                    daysOfWeek, repeats)),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2024-02-29"),
             prints(getErrorMessage(errorMessage)),
@@ -1123,8 +1133,8 @@ public class ICalendarControllerTest {
             inputs("create event test on " + startDateString + " repeats " + days + " until " +
                     endDateString),
             // given valid input, should successfully create an event series
-            prints(getSuccessfulUntilSeriesMessage("test", startDate, startTime, endTime, daysOfWeek,
-                    endDate)),
+            prints(getSuccessfulUntilSeriesMessage("test", startDate, startTime, endTime,
+                    daysOfWeek, endDate)),
             prints(getExpectedEnterCommandPrompt()));
   }
 
@@ -1152,8 +1162,8 @@ public class ICalendarControllerTest {
             inputs("create event test on " + startDateString + " repeats " + days + " until " +
                     endDateString + "\n"),
             // given valid input, should successfully create a event series
-            prints(getSuccessfulUntilSeriesMessage("test", startDate, startTime, endTime, daysOfWeek,
-                    endDate)),
+            prints(getSuccessfulUntilSeriesMessage("test", startDate, startTime, endTime,
+                    daysOfWeek, endDate)),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2024-02-29"),
             prints(getErrorMessage(errorMessage)),
@@ -1561,8 +1571,8 @@ public class ICalendarControllerTest {
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
                     + " repeats " + days + " for 5 times"),
             // given valid input, should successfully create an event series
-            prints(getSuccessfulForSeriesMessage("test", startDate, startTime, endTime, daysOfWeek,
-                    repeats)),
+            prints(getSuccessfulForSeriesMessage("test", startDate, startTime, endTime,
+                    daysOfWeek, repeats)),
             prints(getExpectedEnterCommandPrompt()));
   }
 
@@ -1589,8 +1599,8 @@ public class ICalendarControllerTest {
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
                     + " repeats " + days + " for 5 times\n"),
             // given valid input, should successfully create a event series
-            prints(getSuccessfulForSeriesMessage("test", startDate, startTime, endTime, daysOfWeek,
-                    repeats)),
+            prints(getSuccessfulForSeriesMessage("test", startDate, startTime, endTime,
+                    daysOfWeek, repeats)),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString),
             // event already exists, throw an error
@@ -1621,8 +1631,8 @@ public class ICalendarControllerTest {
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
                     + " repeats " + days + " for 5 times\n"),
             // given valid input, should successfully create a event series
-            prints(getSuccessfulForSeriesMessage("test", startDate, startTime, endTime, daysOfWeek,
-                    repeats)),
+            prints(getSuccessfulForSeriesMessage("test", startDate, startTime, endTime,
+                    daysOfWeek, repeats)),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
                     + " repeats " + days + " for 5 times"),
@@ -1829,11 +1839,13 @@ public class ICalendarControllerTest {
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event Event 1 from 2025-07-04T10:00 to 2025-07-04T11:00\n"),
-            prints(getSuccessfulEventMessage("Event 1", LocalDateTime.of(2025,7,4,10,0),
+            prints(getSuccessfulEventMessage("Event 1", LocalDateTime.of(2025,7,
+                            4,10,0),
                     LocalDateTime.of(2025,7,4,11,0))),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event Event 2 from 2025-07-05T12:00 to 2025-07-05T13:00\n"),
-            prints(getSuccessfulEventMessage("Event 2", LocalDateTime.of(2025,7,5,12,0),
+            prints(getSuccessfulEventMessage("Event 2", LocalDateTime.of(2025,7,
+                            5,12,0),
                     LocalDateTime.of(2025,7,5,13,0))),
             prints(getExpectedEnterCommandPrompt()),
             inputs("print events from 2025-07-04T09:00 to 2025-07-05T14:00\n"),
@@ -1844,7 +1856,8 @@ public class ICalendarControllerTest {
 
   @Test
   public void testPrintEventsInRangeInvalidFormat() throws CalendarException {
-    String errorMessage = "Invalid date format for <dateStringTtimeString>. Expected YYYY-MM-DDThh:mm\n";
+    String errorMessage = "Invalid date format for <dateStringTtimeString>. Expected " +
+            "YYYY-MM-DDThh:mm\n";
     testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
@@ -2005,7 +2018,8 @@ public class ICalendarControllerTest {
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from 2025-01-01T10:00 to 2025-01-01T11:00\n"),
-            prints(getSuccessfulEventMessage("test", LocalDateTime.of(2025,1,1,10,0),
+            prints(getSuccessfulEventMessage("test", LocalDateTime.of(2025,1,
+                            1,10,0),
                     LocalDateTime.of(2025,1,1,11,0))),
             prints(getExpectedEnterCommandPrompt()),
             inputs("edit events subject test from 2025-01-01T10:00 with\n"),
@@ -2063,14 +2077,16 @@ public class ICalendarControllerTest {
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event eventA on 2025-02-02\n"), // 8am-5pm
-            prints(getSuccessfulAllDayMessage("eventA", LocalDate.of(2025, 2, 2))),
+            prints(getSuccessfulAllDayMessage("eventA", LocalDate.of(2025, 2,
+                    2))),
             prints(getExpectedEnterCommandPrompt()),
             // Now create a different event to edit
             inputs("create event eventB from 2025-02-02T08:00 to 2025-02-02T17:00\n"),
             prints("Event 'eventB' created from 2025-02-02T08:00 to 2025-02-02T17:00.\n"),
             prints(getExpectedEnterCommandPrompt()),
             // Try to edit eventC to conflict with eventA
-            inputs("edit event subject eventB from 2025-02-02T08:00 to 2025-02-02T17:00 with eventA\n"),
+            inputs("edit event subject eventB from 2025-02-02T08:00 to 2025-02-02T17:00 with " +
+                    "eventA\n"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
   }
@@ -2088,7 +2104,8 @@ public class ICalendarControllerTest {
             prints(getExpectedEnterCommandPrompt()),
             // Edit all instances of the series
             inputs("edit series subject meeting from 2025-03-03T09:00 with new_meeting\n"),
-            prints(getSuccessfulSeriesEditMessage("meeting", "subject", "new_meeting")),
+            prints(getSuccessfulSeriesEditMessage("meeting", "subject",
+                    "new_meeting")),
             prints(getExpectedEnterCommandPrompt()));
   }
 
@@ -2096,7 +2113,8 @@ public class ICalendarControllerTest {
   public void testEditEventsThisAndFuture() throws CalendarException {
     String successCreate = "Event series 'review' created on 2025-04-01 from 14:00 to 15:00 "
             + "repeating on [TUESDAY] 4 times." + System.lineSeparator();
-    LocalDateTime firstInstance = LocalDateTime.of(2025, 4, 1, 14, 0);
+    LocalDateTime firstInstance = LocalDateTime.of(2025, 4, 1, 14,
+            0);
     testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
@@ -2106,7 +2124,8 @@ public class ICalendarControllerTest {
             prints(getExpectedEnterCommandPrompt()),
             // Edit the series starting from the first instance
             inputs("edit events subject review from 2025-04-01T14:00 with sprint_review\n"),
-            prints(getSuccessfulSeriesFromDateEditMessage("review", "subject", "sprint_review",
+            prints(getSuccessfulSeriesFromDateEditMessage("review", "subject",
+                    "sprint_review",
                     firstInstance)),
             prints(getExpectedEnterCommandPrompt()));
   }
@@ -2216,7 +2235,8 @@ public class ICalendarControllerTest {
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from 2025-01-01T10:00 to 2025-01-01T11:00\n"),
-            prints(getSuccessfulEventMessage("test", LocalDateTime.of(2025, 1, 1, 10, 0),
+            prints(getSuccessfulEventMessage("test", LocalDateTime.of(2025, 1,
+                            1, 10, 0),
                     LocalDateTime.of(2025, 1, 1, 11, 0))),
             prints(getExpectedEnterCommandPrompt()),
             inputs("edit event subject test from 2025-01-01T10:00 to 2025-01-01T11:00 with"),
@@ -2231,7 +2251,8 @@ public class ICalendarControllerTest {
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event original on 2025-04-04\n"),
-            prints(getSuccessfulAllDayMessage("original", LocalDate.of(2025, 4, 4))),
+            prints(getSuccessfulAllDayMessage("original", LocalDate.of(2025, 4,
+                    4))),
             prints(getExpectedEnterCommandPrompt()),
             // Try to edit start time to be after the 17:00 end time
             inputs("edit event start original from 2025-04-04T08:00 to 2025-04-04T17:00 with " +
