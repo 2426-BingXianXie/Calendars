@@ -19,15 +19,15 @@ public class Show extends AbstractCommand {
   }
 
   private void handleShow(ICalendar model) throws CalendarException {
-    if (!sc.hasNext()) throw new IllegalArgumentException("Missing input after 'show'.");
+    if (!sc.hasNext()) throw new CalendarException("Missing input after 'show'.");
     // check that input after 'show' is 'status'
     if (!sc.next().equalsIgnoreCase("status")) {
-      throw new IllegalArgumentException("Expected 'status' after 'show'.");
+      throw new CalendarException("Expected 'status' after 'show'.");
     }
-    if (!sc.hasNext()) throw new IllegalArgumentException("Missing input after 'status'.");
+    if (!sc.hasNext()) throw new CalendarException("Missing input after 'status'.");
     // check that input after 'status' is 'on'
     if (!sc.next().equalsIgnoreCase("on")) {
-      throw new IllegalArgumentException("Expected 'on' after 'status'.");
+      throw new CalendarException("Expected 'on' after 'status'.");
     }
     // attempt to parse date string
     LocalDateTime date = parseDateTime(sc);
