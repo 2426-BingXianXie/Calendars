@@ -11,7 +11,7 @@ import static org.junit.Assert.*;
 /**
  * Test class for the Edit command.
  */
-public class EditCommandTest extends MethodForTest {
+public class EditCommandTest extends CommandTestHelper {
 
   /**
    * Tests editing the subject of a single, non-recurring event.

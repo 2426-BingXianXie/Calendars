@@ -7,7 +7,7 @@ import org.junit.Test;
 /**
  * Test class for the Show command.
  */
-public class ShowCommandTest extends MethodForTest {
+public class ShowCommandTest extends CommandTestHelper {
 
   /**
    * Tests the scenario where the user is busy due to a scheduled event.

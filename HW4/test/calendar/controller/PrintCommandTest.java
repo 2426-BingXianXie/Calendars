@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 /**
  * Test class for the Print command.
  */
-public class PrintCommandTest extends MethodForTest {
+public class PrintCommandTest extends CommandTestHelper {
 
   /**
    * Tests the printing of events scheduled for a specific single date.

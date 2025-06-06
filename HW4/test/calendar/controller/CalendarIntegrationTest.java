@@ -12,7 +12,7 @@ import static org.junit.Assert.*;
 /**
  * Integration tests that combine multiple commands.
  */
-public class CalendarIntegrationTest extends MethodForTest {
+public class CalendarIntegrationTest extends CommandTestHelper {
 
   /**
    * Tests a complete workflow of creating an event, editing it, printing events for the day,

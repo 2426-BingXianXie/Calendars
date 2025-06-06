@@ -18,7 +18,7 @@ import static org.junit.Assert.*;
  * Abstract base class for calendar command tests.
  * Provides common setup, utilities, and helper methods for testing commands.
  */
-public abstract class MethodForTest {
+public abstract class CommandTestHelper {
   protected VirtualCalendar calendar;
   protected StringWriter output;
   protected ICalendarView view;
