@@ -13,5 +13,5 @@ public interface ICalendarController {
    *
    * @throws CalendarException if an unrecoverable error occurs during the application's execution.
    */
-  void go() throws CalendarException;
+  void execute() throws CalendarException;
 }

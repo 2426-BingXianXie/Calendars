@@ -46,17 +46,13 @@ public class Print extends AbstractCommand {
    * @throws CalendarException if there are missing or invalid inputs.
    */
   private void handlePrint(ICalendar model) throws CalendarException {
-    if (!sc.hasNext()) {
-      throw new IllegalArgumentException("Missing input after 'print'.");
-    }
+    if (!sc.hasNext()) throw new CalendarException("Missing input after 'print'.");
     // check that input entered after 'print' is 'events'
     if (!sc.next().equalsIgnoreCase("events")) {
-      throw new IllegalArgumentException("Expected 'events' after 'print'.");
+      throw new CalendarException("Expected 'events' after 'print'.");
     } else {
       // input is valid, check for next keyword after events
-      if (!sc.hasNext()) {
-        throw new IllegalArgumentException("Missing input after 'events'.");
-      }
+      if (!sc.hasNext()) throw new CalendarException("Missing input after 'events'.");
       String nextKeyword = sc.next();
       // check if next word is 'on', print events only on that day if so
       if (nextKeyword.equalsIgnoreCase("on")) {
@@ -67,19 +63,13 @@ public class Print extends AbstractCommand {
         view.showCalendarEvents(events, date);
         // check if next word is 'from'
       } else if (nextKeyword.equalsIgnoreCase("from")) {
-        if (!sc.hasNext()) {
-          throw new IllegalArgumentException("Missing input after 'from'.");
-        }
+        if (!sc.hasNext()) throw new CalendarException("Missing input after 'from'.");
         // attempt to parse start date input
         LocalDateTime fromDate = parseDateTime(sc);
-        if (!sc.hasNext()) {
-          throw new IllegalArgumentException(
-                  "Missing input after <dateStringTTimeString>.");
-        }
-        if (!sc.next().equalsIgnoreCase("to")) {
-          throw new IllegalArgumentException(
-                  "Expected 'to' after <dateStringTTimeString>.");
-        }
+        if (!sc.hasNext()) throw new CalendarException(
+                "Missing input after <dateStringTTimeString>.");
+        if (!sc.next().equalsIgnoreCase("to")) throw new CalendarException(
+                "Expected 'to' after <dateStringTTimeString>.");
         // attempt to parse end date input
         LocalDateTime toDate = parseDateTime(sc);
         List<Event> events = model.getEventsListInDateRange(fromDate, toDate);
