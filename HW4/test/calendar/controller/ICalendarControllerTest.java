@@ -165,7 +165,7 @@ public class ICalendarControllerTest {
     Readable input = new StringReader(fakeUserInput.toString());
     ICalendarView view = new MockView();
     ICalendarController controller = new CalendarController(model, view, input);
-    controller.go();
+    controller.execute();
     // farewell message will always print due to controller logic
     // controller won't detect a next line as it's taking in a stringReader
     // instead of inputStreamReader, so it will quit automatically at the end of

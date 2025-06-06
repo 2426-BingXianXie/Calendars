@@ -34,7 +34,7 @@ public class CalendarController implements ICalendarController {
     this.view = view;
   }
 
-  public void go() throws CalendarException {
+  public void execute() throws CalendarException {
     Scanner sc = new Scanner(in);
     boolean quit = false;
     view.showMenu(); //prompt for the instruction name
