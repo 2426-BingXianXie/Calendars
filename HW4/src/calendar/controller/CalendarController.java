@@ -34,6 +34,13 @@ public class CalendarController implements ICalendarController {
     this.view = view;
   }
 
+  /**
+   * Starts the controller's main loop, processing user commands from the input source.
+   * The loop continues until the user enters 'quit' or 'q', or the input stream ends.
+   * Displays a menu at the start and a farewell message at the end.
+   *
+   * @throws CalendarException if an unrecoverable error occurs during command processing.
+   */
   public void execute() throws CalendarException {
     Scanner sc = new Scanner(in);
     boolean quit = false;

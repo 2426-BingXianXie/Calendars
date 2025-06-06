@@ -21,8 +21,8 @@ import calendar.CalendarException;
  * Represents a virtual calendar that allows you to create events and store them
  * in the calendar.
  *
- * <p>This calendar mimics the features found in widely-used calendar apps, such as
- * Google Calendar and Apple's Calendar app.
+ * This calendar mimics the features found in widely-used calendar apps, such as
+ * Google Calendar.
  */
 public class VirtualCalendar implements ICalendar {
   // A map to store events, with LocalDate as the key and a list of Events as the value.
