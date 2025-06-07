@@ -71,6 +71,39 @@ public class Event {
   }
 
   /**
+   * Copy constructor - creates a new Event with the same properties as the source event.
+   * This is useful for copying events between calendars.
+   *
+   * @param source the event to copy
+   */
+  public Event(Event source) {
+    this.id = UUID.randomUUID(); // Generate new ID for the copy
+    this.subject = source.subject;
+    this.startDate = source.startDate;
+    this.endDate = source.endDate;
+    this.description = source.description;
+    this.location = source.location;
+    this.locationDetail = source.locationDetail;
+    this.status = source.status;
+    this.seriesID = source.seriesID; // Keep series ID for copied events
+  }
+
+  /**
+   * Creates a copy of this event with new start and end times.
+   * Useful for copying events to different time slots or calendars.
+   *
+   * @param newStart the new start time
+   * @param newEnd   the new end time
+   * @return a new Event with updated times
+   */
+  public Event copyWithNewTimes(LocalDateTime newStart, LocalDateTime newEnd) {
+    // Reset series ID for copies
+    return new Event(this.subject, newStart, newEnd, this.description,
+            this.location, this.locationDetail, this.status, null);
+  }
+
+
+  /**
    * Returns the unique identifier for this event.
    *
    * @return the UUID of the event
