@@ -10,6 +10,7 @@ import calendar.model.Event;
 /**
  * Implements the {@link ICalendarView} interface, providing methods to display calendar information
  * and user interaction messages to an {@link Appendable} output stream.
+ * Updated to support multiple calendars and new command syntax.
  */
 public class CalendarView implements ICalendarView {
   // The Appendable object to which all messages will be written (e.g., System.out, StringWriter).
@@ -33,7 +34,6 @@ public class CalendarView implements ICalendarView {
   public void writeMessage(String message) throws IllegalStateException {
     try {
       out.append(message);
-
     } catch (IOException e) {
       // Wraps IOException in an IllegalStateException to conform to the interface.
       throw new IllegalStateException(e.getMessage());
@@ -57,7 +57,7 @@ public class CalendarView implements ICalendarView {
    * @throws IllegalStateException if an I/O error occurs while writing to the output.
    */
   private void welcomeMessage() throws IllegalStateException {
-    writeMessage("Welcome to the calendar program!" + System.lineSeparator());
+    writeMessage("Welcome to the Multi-Calendar Program!" + System.lineSeparator());
   }
 
   /**
@@ -118,7 +118,7 @@ public class CalendarView implements ICalendarView {
       } else { // print out location as well
         // If location exists, print location type, subject, date, and time range.
         writeMessage(event.getLocation() + " event '" + event.getSubject() + "' on " +
-                event.getStart().toLocalDate() + "' from " + event.getStart().toLocalTime()
+                event.getStart().toLocalDate() + " from " + event.getStart().toLocalTime()
                 + " to " + event.getEnd().toLocalTime() + System.lineSeparator());
       }
     }
@@ -126,21 +126,91 @@ public class CalendarView implements ICalendarView {
 
   /**
    * Displays the various command options available to the user, categorized by function.
+   * Updated to include new multi-calendar commands.
    *
    * @throws IllegalStateException if an I/O error occurs while writing to the output.
    */
   private void showOptions() throws IllegalStateException {
+    writeMessage("Supported user instructions are: " + System.lineSeparator());
+
+    // Calendar management commands
+    calendarManagementOptions();
+
+    // Event management commands (require calendar context)
+    eventManagementOptions();
+
+    // Copy commands
+    copyOptions();
+
+    // Utility commands
+    utilityOptions();
+  }
+
+  /**
+   * Displays calendar management command options.
+   */
+  private void calendarManagementOptions() throws IllegalStateException {
+    writeMessage("=== Calendar Management ===" + System.lineSeparator());
+
+    writeMessage("create calendar --name <calName> --timezone <area/location>" +
+            " (Create a new calendar with unique name and timezone)" + System.lineSeparator());
+
+    writeMessage("edit calendar --name <name-of-calendar> --property <property-name> <new-property-value>" +
+            " (Modify calendar name or timezone)" + System.lineSeparator());
+
+    writeMessage("use calendar --name <name-of-calendar>" +
+            " (Set calendar context for event operations)" + System.lineSeparator());
+
+    writeMessage(System.lineSeparator());
+  }
+
+  /**
+   * Displays event management command options.
+   */
+  private void eventManagementOptions() throws IllegalStateException {
+    writeMessage("=== Event Management (requires active calendar) ===" + System.lineSeparator());
+
     createOptions();
     editOptions();
     printOptions();
-    // Displays the "show status" command option.
+
+    // Show status command
     writeMessage("show status on <dateStringTtimeString>" +
-            "(Prints busy status if the user has events scheduled on a given day and time, " +
-            "otherwise, available)." + System.lineSeparator());
-    // Displays the "menu" command option.
-    writeMessage("menu (Print supported instruction list)" + System.lineSeparator());
-    // Displays the "quit" command option.
-    writeMessage("q or quit (quit the program) " + System.lineSeparator());
+            " (Check if user is busy at specified date/time)" + System.lineSeparator());
+
+    writeMessage(System.lineSeparator());
+  }
+
+  /**
+   * Displays copy command options.
+   */
+  private void copyOptions() throws IllegalStateException {
+    writeMessage("=== Copy Commands ===" + System.lineSeparator());
+
+    writeMessage("copy event <eventName> on <dateStringTtimeString> --target <calendarName> to <dateStringTtimeString>" +
+            " (Copy single event to target calendar)" + System.lineSeparator());
+
+    writeMessage("copy events on <dateString> --target <calendarName> to <dateString>" +
+            " (Copy all events on date to target calendar)" + System.lineSeparator());
+
+    writeMessage("copy events between <dateString> and <dateString> --target <calendarName> to <dateString>" +
+            " (Copy events in date range to target calendar)" + System.lineSeparator());
+
+    writeMessage(System.lineSeparator());
+  }
+
+  /**
+   * Displays utility command options.
+   */
+  private void utilityOptions() throws IllegalStateException {
+    writeMessage("=== Utility Commands ===" + System.lineSeparator());
+
+    writeMessage("menu (Display this help menu)" + System.lineSeparator());
+    writeMessage("q or quit (Exit the program)" + System.lineSeparator());
+
+    writeMessage(System.lineSeparator());
+    writeMessage("Note: Event operations require an active calendar. Use 'use calendar --name <name>' first." +
+            System.lineSeparator());
   }
 
   /**
@@ -149,7 +219,6 @@ public class CalendarView implements ICalendarView {
    * @throws IllegalStateException if an I/O error occurs while writing to the output.
    */
   private void createOptions() throws IllegalStateException {
-    writeMessage("Supported user instructions are: " + System.lineSeparator());
     // Option to create a singular event.
     writeMessage("create event <eventSubject> from <dateStringTtimeString> to " +
             "<dateStringTtimeString> (Create a singular event)"
