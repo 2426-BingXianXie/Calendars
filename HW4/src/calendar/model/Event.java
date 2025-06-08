@@ -7,7 +7,7 @@ import java.util.UUID;
 /**
  * Represents an event in a calendar.
  * Each event has a unique ID, subject, start and end times, description, location, status,
- * and optional series ID.
+ * and optional series ID. Updated to support timezone-aware operations and proper null handling.
  */
 public class Event {
   private final UUID id;
@@ -97,11 +97,10 @@ public class Event {
    * @return a new Event with updated times
    */
   public Event copyWithNewTimes(LocalDateTime newStart, LocalDateTime newEnd) {
-    // Reset series ID for copies
     return new Event(this.subject, newStart, newEnd, this.description,
-            this.location, this.locationDetail, this.status, null);
+            this.location, this.locationDetail, this.status,
+            null); // Reset series ID for copies to different times
   }
-
 
   /**
    * Returns the unique identifier for this event.
@@ -163,7 +162,7 @@ public class Event {
    * @param end the new end time for the event
    */
   public void setEnd(LocalDateTime end) {
-    if (end.isBefore(this.startDate)) {
+    if (end != null && this.startDate != null && end.isBefore(this.startDate)) {
       throw new IllegalArgumentException("End cannot be before start");
     }
     this.endDate = end;
@@ -190,7 +189,7 @@ public class Event {
   /**
    * Returns the location of this event.
    *
-   * @return the location as a String
+   * @return the location as a Location enum
    */
   public Location getLocation() {
     return location;
@@ -253,6 +252,8 @@ public class Event {
 
   /**
    * Checks if two events are equal.
+   * Two events are considered equal if they have the same subject, start time, and end time.
+   * This method properly handles null values for all three comparison fields.
    *
    * @param o the object to compare with this event
    * @return true if the object is an Event with the same subject, start, and end times;
@@ -267,14 +268,15 @@ public class Event {
       return false;
     }
     Event event = (Event) o;
-    return subject.equals(event.subject) &&
-            startDate.equals(event.startDate) &&
-            endDate.equals(event.endDate);
+    return Objects.equals(subject, event.subject) &&
+            Objects.equals(startDate, event.startDate) &&
+            Objects.equals(endDate, event.endDate);
   }
 
   /**
    * Returns a hash code for this event.
    * The hash code is based on the subject, start, and end times.
+   * This method properly handles null values.
    *
    * @return the hash code as an int
    */
@@ -285,8 +287,8 @@ public class Event {
 
   /**
    * Returns a string representation of the event's location.
-   * If the location is CUSTOM, it returns the custom location detail.
-   * Otherwise, it returns the name of the location along with any additional details.
+   * If the location is null, returns an empty string.
+   * Otherwise, returns the name of the location along with any additional details.
    *
    * @return a formatted string representing the event's location
    */
