@@ -89,7 +89,9 @@ public class CalendarController implements ICalendarController {
     try {
       switch (userInstruction.toLowerCase()) {
         case "create":
-          if (!sc.hasNext()) throw new CalendarException("Missing 'event' or 'calendar' after 'create'.");
+          if (!sc.hasNext()) {
+            throw new CalendarException("Missing 'event' or 'calendar' after 'create'.");
+          }
           String createType = sc.next();
           if (createType.equalsIgnoreCase("event")) {
             cmd = new CreateEvent(sc, view); // create event
@@ -100,8 +102,10 @@ public class CalendarController implements ICalendarController {
           }
           break;
         case "edit":
-          if (!sc.hasNext()) throw new CalendarException(
-                  "Missing 'event'/'events'/'series' or 'calendar' after 'edit'.");
+          if (!sc.hasNext()) {
+            throw new CalendarException(
+                    "Missing 'event'/'events'/'series' or 'calendar' after 'edit'.");
+          }
           String editType = sc.next();
           if (editType.equalsIgnoreCase("calendar")) {
             cmd = new EditCalendar(sc, view); // edit a calendar
@@ -121,6 +125,7 @@ public class CalendarController implements ICalendarController {
           break;
         case "use":
           cmd = new Use(sc, view);
+          break;
         case "copy":
           cmd = new Copy(sc, view);
           break;
