@@ -7,7 +7,6 @@ import java.util.Scanner;
 
 import calendar.CalendarException;
 import calendar.controller.CalendarCommand;
-import calendar.model.ICalendar;
 import calendar.model.ICalendarSystem;
 import calendar.view.ICalendarView;
 

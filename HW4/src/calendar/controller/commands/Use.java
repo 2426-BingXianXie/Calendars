@@ -32,17 +32,38 @@ public class Use extends AbstractCommand {
    */
   @Override
   public void execute(ICalendarSystem system) throws CalendarException {
-    ICalendar calendar = system.getCurrentCalendar();
-    handleUse(calendar);
+    if (!sc.hasNext()) {
+      throw new CalendarException("Missing input after 'use'. Expected 'calendar'.");
+    }
+    // check that input entered after 'use' is 'calendar'
+    if (!sc.next().equalsIgnoreCase("calendar")) {
+      throw new CalendarException("Expected 'events' after 'print'.");
+    } else {
+      checkCalendarName();
+    }
+    if (!sc.hasNext()) {
+      throw new CalendarException("Missing name of calendar");
+    }
+    String calendarName = sc.next();
+    // set given calendar name to active. Will throw an error if calendar is not found in system
+    system.useCalendar(calendarName);
   }
 
   /**
-   * Handles the process of activating a calendar in a calendar system to be in use,
-   * allowing event commands to be acted on the calendar.
+   * Checks that the input after 'calendar' is '--name'.
    *
-   * @param model The {@link ICalendar} model to put in use.
-   * @throws CalendarException if there are missing or invalid inputs.
+   * @throws CalendarException if there is no input after 'calendar', or the next keyword
+   * isn't '--name'.
    */
-  private void handleUse(ICalendar model) throws CalendarException {
+  private void checkCalendarName() throws CalendarException {
+    // input is valid, check for next keyword after 'calendar'
+    if (!sc.hasNext()) {
+      throw new CalendarException("Missing input after 'calendar'.");
+    }
+    if (!sc.next().equalsIgnoreCase("--name")) {
+      throw new CalendarException("Expected '--name' after 'calendar'");
+    }
   }
+
+
 }
