@@ -8,14 +8,15 @@ import java.util.UUID;
 import calendar.CalendarException;
 import calendar.model.Event;
 import calendar.model.ICalendar;
+import calendar.model.ICalendarSystem;
 import calendar.model.Property;
 import calendar.view.ICalendarView;
 
 /**
- * Represents the "edit" command for the calendar application.
+ * Represents the "edit event" command for the calendar application.
  * This command handles editing properties of both single events and event series.
  */
-public class Edit extends AbstractCommand {
+public class EditEvent extends AbstractCommand {
 
   /**
    * Constructs an {@code Edit} command.
@@ -23,18 +24,19 @@ public class Edit extends AbstractCommand {
    * @param sc   The {@link Scanner} from which command arguments are read.
    * @param view The {@link ICalendarView} used for displaying messages to the user.
    */
-  public Edit(Scanner sc, ICalendarView view) {
+  public EditEvent(Scanner sc, ICalendarView view) {
     super(sc, view);
   }
 
   /**
    * Executes the "edit" command to modify event properties.
    *
-   * @param calendar The {@link ICalendar} model on which the command will operate.
+   * @param system The {@link ICalendarSystem} model on which the command will operate.
    * @throws CalendarException if an error occurs during command execution.
    */
   @Override
-  public void execute(ICalendar calendar) throws CalendarException {
+  public void execute(ICalendarSystem system) throws CalendarException {
+    ICalendar calendar = system.getCurrentCalendar();
     handleEdit(calendar);
   }
 

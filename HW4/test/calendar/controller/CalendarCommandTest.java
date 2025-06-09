@@ -1,8 +1,11 @@
 package calendar.controller;
 
+import calendar.controller.commands.CreateEvent;
+import calendar.model.CalendarSystem;
+import calendar.model.ICalendar;
+import calendar.model.ICalendarSystem;
 import calendar.model.VirtualCalendar;
-import calendar.controller.commands.Create;
-import calendar.controller.commands.Edit;
+import calendar.controller.commands.EditEvent;
 import calendar.controller.commands.Show;
 import calendar.model.Days;
 import calendar.controller.commands.Print;
@@ -23,6 +26,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertFalse;
 
+import java.time.ZoneId;
 import java.util.Scanner;
 import java.util.List;
 import java.util.UUID;
@@ -34,7 +38,8 @@ import java.util.EnumSet;
  * Tests all edge cases, error conditions, and valid scenarios.
  */
 public class CalendarCommandTest {
-  private VirtualCalendar calendar;
+  private ICalendar calendar;
+  private ICalendarSystem system;
   private StringWriter output;
   private ICalendarView view;
 
@@ -44,15 +49,19 @@ public class CalendarCommandTest {
    * to capture command output.
    */
   @Before
-  public void setUp() {
-    calendar = new VirtualCalendar();
+  public void setUp() throws CalendarException {
+    ZoneId id = ZoneId.of("America/New_York");
     output = new StringWriter();
     view = new CalendarView(output);
+    system = new CalendarSystem();
+    system.createCalendar("test", id);
+    system.useCalendar("test");
+    calendar = system.getCurrentCalendar();
   }
 
 
   /**
-   * Tests the creation of a single all-day event using the {@link Create} command.
+   * Tests the creation of a single all-day event using the {@link CreateEvent} command.
    * Verifies the event's properties and the output message.
    *
    * @throws CalendarException if the command execution fails.
@@ -60,8 +69,8 @@ public class CalendarCommandTest {
   @Test
   public void testCreateSingleAllDayEvent() throws CalendarException {
     Scanner scanner = new Scanner("event Meeting on 2025-06-05");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
 
     // Verify event was created
     List<Event> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
@@ -79,7 +88,7 @@ public class CalendarCommandTest {
   }
 
   /**
-   * Tests the creation of a single timed event using the {@link Create} command.
+   * Tests the creation of a single timed event using the {@Link CreateEvent} command.
    * Verifies the event's properties and the output message.
    *
    * @throws CalendarException if the command execution fails.
@@ -88,8 +97,8 @@ public class CalendarCommandTest {
   public void testCreateSingleTimedEvent() throws CalendarException {
     Scanner scanner = new Scanner("event Conference from 2025-06-05T09:00 to " +
             "2025-06-05T17:00");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
 
     List<Event> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
     assertEquals(1, events.size());
@@ -113,8 +122,8 @@ public class CalendarCommandTest {
   @Test
   public void testCreateEventWithMultiWordSubject() throws CalendarException {
     Scanner scanner = new Scanner("event Team Building Activity on 2025-06-05");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
 
     List<Event> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
     assertEquals("Team Building Activity", events.get(0).getSubject());
@@ -130,8 +139,8 @@ public class CalendarCommandTest {
   @Test
   public void testCreateAllDaySeriesWithForCount() throws CalendarException {
     Scanner scanner = new Scanner("event Meeting on 2025-06-02 repeats MWF for 5 times");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
 
     // Check events were created on correct days
     List<Event> mondayEvents = calendar.getEventsList(LocalDate.of(2025, 6,
@@ -168,8 +177,8 @@ public class CalendarCommandTest {
   public void testCreateAllDaySeriesWithUntilDate() throws CalendarException {
     Scanner scanner = new Scanner("event Meeting on 2025-06-02 repeats MWF " +
             "until 2025-06-30");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
 
     // Verify events created up to end date
     List<Event> lastMondayEvents = calendar.getEventsList(LocalDate.of(2025,
@@ -195,8 +204,8 @@ public class CalendarCommandTest {
   public void testCreateTimedSeriesWithForCount() throws CalendarException {
     Scanner scanner = new Scanner("event Meeting from 2025-06-02T09:00 to " +
             "2025-06-02T10:00 repeats MWF for 3 times");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
 
     // Count total events created
     int eventCount = 0;
@@ -217,8 +226,8 @@ public class CalendarCommandTest {
   @Test(expected = CalendarException.class)
   public void testCreateMissingEventKeyword() throws CalendarException {
     Scanner scanner = new Scanner("Meeting on 2025-06-05");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -230,8 +239,8 @@ public class CalendarCommandTest {
   @Test(expected = CalendarException.class)
   public void testCreateInvalidKeywordAfterCreate() throws CalendarException {
     Scanner scanner = new Scanner("meeting on 2025-06-05");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -243,8 +252,8 @@ public class CalendarCommandTest {
   @Test(expected = CalendarException.class)
   public void testCreateMissingSubject() throws CalendarException {
     Scanner scanner = new Scanner("event on 2025-06-05");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -257,8 +266,8 @@ public class CalendarCommandTest {
   @Test(expected = CalendarException.class)
   public void testCreateMissinexecutenOrFrom() throws CalendarException {
     Scanner scanner = new Scanner("event Meeting");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -269,8 +278,8 @@ public class CalendarCommandTest {
   @Test(expected = CalendarException.class)
   public void testCreateInvalidDateFormat() throws CalendarException {
     Scanner scanner = new Scanner("event Meeting on 06-05-2025");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -281,8 +290,8 @@ public class CalendarCommandTest {
   @Test(expected = CalendarException.class)
   public void testCreateInvalidDateTimeFormat() throws CalendarException {
     Scanner scanner = new Scanner("event Meeting from 2025-06-05 9:00 to 2025-06-05 10:00");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -294,8 +303,8 @@ public class CalendarCommandTest {
   @Test(expected = CalendarException.class)
   public void testCreateMissingToKeyword() throws CalendarException {
     Scanner scanner = new Scanner("event Meeting from 2025-06-05T09:00 2025-06-05T10:00");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -307,8 +316,8 @@ public class CalendarCommandTest {
   @Test(expected = CalendarException.class)
   public void testCreateEndBeforeStart() throws CalendarException {
     Scanner scanner = new Scanner("event Meeting from 2025-06-05T10:00 to 2025-06-05T09:00");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -321,8 +330,8 @@ public class CalendarCommandTest {
   public void testCreateSeriesSpanningMultipleDays() throws CalendarException {
     Scanner scanner = new Scanner("event Meeting from 2025-06-05T23:00 to " +
             "2025-06-06T01:00 repeats MWF for 5 times");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -334,8 +343,8 @@ public class CalendarCommandTest {
   @Test(expected = CalendarException.class)
   public void testCreateInvalidDaySymbol() throws CalendarException {
     Scanner scanner = new Scanner("event Meeting on 2025-06-02 repeats XYZ for 5 times");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -348,8 +357,8 @@ public class CalendarCommandTest {
   @Test(expected = CalendarException.class)
   public void testCreateMissingForOrUntil() throws CalendarException {
     Scanner scanner = new Scanner("event Meeting on 2025-06-02 repeats MWF");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -361,8 +370,8 @@ public class CalendarCommandTest {
   @Test(expected = CalendarException.class)
   public void testCreateMissingRepeatCount() throws CalendarException {
     Scanner scanner = new Scanner("event Meeting on 2025-06-02 repeats MWF for");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -374,8 +383,8 @@ public class CalendarCommandTest {
   @Test(expected = CalendarException.class)
   public void testCreateMissingTimesKeyword() throws CalendarException {
     Scanner scanner = new Scanner("event Meeting on 2025-06-02 repeats MWF for 5");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -387,8 +396,8 @@ public class CalendarCommandTest {
   @Test(expected = CalendarException.class)
   public void testCreateMissingUntilDate() throws CalendarException {
     Scanner scanner = new Scanner("event Meeting on 2025-06-02 repeats MWF until");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -401,25 +410,25 @@ public class CalendarCommandTest {
   public void testCreateDuplicateEvent() throws CalendarException {
     // Create first event
     Scanner scanner1 = new Scanner("event Meeting on 2025-06-05");
-    Create cmd1 = new Create(scanner1, view);
-    cmd1.execute(calendar);
+    CreateEvent cmd1 = new CreateEvent(scanner1, view);
+    cmd1.execute(system);
 
     // Try to create duplicate
     Scanner scanner2 = new Scanner("event Meeting on 2025-06-05");
-    Create cmd2 = new Create(scanner2, view);
-    cmd2.execute(calendar);
+    CreateEvent cmd2 = new CreateEvent(scanner2, view);
+    cmd2.execute(system);
   }
 
   /**
-   * Tests that the {@link Create} command is case-insensitive for its keywords.
+   * Tests that the {@Link CreateEvent} command is case-insensitive for its keywords.
    *
    * @throws CalendarException if the command execution fails.
    */
   @Test
   public void testCreateCaseInsensitiveKeywords() throws CalendarException {
     Scanner scanner = new Scanner("EVENT meeting ON 2025-06-05");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
 
     List<Event> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
     assertEquals(1, events.size());
@@ -435,8 +444,8 @@ public class CalendarCommandTest {
   @Test
   public void testCreateAllSevenDaysOfWeek() throws CalendarException {
     Scanner scanner = new Scanner("event Daily on 2025-06-01 repeats MTWRFSU for 2 times");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
 
     // Should create 2 events (2 weeks * 1 event per day = 2 events total since it's "2 times")
     int totalEvents = 0;
@@ -465,8 +474,8 @@ public class CalendarCommandTest {
     // Use a single word for the new value to avoid scanner issues
     Scanner scanner = new Scanner("event subject Old Meeting from 2025-06-05T09:00 " +
             "to 2025-06-05T10:00 with NewMeeting");
-    Edit cmd = new Edit(scanner, view);
-    cmd.execute(calendar);
+    EditEvent cmd = new EditEvent(scanner, view);
+    cmd.execute(system);
 
     // Check that the event was edited
     List<Event> eventsOnDay = calendar.getEventsList(LocalDate.of(2025, 6,
@@ -505,8 +514,8 @@ public class CalendarCommandTest {
 
     Scanner scanner = new Scanner("events subject Series Meeting from " +
             "2025-06-04T09:00 with Updated Series");
-    Edit cmd = new Edit(scanner, view);
-    cmd.execute(calendar);
+    EditEvent cmd = new EditEvent(scanner, view);
+    cmd.execute(system);
 
     String outputStr = output.toString();
     assertTrue(outputStr.contains("Edited event series 'Series Meeting'"));
@@ -528,8 +537,8 @@ public class CalendarCommandTest {
 
     Scanner scanner = new Scanner("series subject Series Meeting from " +
             "2025-06-02T09:00 with Updated Full Series");
-    Edit cmd = new Edit(scanner, view);
-    cmd.execute(calendar);
+    EditEvent cmd = new EditEvent(scanner, view);
+    cmd.execute(system);
 
     String outputStr = output.toString();
     assertTrue(outputStr.contains("Edited event series 'Series Meeting'"));
@@ -537,7 +546,7 @@ public class CalendarCommandTest {
 
   /**
    * Tests editing various properties of an event (subject, description, location, status)
-   * using the {@link Edit} command. Each property is tested independently.
+   * using the {@link EditEvent} command. Each property is tested independently.
    *
    * @throws CalendarException if the command execution fails.
    */
@@ -550,8 +559,8 @@ public class CalendarCommandTest {
 
     Scanner scanner = new Scanner("event subject Meeting from 2025-06-05T09:00 " +
             "to 2025-06-05T10:00 with NewSubject");
-    Edit cmd = new Edit(scanner, view);
-    cmd.execute(calendar);
+    EditEvent cmd = new EditEvent(scanner, view);
+    cmd.execute(system);
 
     String outputStr = output.toString();
     assertTrue(outputStr.contains("Edited event 'Meeting' subject property to NewSubject"));
@@ -564,8 +573,8 @@ public class CalendarCommandTest {
 
     scanner = new Scanner("event description Meeting from 2025-06-05T09:00 " +
             "to 2025-06-05T10:00 with NewDescription");
-    cmd = new Edit(scanner, view);
-    cmd.execute(calendar);
+    cmd = new EditEvent(scanner, view);
+    cmd.execute(system);
 
     outputStr = output.toString();
     assertTrue(outputStr.contains("Edited event 'Meeting' description property to NewDescription"));
@@ -578,8 +587,8 @@ public class CalendarCommandTest {
 
     scanner = new Scanner("event location Meeting from 2025-06-05T09:00 to " +
             "2025-06-05T10:00 with ONLINE");
-    cmd = new Edit(scanner, view);
-    cmd.execute(calendar);
+    cmd = new EditEvent(scanner, view);
+    cmd.execute(system);
 
     outputStr = output.toString();
     assertTrue(outputStr.contains("Edited event 'Meeting' location property to ONLINE"));
@@ -592,8 +601,8 @@ public class CalendarCommandTest {
 
     scanner = new Scanner("event status Meeting from 2025-06-05T09:00 to " +
             "2025-06-05T10:00 with PRIVATE");
-    cmd = new Edit(scanner, view);
-    cmd.execute(calendar);
+    cmd = new EditEvent(scanner, view);
+    cmd.execute(system);
 
     outputStr = output.toString();
     assertTrue(outputStr.contains("Edited event 'Meeting' status property to PRIVATE"));
@@ -609,8 +618,8 @@ public class CalendarCommandTest {
   @Test(expected = CalendarException.class)
   public void testEditMissingEventKeyword() throws CalendarException {
     Scanner scanner = new Scanner("subject Meeting from 2025-06-05T09:00 with New");
-    Edit cmd = new Edit(scanner, view);
-    cmd.execute(calendar);
+    EditEvent cmd = new EditEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -622,8 +631,8 @@ public class CalendarCommandTest {
   @Test(expected = CalendarException.class)
   public void testEditInvalidProperty() throws CalendarException {
     Scanner scanner = new Scanner("event invalid Meeting from 2025-06-05T09:00 with New");
-    Edit cmd = new Edit(scanner, view);
-    cmd.execute(calendar);
+    EditEvent cmd = new EditEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -635,8 +644,8 @@ public class CalendarCommandTest {
   @Test(expected = CalendarException.class)
   public void testEditMissingSubject() throws CalendarException {
     Scanner scanner = new Scanner("event subject from 2025-06-05T09:00 with New");
-    Edit cmd = new Edit(scanner, view);
-    cmd.execute(calendar);
+    EditEvent cmd = new EditEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -653,8 +662,8 @@ public class CalendarCommandTest {
 
     Scanner scanner = new Scanner("event subject Meeting from 2025-06-05T09:00" +
             " to 2025-06-05T10:00 New");
-    Edit cmd = new Edit(scanner, view);
-    cmd.execute(calendar);
+    EditEvent cmd = new EditEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -667,8 +676,8 @@ public class CalendarCommandTest {
   public void testEditNoMatchingEvent() throws CalendarException {
     Scanner scanner = new Scanner("event subject NonExistent " +
             "from 2025-06-05T09:00 with New");
-    Edit cmd = new Edit(scanner, view);
-    cmd.execute(calendar);
+    EditEvent cmd = new EditEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -685,8 +694,8 @@ public class CalendarCommandTest {
 
     // Edit without specifying end time - should work since there's only one match
     Scanner scanner = new Scanner("event subject Meeting from 2025-06-05T09:00 with New");
-    Edit cmd = new Edit(scanner, view);
-    cmd.execute(calendar);
+    EditEvent cmd = new EditEvent(scanner, view);
+    cmd.execute(system);
 
     String outputStr = output.toString();
     assertTrue(outputStr.contains("Edited event"));
@@ -712,7 +721,7 @@ public class CalendarCommandTest {
 
     Scanner scanner = new Scanner("events on 2025-06-05");
     Print cmd = new Print(scanner, view);
-    cmd.execute(calendar);
+    cmd.execute(system);
 
     String outputStr = output.toString();
     assertTrue(outputStr.contains("Printing events on 2025-06-05"));
@@ -740,7 +749,7 @@ public class CalendarCommandTest {
 
     Scanner scanner = new Scanner("events from 2025-06-05T00:00 to 2025-06-06T23:59");
     Print cmd = new Print(scanner, view);
-    cmd.execute(calendar);
+    cmd.execute(system);
 
     String outputStr = output.toString();
     assertTrue(outputStr.contains("Printing events from 2025-06-05T00:00 to 2025-06-06T23:59"));
@@ -758,7 +767,7 @@ public class CalendarCommandTest {
   public void testPrintNoEvents() throws CalendarException {
     Scanner scanner = new Scanner("events on 2025-06-05");
     Print cmd = new Print(scanner, view);
-    cmd.execute(calendar);
+    cmd.execute(system);
 
     String outputStr = output.toString();
     assertTrue(outputStr.contains("No events found"));
@@ -774,7 +783,7 @@ public class CalendarCommandTest {
   public void testPrintMissingEventsKeyword() throws CalendarException {
     Scanner scanner = new Scanner("on 2025-06-05");
     Print cmd = new Print(scanner, view);
-    cmd.execute(calendar);
+    cmd.execute(system);
   }
 
   /**
@@ -787,7 +796,7 @@ public class CalendarCommandTest {
   public void testPrintInvalidKeywordAfterEvents() throws CalendarException {
     Scanner scanner = new Scanner("events at 2025-06-05");
     Print cmd = new Print(scanner, view);
-    cmd.execute(calendar);
+    cmd.execute(system);
   }
 
   /**
@@ -800,7 +809,7 @@ public class CalendarCommandTest {
   public void testPrintInvalidDateFormat() throws CalendarException {
     Scanner scanner = new Scanner("events on 06-05-2025");
     Print cmd = new Print(scanner, view);
-    cmd.execute(calendar);
+    cmd.execute(system);
   }
 
   /**
@@ -813,7 +822,7 @@ public class CalendarCommandTest {
   public void testPrintMissingToKeyword() throws CalendarException {
     Scanner scanner = new Scanner("events from 2025-06-05T09:00 2025-06-06T17:00");
     Print cmd = new Print(scanner, view);
-    cmd.execute(calendar);
+    cmd.execute(system);
   }
 
   /**
@@ -825,7 +834,7 @@ public class CalendarCommandTest {
   public void testPrintCaseInsensitive() throws CalendarException {
     Scanner scanner = new Scanner("EVENTS ON 2025-06-05");
     Print cmd = new Print(scanner, view);
-    cmd.execute(calendar);
+    cmd.execute(system);
 
     String outputStr = output.toString();
     assertTrue(outputStr.contains("Printing events on 2025-06-05"));
@@ -848,7 +857,7 @@ public class CalendarCommandTest {
 
     Scanner scanner = new Scanner("status on 2025-06-05T10:00");
     Show cmd = new Show(scanner, view);
-    cmd.execute(calendar);
+    cmd.execute(system);
 
     String outputStr = output.toString();
     assertTrue(outputStr.contains("User is busy"));
@@ -865,7 +874,7 @@ public class CalendarCommandTest {
   public void testShowStatusAvailable() throws CalendarException {
     Scanner scanner = new Scanner("status on 2025-06-05T10:00");
     Show cmd = new Show(scanner, view);
-    cmd.execute(calendar);
+    cmd.execute(system);
 
     String outputStr = output.toString();
     assertTrue(outputStr.contains("User is available"));
@@ -886,7 +895,7 @@ public class CalendarCommandTest {
     // Test at start (should be busy)
     Scanner scanner1 = new Scanner("status on 2025-06-05T09:00");
     Show cmd1 = new Show(scanner1, view);
-    cmd1.execute(calendar);
+    cmd1.execute(system);
     assertTrue(output.toString().contains("User is busy"));
 
     // Reset output
@@ -895,7 +904,7 @@ public class CalendarCommandTest {
     // Test at end (should be available)
     Scanner scanner2 = new Scanner("status on 2025-06-05T10:00");
     Show cmd2 = new Show(scanner2, view);
-    cmd2.execute(calendar);
+    cmd2.execute(system);
     assertTrue(output.toString().contains("User is available"));
   }
 
@@ -909,7 +918,7 @@ public class CalendarCommandTest {
   public void testShowMissingStatusKeyword() throws CalendarException {
     Scanner scanner = new Scanner("on 2025-06-05T10:00");
     Show cmd = new Show(scanner, view);
-    cmd.execute(calendar);
+    cmd.execute(system);
   }
 
   /**
@@ -922,7 +931,7 @@ public class CalendarCommandTest {
   public void testShowMissinexecutenKeyword() throws CalendarException {
     Scanner scanner = new Scanner("status 2025-06-05T10:00");
     Show cmd = new Show(scanner, view);
-    cmd.execute(calendar);
+    cmd.execute(system);
   }
 
   /**
@@ -935,7 +944,7 @@ public class CalendarCommandTest {
   public void testShowInvalidDateTimeFormat() throws CalendarException {
     Scanner scanner = new Scanner("status on 2025-06-05 10:00");
     Show cmd = new Show(scanner, view);
-    cmd.execute(calendar);
+    cmd.execute(system);
   }
 
   /**
@@ -947,7 +956,7 @@ public class CalendarCommandTest {
   public void testShowCaseInsensitive() throws CalendarException {
     Scanner scanner = new Scanner("STATUS ON 2025-06-05T10:00");
     Show cmd = new Show(scanner, view);
-    cmd.execute(calendar);
+    cmd.execute(system);
 
     String outputStr = output.toString();
     assertTrue(outputStr.contains("User is available"));
@@ -963,8 +972,8 @@ public class CalendarCommandTest {
   public void testCreateEventAtYearBoundaries() throws CalendarException {
     // Test minimum year
     Scanner scanner1 = new Scanner("event NewYear on 0001-01-01");
-    Create cmd1 = new Create(scanner1, view);
-    cmd1.execute(calendar);
+    CreateEvent cmd1 = new CreateEvent(scanner1, view);
+    cmd1.execute(system);
 
     List<Event> events1 = calendar.getEventsList(LocalDate.of(1, 1, 1));
     assertEquals(LocalDateTime.of(1, 1, 1, 8, 0),
@@ -973,8 +982,8 @@ public class CalendarCommandTest {
     // Test maximum year
     setUp(); // Reset
     Scanner scanner2 = new Scanner("event LastDay on 9999-12-31");
-    Create cmd2 = new Create(scanner2, view);
-    cmd2.execute(calendar);
+    CreateEvent cmd2 = new CreateEvent(scanner2, view);
+    cmd2.execute(system);
 
     List<Event> events2 = calendar.getEventsList(LocalDate.of(9999, 12, 31));
     assertEquals(LocalDateTime.of(9999, 12, 31, 8, 0),
@@ -989,8 +998,8 @@ public class CalendarCommandTest {
   @Test
   public void testCreateEventOnLeapDay() throws CalendarException {
     Scanner scanner = new Scanner("event LeapDay on 2024-02-29");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
 
     List<Event> events = calendar.getEventsList(LocalDate.of(2024, 2, 29));
     assertEquals(LocalDate.of(2024, 2, 29),
@@ -1006,8 +1015,8 @@ public class CalendarCommandTest {
   @Test(expected = CalendarException.class)
   public void testCreateEventOnInvalidLeapDay() throws CalendarException {
     Scanner scanner = new Scanner("event InvalidLeap on 2025-02-29");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
   }
 
   /**
@@ -1018,8 +1027,8 @@ public class CalendarCommandTest {
   @Test
   public void testCreateEventWithSpecialCharactersInSubject() throws CalendarException {
     Scanner scanner = new Scanner("event Meeting@Office#123 on 2025-06-05");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
 
     List<Event> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
     assertEquals("Meeting@Office#123", events.get(0).getSubject());
@@ -1033,8 +1042,8 @@ public class CalendarCommandTest {
   @Test
   public void testCreateSeriesWithSingleDayOfWeek() throws CalendarException {
     Scanner scanner = new Scanner("event Weekly on 2025-06-02 repeats M for 4 times");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
 
     // Should create 4 Monday events
     int mondayCount = 0;
@@ -1065,8 +1074,8 @@ public class CalendarCommandTest {
 
     Scanner scanner = new Scanner("series subject Normal Event from " +
             "2025-06-05T09:00 with Updated");
-    Edit cmd = new Edit(scanner, view);
-    cmd.execute(calendar);
+    EditEvent cmd = new EditEvent(scanner, view);
+    cmd.execute(system);
 
     // Should still edit the event
     String outputStr = output.toString();
@@ -1091,7 +1100,7 @@ public class CalendarCommandTest {
 
     Scanner scanner = new Scanner("events from 2025-05-30T00:00 to 2025-06-02T23:59");
     Print cmd = new Print(scanner, view);
-    cmd.execute(calendar);
+    cmd.execute(system);
 
     String outputStr = output.toString();
     assertTrue(outputStr.contains("May Event"));
@@ -1112,7 +1121,7 @@ public class CalendarCommandTest {
 
     Scanner scanner = new Scanner("status on 2025-06-05T00:00");
     Show cmd = new Show(scanner, view);
-    cmd.execute(calendar);
+    cmd.execute(system);
 
     String outputStr = output.toString();
     assertTrue(outputStr.contains("User is busy"));
@@ -1129,8 +1138,8 @@ public class CalendarCommandTest {
   public void testCreateSeriesEndinexecutenStartDate() throws CalendarException {
     Scanner scanner = new Scanner("event Daily on 2025-06-05 repeats " +
             "MTWRFSU until 2025-06-05");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
 
     // Should create only one event on the start/end date
     List<Event> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
@@ -1146,8 +1155,8 @@ public class CalendarCommandTest {
   @Test
   public void testCommandsWithExtraSpaces() throws CalendarException {
     Scanner scanner = new Scanner("event   Meeting   on   2025-06-05");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
 
     List<Event> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
     assertEquals("Meeting", events.get(0).getSubject());
@@ -1163,8 +1172,8 @@ public class CalendarCommandTest {
   public void testCreateEventSpanningMultipleDays() throws CalendarException {
     Scanner scanner = new Scanner("event Conference from 2025-06-05T09:00 " +
             "to 2025-06-07T17:00");
-    Create cmd = new Create(scanner, view);
-    cmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(scanner, view);
+    cmd.execute(system);
 
     // Event should appear on all three days
     assertFalse(calendar.getEventsList(LocalDate.of(2025, 6, 5)).isEmpty());
@@ -1185,8 +1194,8 @@ public class CalendarCommandTest {
   public void testCompleteWorkflow() throws CalendarException {
     // Create an event (all-day event from 8am to 5pm)
     Scanner createScanner = new Scanner("event Team Meeting on 2025-06-05");
-    Create createCmd = new Create(createScanner, view);
-    createCmd.execute(calendar);
+    CreateEvent cmd = new CreateEvent(createScanner, view);
+    cmd.execute(system);
 
     // Verify event was created
     List<Event> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
@@ -1199,8 +1208,8 @@ public class CalendarCommandTest {
     // Edit the event - use single word for new subject
     Scanner editScanner = new Scanner("event subject Team Meeting " +
             "from 2025-06-05T08:00 to 2025-06-05T17:00 with DepartmentMeeting");
-    Edit editCmd = new Edit(editScanner, view);
-    editCmd.execute(calendar);
+    EditEvent editCmd = new EditEvent(editScanner, view);
+    editCmd.execute(system);
 
     // Verify edit
     events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
@@ -1213,7 +1222,7 @@ public class CalendarCommandTest {
     // Print events for that day
     Scanner printScanner = new Scanner("events on 2025-06-05");
     Print printCmd = new Print(printScanner, view);
-    printCmd.execute(calendar);
+    printCmd.execute(system);
 
     String printOutput = output.toString();
     assertTrue("Print output should contain edited event",
@@ -1225,7 +1234,7 @@ public class CalendarCommandTest {
     // Check status during the event (10:00 is between 8:00 and 17:00)
     Scanner showScanner = new Scanner("status on 2025-06-05T10:00");
     Show showCmd = new Show(showScanner, view);
-    showCmd.execute(calendar);
+    showCmd.execute(system);
 
     String showOutput = output.toString();
     assertTrue("User should be busy during event", showOutput.contains("User is busy"));

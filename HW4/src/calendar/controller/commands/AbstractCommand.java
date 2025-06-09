@@ -8,6 +8,7 @@ import java.util.Scanner;
 import calendar.CalendarException;
 import calendar.controller.CalendarCommand;
 import calendar.model.ICalendar;
+import calendar.model.ICalendarSystem;
 import calendar.view.ICalendarView;
 
 /**
@@ -34,11 +35,11 @@ public abstract class AbstractCommand implements CalendarCommand {
   /**
    * Executes the command on the provided calendar model.
    *
-   * @param calendar The {@link ICalendar} model on which the command will operate.
+   * @param system The {@link ICalendarSystem} system on which the command will operate.
    * @throws CalendarException if an error occurs during command execution.
    */
   @Override
-  public abstract void execute(ICalendar calendar) throws CalendarException;
+  public abstract void execute(ICalendarSystem system) throws CalendarException;
 
   /**
    * Parses a date string from the scanner.

@@ -6,6 +6,8 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 
 import calendar.controller.CalendarController;
+import calendar.model.CalendarSystem;
+import calendar.model.ICalendarSystem;
 import calendar.view.CalendarView;
 import calendar.model.ICalendar;
 import calendar.controller.ICalendarController;
@@ -25,7 +27,7 @@ public class CalendarRunner {
    * @param args command line arguments to determine the mode of operation
    */
   public static void main(String[] args) {
-    ICalendar model = new VirtualCalendar();
+    ICalendarSystem system = new CalendarSystem();
     ICalendarView view = new CalendarView(System.out);
     ICalendarController controller = null;
 
@@ -39,7 +41,7 @@ public class CalendarRunner {
             System.exit(1);
           }
           Readable rd = new InputStreamReader(System.in);
-          controller = new CalendarController(model, view, rd);
+          controller = new CalendarController(system, view, rd);
           controller.execute();
         } else if ("headless".equals(mode)) { // check that input is '--mode headless <filename>'
           if (args.length != 3) {
@@ -48,7 +50,7 @@ public class CalendarRunner {
           }
           String commandFile = args[2];
           try (BufferedReader reader = new BufferedReader(new FileReader(commandFile))) {
-            controller = new CalendarController(model, view, reader); // pass file reader
+            controller = new CalendarController(system, view, reader); // pass file reader
             controller.execute();
           } catch (IOException e) { // check for valid command file
             view.writeMessage("Error: Could not read command file '" + commandFile + "'. ");

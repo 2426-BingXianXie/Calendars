@@ -5,6 +5,7 @@ import java.util.Scanner;
 
 import calendar.CalendarException;
 import calendar.model.ICalendar;
+import calendar.model.ICalendarSystem;
 import calendar.view.ICalendarView;
 
 /**
@@ -26,11 +27,12 @@ public class Show extends AbstractCommand {
   /**
    * Executes the "show" command to display the user's availability status.
    *
-   * @param calendar The {@link ICalendar} model on which the command will operate.
+   * @param system The {@link ICalendarSystem} model on which the command will operate.
    * @throws CalendarException if an error occurs during command execution.
    */
   @Override
-  public void execute(ICalendar calendar) throws CalendarException {
+  public void execute(ICalendarSystem system) throws CalendarException {
+    ICalendar calendar = system.getCurrentCalendar();
     handleShow(calendar);
   }
 

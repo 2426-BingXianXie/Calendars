@@ -3,12 +3,16 @@ package calendar.controller;
 import java.util.Scanner;
 
 import calendar.CalendarException;
-import calendar.controller.commands.Create;
-import calendar.controller.commands.Edit;
+import calendar.controller.commands.Copy;
+import calendar.controller.commands.CreateCalendar;
+import calendar.controller.commands.CreateEvent;
+import calendar.controller.commands.EditCalendar;
+import calendar.controller.commands.EditEvent;
 import calendar.controller.commands.Print;
 import calendar.controller.commands.Show;
+import calendar.controller.commands.Use;
+import calendar.model.ICalendarSystem;
 import calendar.view.ICalendarView;
-import calendar.model.ICalendar;
 
 
 /**
@@ -19,16 +23,17 @@ import calendar.model.ICalendar;
 public class CalendarController implements ICalendarController {
   private final Readable in;
   private final ICalendarView view;
-  private final ICalendar model;
+  private final ICalendarSystem model;
 
   /**
    * Constructs a new CalendarController with the specified model, view, and input source.
    *
-   * @param model The calendar model that manages the calendar data.
+   * @param model The calendar system model that manages the calendar data
+   *              across multiple calendars
    * @param view  The view component that handles user interface display.
    * @param in    The input source for reading user commands.
    */
-  public CalendarController(ICalendar model, ICalendarView view, Readable in) {
+  public CalendarController(ICalendarSystem model, ICalendarView view, Readable in) {
     this.model = model;
     this.in = in;
     this.view = view;
@@ -75,19 +80,38 @@ public class CalendarController implements ICalendarController {
    *
    * @param userInstruction The command string entered by the user.
    * @param sc              Scanner containing the remainder of the command input.
-   * @param calendar        The calendar model to perform operations on.
+   * @param system          The calendar system to perform operations on.
    * @throws CalendarException If an error occurs while processing the command.
    */
-  private void processInput(String userInstruction, Scanner sc, ICalendar calendar)
+  private void processInput(String userInstruction, Scanner sc, ICalendarSystem system)
           throws CalendarException {
     CalendarCommand cmd = null;
     try {
       switch (userInstruction.toLowerCase()) {
         case "create":
-          cmd = new Create(sc, view);
+          if (!sc.hasNext()) throw new CalendarException("Missing 'event' or 'calendar' after 'create'.");
+          String createType = sc.next();
+          if (createType.equalsIgnoreCase("event")) {
+            cmd = new CreateEvent(sc, view); // create event
+          } else if (createType.equalsIgnoreCase("calendar")) {
+            cmd = new CreateCalendar(sc, view); // create calendar
+          } else {
+            throw new CalendarException("Unknown command: 'create " + createType + "'");
+          }
           break;
         case "edit":
-          cmd = new Edit(sc, view);
+          if (!sc.hasNext()) throw new CalendarException(
+                  "Missing 'event'/'events'/'series' or 'calendar' after 'edit'.");
+          String editType = sc.next();
+          if (editType.equalsIgnoreCase("calendar")) {
+            cmd = new EditCalendar(sc, view); // edit a calendar
+            // edit an event, EditEvent logic will handle next keyword
+          } else {
+            //re-add editType keyword to scanner for EditEvent to parse
+            // check if scanner has a next line, then append it.
+            String restOfLine = editType + (sc.hasNextLine() ? " " + sc.nextLine() : "");
+            cmd = new EditEvent(new Scanner(restOfLine), view);
+          }
           break;
         case "print":
           cmd = new Print(sc, view);
@@ -95,10 +119,15 @@ public class CalendarController implements ICalendarController {
         case "show":
           cmd = new Show(sc, view);
           break;
+        case "use":
+          cmd = new Use(sc, view);
+        case "copy":
+          cmd = new Copy(sc, view);
+          break;
         default:
           throw new CalendarException("Unknown instruction: " + userInstruction);
       }
-      cmd.execute(calendar);
+      cmd.execute(system);
     } catch (CalendarException e) {
       view.writeMessage("Error processing command: " + e.getMessage() + System.lineSeparator());
     }

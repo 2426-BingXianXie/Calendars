@@ -12,9 +12,11 @@ import java.util.List;
 import java.util.Set;
 
 import calendar.CalendarException;
+import calendar.model.CalendarSystem;
 import calendar.model.Days;
 import calendar.model.Event;
 import calendar.model.ICalendar;
+import calendar.model.ICalendarSystem;
 import calendar.model.VirtualCalendar;
 import calendar.view.ICalendarView;
 
@@ -27,7 +29,7 @@ import static org.junit.Assert.assertEquals;
  * and managing calendar events.
  */
 public class ICalendarControllerTest {
-  ICalendar model;
+  ICalendarSystem model;
 
   /**
    * Creates an Interaction that simulates system output.
@@ -57,7 +59,7 @@ public class ICalendarControllerTest {
 
   @Before
   public void setUp() {
-    model = new VirtualCalendar();
+    model = new CalendarSystem();
   }
 
 
@@ -72,7 +74,7 @@ public class ICalendarControllerTest {
    *                     expected outputs
    * @throws CalendarException if an error occurs during the test execution
    */
-  String[] testRun(ICalendar model, Interaction... interactions) throws CalendarException {
+  String[] testRun(ICalendarSystem model, Interaction... interactions) throws CalendarException {
     StringBuilder fakeUserInput = new StringBuilder();
     StringBuilder expectedOutput = new StringBuilder();
     StringBuilder actualOutput = new StringBuilder();

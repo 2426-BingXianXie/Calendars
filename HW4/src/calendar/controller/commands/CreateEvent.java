@@ -10,14 +10,15 @@ import java.util.Set;
 import calendar.CalendarException;
 import calendar.model.Days;
 import calendar.model.ICalendar;
+import calendar.model.ICalendarSystem;
 import calendar.view.ICalendarView;
 
 /**
- * Represents the "create" command for the calendar application.
+ * Represents the "create event" command for the calendar application.
  * This command handles the creation of both single events and recurring event series.
  * It parses the event details from the scanner input.
  */
-public class Create extends AbstractCommand {
+public class CreateEvent extends AbstractCommand {
 
   /**
    * Constructs a {@code Create} command.
@@ -25,18 +26,19 @@ public class Create extends AbstractCommand {
    * @param sc   The {@link Scanner} from which command arguments are read.
    * @param view The {@link ICalendarView} used for displaying messages to the user.
    */
-  public Create(Scanner sc, ICalendarView view) {
+  public CreateEvent(Scanner sc, ICalendarView view) {
     super(sc, view);
   }
 
   /**
    * Executes the "create" command to create an event or event series.
    *
-   * @param calendar The {@link ICalendar} model on which the command will operate.
+   * @param system The {@link ICalendarSystem} model on which the command will operate.
    * @throws CalendarException if an error occurs during command execution.
    */
   @Override
-  public void execute(ICalendar calendar) throws CalendarException {
+  public void execute(ICalendarSystem system) throws CalendarException {
+    ICalendar calendar = system.getCurrentCalendar();
     handleCreate(calendar);
   }
 
@@ -49,7 +51,6 @@ public class Create extends AbstractCommand {
    * @throws CalendarException if there are missing or invalid inputs during parsing.
    */
   private void handleCreate(ICalendar model) throws CalendarException {
-    checkForEvent(sc);
     if (!sc.hasNext()) {
       throw new CalendarException("Missing event subject.");
     }

@@ -8,6 +8,7 @@ import java.util.Scanner;
 import calendar.CalendarException;
 import calendar.model.Event;
 import calendar.model.ICalendar;
+import calendar.model.ICalendarSystem;
 import calendar.view.ICalendarView;
 
 /**
@@ -29,11 +30,12 @@ public class Print extends AbstractCommand {
   /**
    * Executes the "print" command to display events.
    *
-   * @param calendar The {@link ICalendar} model on which the command will operate.
+   * @param system The {@link ICalendarSystem} system on which the command will operate.
    * @throws CalendarException if an error occurs during command execution.
    */
   @Override
-  public void execute(ICalendar calendar) throws CalendarException {
+  public void execute(ICalendarSystem system) throws CalendarException {
+    ICalendar calendar = system.getCurrentCalendar();
     handlePrint(calendar);
   }
 
