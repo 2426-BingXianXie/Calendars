@@ -15,9 +15,7 @@ import calendar.CalendarException;
 import calendar.model.CalendarSystem;
 import calendar.model.Days;
 import calendar.model.Event;
-import calendar.model.ICalendar;
 import calendar.model.ICalendarSystem;
-import calendar.model.VirtualCalendar;
 import calendar.view.ICalendarView;
 
 import static org.junit.Assert.assertEquals;

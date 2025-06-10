@@ -459,8 +459,8 @@ public class CalendarCommandTest {
 
 
   /**
-   * Tests editing the subject of a single, non-recurring event using the {@link Edit} command.
-   * Verifies the event's updated subject and the output message.
+   * Tests editing the subject of a single, non-recurring event using the
+   * {@link EditEvent} command. Verifies the event's updated subject and the output message.
    *
    * @throws CalendarException if the command execution fails.
    */
