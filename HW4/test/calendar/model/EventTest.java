@@ -573,4 +573,305 @@ public class EventTest {
     // Should have same hash code even with null end times
     assertEquals(event1.hashCode(), event2.hashCode());
   }
+  /**
+   * Tests the copy constructor that creates a new Event from an existing Event.
+   * Verifies that all properties are copied correctly but a new UUID is generated.
+   */
+  @Test
+  public void testCopyConstructor() {
+    Event copiedEvent = new Event(testEvent2);
+
+    // Should have same properties but different ID
+    assertEquals(testEvent2.getSubject(), copiedEvent.getSubject());
+    assertEquals(testEvent2.getStart(), copiedEvent.getStart());
+    assertEquals(testEvent2.getEnd(), copiedEvent.getEnd());
+    assertEquals(testEvent2.getDescription(), copiedEvent.getDescription());
+    assertEquals(testEvent2.getLocation(), copiedEvent.getLocation());
+    assertEquals(testEvent2.getLocationDetail(), copiedEvent.getLocationDetail());
+    assertEquals(testEvent2.getStatus(), copiedEvent.getStatus());
+    assertEquals(testEvent2.getSeriesID(), copiedEvent.getSeriesID()); // Series ID should be preserved
+
+    // But should have different UUID
+    assertNotEquals(testEvent2.getId(), copiedEvent.getId());
+  }
+
+  /**
+   * Tests the copy constructor with an event that has null values.
+   * Verifies that null properties are properly handled in the copy.
+   */
+  @Test
+  public void testCopyConstructor_WithNullValues() {
+    Event eventWithNulls = new Event("Null Event", now, null,
+            null, null, null, null, null);
+    Event copiedEvent = new Event(eventWithNulls);
+
+    assertEquals("Null Event", copiedEvent.getSubject());
+    assertEquals(now, copiedEvent.getStart());
+    assertNull(copiedEvent.getEnd());
+    assertNull(copiedEvent.getDescription());
+    assertNull(copiedEvent.getLocation());
+    assertNull(copiedEvent.getLocationDetail());
+    assertNull(copiedEvent.getStatus());
+    assertNull(copiedEvent.getSeriesID());
+    assertNotNull(copiedEvent.getId()); // New ID should be generated
+  }
+
+  /**
+   * Tests the copyWithNewTimes method.
+   * Verifies that a new event is created with updated times but same other properties.
+   */
+  @Test
+  public void testCopyWithNewTimes() {
+    LocalDateTime newStart = LocalDateTime.of(2025, 6, 5, 14, 0);
+    LocalDateTime newEnd = LocalDateTime.of(2025, 6, 5, 15, 30);
+
+    Event copiedEvent = testEvent2.copyWithNewTimes(newStart, newEnd);
+
+    // Should have new times
+    assertEquals(newStart, copiedEvent.getStart());
+    assertEquals(newEnd, copiedEvent.getEnd());
+
+    // Should preserve other properties
+    assertEquals(testEvent2.getSubject(), copiedEvent.getSubject());
+    assertEquals(testEvent2.getDescription(), copiedEvent.getDescription());
+    assertEquals(testEvent2.getLocation(), copiedEvent.getLocation());
+    assertEquals(testEvent2.getLocationDetail(), copiedEvent.getLocationDetail());
+    assertEquals(testEvent2.getStatus(), copiedEvent.getStatus());
+
+    // Series ID should be reset to null for time-shifted copies
+    assertNull(copiedEvent.getSeriesID());
+
+    // Should have different UUID
+    assertNotEquals(testEvent2.getId(), copiedEvent.getId());
+  }
+
+  /**
+   * Tests copyWithNewTimes with null end time.
+   * Verifies that copying with null end time works correctly.
+   */
+  @Test
+  public void testCopyWithNewTimes_NullEndTime() {
+    LocalDateTime newStart = LocalDateTime.of(2025, 6, 5, 14, 0);
+
+    Event copiedEvent = testEvent1.copyWithNewTimes(newStart, null);
+
+    assertEquals(newStart, copiedEvent.getStart());
+    assertNull(copiedEvent.getEnd());
+    assertEquals(testEvent1.getSubject(), copiedEvent.getSubject());
+  }
+
+  /**
+   * Tests setEnd with null validation enhancement.
+   * Verifies that setEnd properly handles null values without throwing exceptions.
+   */
+  @Test
+  public void testSetEnd_WithNullEnd() {
+    testEvent1.setEnd(null);
+    assertNull(testEvent1.getEnd());
+  }
+
+  /**
+   * Tests setEnd with null start date.
+   * Verifies that validation works when start date is null.
+   */
+  @Test
+  public void testSetEnd_WithNullStart() {
+    Event eventWithNullStart = new Event("Test", null, future);
+
+    // Should not throw exception when start is null
+    eventWithNullStart.setEnd(LocalDateTime.of(2025, 6, 2, 10, 0));
+    assertNotNull(eventWithNullStart.getEnd());
+  }
+
+  /**
+   * Tests equals method with mixed null values.
+   * Verifies that equality works correctly when some fields are null on one side.
+   */
+  @Test
+  public void testEquals_MixedNullValues() {
+    Event event1 = new Event("Same", now, null);
+    Event event2 = new Event("Same", now, future);
+    Event event3 = new Event("Same", null, future);
+    Event event4 = new Event(null, now, future);
+
+    assertFalse("Events with different end times should not be equal", event1.equals(event2));
+    assertFalse("Events with different start times should not be equal", event1.equals(event3));
+    assertFalse("Events with different subjects should not be equal", event1.equals(event4));
+  }
+
+  /**
+   * Tests equals with all null fields.
+   * Verifies that events with all null core fields are considered equal.
+   */
+  @Test
+  public void testEquals_AllNullFields() {
+    Event event1 = new Event(null, null, null);
+    Event event2 = new Event(null, null, null);
+
+    assertTrue("Events with same null fields should be equal", event1.equals(event2));
+    assertEquals("Hash codes should match for equal events",
+            event1.hashCode(), event2.hashCode());
+  }
+
+  /**
+   * Tests toString with various null field combinations.
+   * Verifies that toString handles null values gracefully.
+   */
+  @Test
+  public void testToString_VariousNullCombinations() {
+    Event nullSubject = new Event(null, now, future);
+    Event nullStart = new Event("Test", null, future);
+    Event nullEnd = new Event("Test", now, null);
+    Event allNull = new Event(null, null, null);
+
+    // Should not throw exceptions
+    assertNotNull(nullSubject.toString());
+    assertNotNull(nullStart.toString());
+    assertNotNull(nullEnd.toString());
+    assertNotNull(allNull.toString());
+
+    assertTrue("Should contain 'null' for null subject", nullSubject.toString().contains("null"));
+    assertTrue("Should contain 'null' for null start", nullStart.toString().contains("null"));
+    assertTrue("Should contain 'null' for null end", nullEnd.toString().contains("null"));
+  }
+
+  /**
+   * Tests getLocationDisplay with null location detail edge cases.
+   * Verifies that location display handles whitespace-only details correctly.
+   */
+  @Test
+  public void testGetLocationDisplay_WhitespaceDetail() {
+    Event eventWithSpaces = new Event("Test", now, future, null,
+            Location.ONLINE, "   ", null, null);
+
+    // Should treat whitespace-only detail as non-empty
+    assertEquals("ONLINE:    ", eventWithSpaces.getLocationDisplay());
+  }
+
+  /**
+   * Tests event creation with extreme date values.
+   * Verifies that the event handles edge cases in date/time values.
+   */
+  @Test
+  public void testEvent_ExtremeDateValues() {
+    LocalDateTime minDate = LocalDateTime.MIN;
+    LocalDateTime maxDate = LocalDateTime.MAX;
+
+    Event extremeEvent = new Event("Extreme Event", minDate, maxDate);
+
+    assertEquals(minDate, extremeEvent.getStart());
+    assertEquals(maxDate, extremeEvent.getEnd());
+    assertNotNull(extremeEvent.toString()); // Should not crash
+  }
+
+  /**
+   * Tests event with very long subject string.
+   * Verifies that long subjects are handled correctly.
+   */
+  @Test
+  public void testEvent_VeryLongSubject() {
+    StringBuilder longSubject = new StringBuilder();
+    for (int i = 0; i < 1000; i++) {
+      longSubject.append("Very long event subject ");
+    }
+
+    Event longEvent = new Event(longSubject.toString(), now, future);
+
+    assertEquals(longSubject.toString(), longEvent.getSubject());
+    assertNotNull(longEvent.toString()); // Should handle long subjects
+    assertTrue(longEvent.toString().length() > 1000);
+  }
+
+  /**
+   * Tests multiple copy operations to ensure independence.
+   * Verifies that copied events are truly independent of each other.
+   */
+  @Test
+  public void testMultipleCopies_Independence() {
+    Event copy1 = new Event(testEvent2);
+    Event copy2 = new Event(testEvent2);
+    Event copy3 = testEvent2.copyWithNewTimes(now.plusHours(2), future.plusHours(2));
+
+    // All should have different IDs
+    assertNotEquals(copy1.getId(), copy2.getId());
+    assertNotEquals(copy1.getId(), copy3.getId());
+    assertNotEquals(copy2.getId(), copy3.getId());
+    assertNotEquals(testEvent2.getId(), copy1.getId());
+
+    // Modify copy1 - should not affect others
+    copy1.setSubject("Modified Copy 1");
+    copy2.setDescription("Modified Copy 2");
+
+    assertEquals("Modified Copy 1", copy1.getSubject());
+    assertEquals("Modified Copy 2", copy2.getDescription());
+    assertEquals("Presentation", testEvent2.getSubject()); // Original unchanged
+    assertEquals("Presentation", copy2.getSubject()); // Other copy unchanged
+    assertEquals("Discuss project", copy1.getDescription()); // Other copy unchanged
+  }
+
+  /**
+   * Tests hashCode consistency across multiple calls.
+   * Verifies that hashCode returns the same value consistently.
+   */
+  @Test
+  public void testHashCode_Consistency() {
+    int hash1 = testEvent1.hashCode();
+    int hash2 = testEvent1.hashCode();
+    int hash3 = testEvent1.hashCode();
+
+    assertEquals("Hash code should be consistent", hash1, hash2);
+    assertEquals("Hash code should be consistent", hash2, hash3);
+
+    // Modify event and verify hash changes
+    testEvent1.setSubject("Modified Subject");
+    int hash4 = testEvent1.hashCode();
+
+    assertNotEquals("Hash should change when object changes", hash1, hash4);
+  }
+
+  /**
+   * Tests equals reflexivity, symmetry, and transitivity.
+   * Verifies that equals method follows the mathematical properties.
+   */
+  @Test
+  public void testEquals_MathematicalProperties() {
+    Event event1 = new Event("Same Event", now, future);
+    Event event2 = new Event("Same Event", now, future);
+    Event event3 = new Event("Same Event", now, future);
+
+    // Reflexivity: x.equals(x) should be true
+    assertTrue("Reflexivity failed", event1.equals(event1));
+
+    // Symmetry: x.equals(y) should equal y.equals(x)
+    boolean xy = event1.equals(event2);
+    boolean yx = event2.equals(event1);
+    assertEquals("Symmetry failed", xy, yx);
+
+    // Transitivity: if x.equals(y) and y.equals(z), then x.equals(z)
+    assertTrue("Setup for transitivity failed", event1.equals(event2));
+    assertTrue("Setup for transitivity failed", event2.equals(event3));
+    assertTrue("Transitivity failed", event1.equals(event3));
+
+    // Consistency with null
+    assertFalse("Null comparison failed", event1.equals(null));
+  }
+
+  /**
+   * Tests that series ID is properly handled in copies.
+   * Verifies the different behaviors between copy constructor and copyWithNewTimes.
+   */
+  @Test
+  public void testSeriesID_HandlingInCopies() {
+    UUID originalSeriesId = UUID.randomUUID();
+    testEvent1.setSeriesId(originalSeriesId);
+
+    // Copy constructor should preserve series ID
+    Event copy1 = new Event(testEvent1);
+    assertEquals("Copy constructor should preserve series ID",
+            originalSeriesId, copy1.getSeriesID());
+
+    // copyWithNewTimes should reset series ID
+    Event copy2 = testEvent1.copyWithNewTimes(now.plusHours(1), future.plusHours(1));
+    assertNull("copyWithNewTimes should reset series ID", copy2.getSeriesID());
+  }
 }
