@@ -28,9 +28,9 @@ import static org.junit.Assert.fail;
  * JUnit 4 test class for the {@link VirtualCalendar} model,
  * which implements the {@link ICalendar} interface.
  */
-public class ICalendarTest {
+public class VirtualCalendarTest {
 
-  private VirtualCalendar calendar;
+  private ICalendar calendar;
   private LocalDateTime today9AM;
   private LocalDateTime today10AM;
   private LocalDateTime tomorrow9AM;
