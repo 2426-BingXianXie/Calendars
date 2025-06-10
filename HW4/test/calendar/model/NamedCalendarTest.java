@@ -23,6 +23,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+
+/**
+ * JUnit 4 test class for the {@link NamedCalendar} model,
+ * which implements the {@link ICalendar} interface.
+ */
 public class NamedCalendarTest {
 
   private ICalendar calendar;
