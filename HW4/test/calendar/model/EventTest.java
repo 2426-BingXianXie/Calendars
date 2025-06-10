@@ -600,7 +600,7 @@ public class EventTest {
    * Verifies that null properties are properly handled in the copy.
    */
   @Test
-  public void testCopyConstructor_WithNullValues() {
+  public void testCopyConstructorWithNullValues() {
     Event eventWithNulls = new Event("Null Event", now, null,
             null, null, null, null, null);
     Event copiedEvent = new Event(eventWithNulls);
@@ -650,7 +650,7 @@ public class EventTest {
    * Verifies that copying with null end time works correctly.
    */
   @Test
-  public void testCopyWithNewTimes_NullEndTime() {
+  public void testCopyWithNewTimesNullEndTime() {
     LocalDateTime newStart = LocalDateTime.of(2025, 6, 5, 14, 0);
 
     Event copiedEvent = testEvent1.copyWithNewTimes(newStart, null);
@@ -665,7 +665,7 @@ public class EventTest {
    * Verifies that setEnd properly handles null values without throwing exceptions.
    */
   @Test
-  public void testSetEnd_WithNullEnd() {
+  public void testSetEndWithNullEnd() {
     testEvent1.setEnd(null);
     assertNull(testEvent1.getEnd());
   }
@@ -675,7 +675,7 @@ public class EventTest {
    * Verifies that validation works when start date is null.
    */
   @Test
-  public void testSetEnd_WithNullStart() {
+  public void testSetEndWithNullStart() {
     Event eventWithNullStart = new Event("Test", null, future);
 
     // Should not throw exception when start is null
@@ -688,7 +688,7 @@ public class EventTest {
    * Verifies that equality works correctly when some fields are null on one side.
    */
   @Test
-  public void testEquals_MixedNullValues() {
+  public void testEqualsMixedNullValues() {
     Event event1 = new Event("Same", now, null);
     Event event2 = new Event("Same", now, future);
     Event event3 = new Event("Same", null, future);
@@ -704,7 +704,7 @@ public class EventTest {
    * Verifies that events with all null core fields are considered equal.
    */
   @Test
-  public void testEquals_AllNullFields() {
+  public void testEqualsAllNullFields() {
     Event event1 = new Event(null, null, null);
     Event event2 = new Event(null, null, null);
 
@@ -718,7 +718,7 @@ public class EventTest {
    * Verifies that toString handles null values gracefully.
    */
   @Test
-  public void testToString_VariousNullCombinations() {
+  public void testToStringVariousNullCombinations() {
     Event nullSubject = new Event(null, now, future);
     Event nullStart = new Event("Test", null, future);
     Event nullEnd = new Event("Test", now, null);
@@ -740,7 +740,7 @@ public class EventTest {
    * Verifies that location display handles whitespace-only details correctly.
    */
   @Test
-  public void testGetLocationDisplay_WhitespaceDetail() {
+  public void testGetLocationDisplayWhitespaceDetail() {
     Event eventWithSpaces = new Event("Test", now, future, null,
             Location.ONLINE, "   ", null, null);
 
@@ -753,7 +753,7 @@ public class EventTest {
    * Verifies that the event handles edge cases in date/time values.
    */
   @Test
-  public void testEvent_ExtremeDateValues() {
+  public void testEventExtremeDateValues() {
     LocalDateTime minDate = LocalDateTime.MIN;
     LocalDateTime maxDate = LocalDateTime.MAX;
 
@@ -769,7 +769,7 @@ public class EventTest {
    * Verifies that long subjects are handled correctly.
    */
   @Test
-  public void testEvent_VeryLongSubject() {
+  public void testEventVeryLongSubject() {
     StringBuilder longSubject = new StringBuilder();
     for (int i = 0; i < 1000; i++) {
       longSubject.append("Very long event subject ");
@@ -787,7 +787,7 @@ public class EventTest {
    * Verifies that copied events are truly independent of each other.
    */
   @Test
-  public void testMultipleCopies_Independence() {
+  public void testMultipleCopiesIndependence() {
     Event copy1 = new Event(testEvent2);
     Event copy2 = new Event(testEvent2);
     Event copy3 = testEvent2.copyWithNewTimes(now.plusHours(2), future.plusHours(2));
@@ -814,7 +814,7 @@ public class EventTest {
    * Verifies that hashCode returns the same value consistently.
    */
   @Test
-  public void testHashCode_Consistency() {
+  public void testHashCodeConsistency() {
     int hash1 = testEvent1.hashCode();
     int hash2 = testEvent1.hashCode();
     int hash3 = testEvent1.hashCode();
@@ -834,7 +834,7 @@ public class EventTest {
    * Verifies that equals method follows the mathematical properties.
    */
   @Test
-  public void testEquals_MathematicalProperties() {
+  public void testEqualsMathematicalProperties() {
     Event event1 = new Event("Same Event", now, future);
     Event event2 = new Event("Same Event", now, future);
     Event event3 = new Event("Same Event", now, future);
@@ -861,7 +861,7 @@ public class EventTest {
    * Verifies the different behaviors between copy constructor and copyWithNewTimes.
    */
   @Test
-  public void testSeriesID_HandlingInCopies() {
+  public void testSeriesIDHandlingInCopies() {
     UUID originalSeriesId = UUID.randomUUID();
     testEvent1.setSeriesId(originalSeriesId);
 
