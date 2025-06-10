@@ -178,4 +178,12 @@ public interface ICalendar {
    */
   void editSeries(UUID seriesID, Property property, String newProperty)
           throws CalendarException;
+
+  /**
+   * Retrieves an event series by its unique identifier.
+   *
+   * @param id the unique identifier of the event series
+   * @return the EventSeries object if found, null otherwise
+   */
+  EventSeries getEventSeriesByID(UUID id);
 }

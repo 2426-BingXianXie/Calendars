@@ -232,4 +232,15 @@ public class NamedCalendar implements ICalendar {
   public String toString() {
     return "Calendar: " + name + " (" + timezone + ")";
   }
+
+  /**
+   * Retrieves an event series by its unique identifier.
+   *
+   * @param seriesID the unique identifier of the event series to retrieve
+   * @return the EventSeries object if found, null if no series exists with the given ID
+   */
+  @Override
+  public EventSeries getEventSeriesByID(UUID seriesID) {
+    return calendar.getEventSeriesByID(seriesID);
+  }
 }
