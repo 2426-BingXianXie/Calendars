@@ -1,15 +1,11 @@
 package calendar.controller.commands;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Scanner;
-import java.util.UUID;
 
 import calendar.CalendarException;
-import calendar.model.Event;
+import calendar.model.CalendarProperty;
 import calendar.model.ICalendar;
 import calendar.model.ICalendarSystem;
-import calendar.model.Property;
 import calendar.view.ICalendarView;
 
 /**
@@ -37,15 +33,46 @@ public class EditCalendar extends AbstractCommand {
   @Override
   public void execute(ICalendarSystem system) throws CalendarException {
     ICalendar calendar = system.getCurrentCalendar();
-    handleEdit(calendar);
+    handleEdit(system);
   }
 
   /**
    * Handles the overall process of editing a calendar based on user input.
-   *
-   * @param model The {@link ICalendar} model to perform the edit operation on.
+   * @param system the {@Link ICalendarSystem} model containing the calendar to be edited.
    * @throws CalendarException if the input keyword after "edit" is invalid.
    */
-  private void handleEdit(ICalendar model) throws CalendarException {
+  private void handleEdit(ICalendarSystem system) throws CalendarException {
+    if (!sc.hasNext() || !sc.next().equalsIgnoreCase("--name")) {
+      throw new CalendarException("Expected '--name' after 'Calendar'.");
+    }
+    String calName = checkName(sc, "--property");
+    // check that there is a valid calendar name provided
+    if (calName.isEmpty()) {
+      throw new CalendarException("Missing calendar name.");
+    }
+    CalendarProperty property = checkValidProperty(sc);
+    if (!sc.hasNext()) {
+      throw new CalendarException("Missing new property value.");
+    }
+    String newProperty = sc.next();
+    system.editCalendar(calName, property, newProperty);
+    view.writeMessage("Edited calendar '" + calName + "' property '" + property + "' to '"
+            + newProperty + "'." + System.lineSeparator());
+  }
+
+  /**
+   * Validates and parses the {@link CalendarProperty} to be edited from the scanner.
+   *
+   * @param sc The {@link Scanner} to read the property string.
+   * @return The parsed {@link CalendarProperty} enum.
+   * @throws CalendarException if the property string is missing or invalid.
+   */
+  private CalendarProperty checkValidProperty(Scanner sc) throws CalendarException {
+    // check that user inputted a calendar property
+    if (!sc.hasNext()) {
+      throw new CalendarException("Missing event property.");
+    }
+    // attempt to store property, will result in error if invalid property
+    return CalendarProperty.fromStr(sc.next());
   }
 }

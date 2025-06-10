@@ -37,6 +37,9 @@ public class EditEvent extends AbstractCommand {
   @Override
   public void execute(ICalendarSystem system) throws CalendarException {
     ICalendar calendar = system.getCurrentCalendar();
+    if (calendar == null) {
+      throw new CalendarException("No calendar currently in use.");
+    }
     handleEdit(calendar);
   }
 
@@ -77,7 +80,7 @@ public class EditEvent extends AbstractCommand {
   private void handleEditEvent(Scanner sc, ICalendar model, boolean fullSeries, boolean isSeries)
           throws CalendarException {
     Property property = checkValidProperty(sc);
-    String subject = checkValidSubject(sc);
+    String subject = checkName(sc, "from");
     // check that there is a valid subject
     if (subject.isEmpty()) {
       throw new CalendarException("Missing event subject");
@@ -103,31 +106,6 @@ public class EditEvent extends AbstractCommand {
     }
     // attempt to store property, will result in error if invalid property
     return Property.fromStr(sc.next());
-  }
-
-  /**
-   * Extracts the subject of the event from the scanner, consuming tokens until
-   * "from" is encountered.
-   *
-   * @param sc The {@link Scanner} containing the subject tokens.
-   * @return The concatenated subject string.
-   */
-  private String checkValidSubject(Scanner sc) {
-    StringBuilder subjectBuilder = new StringBuilder();
-    while (sc.hasNext()) {
-      String token = sc.next();
-      // check if subject only contains 1 word
-      if (token.equalsIgnoreCase("from")) {
-        break; // keyword found, subject is complete
-      }
-      // if subject already contains word, add a space
-      if (subjectBuilder.length() > 0) {
-        subjectBuilder.append(" ");
-      }
-      // append next word to subject
-      subjectBuilder.append(token);
-    }
-    return subjectBuilder.toString();
   }
 
   /**

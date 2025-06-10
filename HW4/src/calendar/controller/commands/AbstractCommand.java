@@ -81,4 +81,29 @@ public abstract class AbstractCommand implements CalendarCommand {
               "Expected YYYY-MM-DDThh:mm");
     }
   }
+
+  /**
+   * Returns the calendar/event name given in the input.
+   *
+   * @param sc The {@link Scanner} containing the date-time string.
+   * @param keyword The string containing the keyword to break loop of tracking name string
+   * @return A String object containing all words before the keyword.
+   */
+  protected String checkName(Scanner sc, String keyword) {
+    StringBuilder subjectBuilder = new StringBuilder();
+    while (sc.hasNext()) {
+      String token = sc.next();
+      // check if subject only contains 1 word
+      if (token.equalsIgnoreCase(keyword)) {
+        break; // keyword found, subject is complete
+      }
+      // if subject already contains word, add a space
+      if (subjectBuilder.length() > 0) {
+        subjectBuilder.append(" ");
+      }
+      // append next word to subject
+      subjectBuilder.append(token);
+    }
+    return subjectBuilder.toString();
+  }
 }

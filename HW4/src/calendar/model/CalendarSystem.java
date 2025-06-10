@@ -68,15 +68,15 @@ public class CalendarSystem implements ICalendarSystem {
    * the new name is empty or already exists, or the new timezone is invalid.
    */
   @Override
-  public void editCalendar(String name, String property, String newValue)
+  public void editCalendar(String name, CalendarProperty property, String newValue)
           throws CalendarException {
     NamedCalendar calendar = calendars.get(name);
     if (calendar == null) {
       throw new CalendarException("Calendar not found: " + name);
     }
 
-    switch (property.toLowerCase()) {
-      case "name":
+    switch (property) {
+      case NAME:
         if (newValue == null || newValue.trim().isEmpty()) {
           throw new CalendarException("Calendar name cannot be empty");
         }
@@ -96,7 +96,7 @@ public class CalendarSystem implements ICalendarSystem {
         }
         break;
 
-      case "timezone":
+      case TIMEZONE:
         try {
           ZoneId newTimezone = ZoneId.of(newValue);
           calendar.setTimezone(newTimezone);

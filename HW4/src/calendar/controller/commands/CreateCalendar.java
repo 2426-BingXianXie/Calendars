@@ -1,13 +1,10 @@
 package calendar.controller.commands;
 
 import java.time.DateTimeException;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.zone.ZoneRulesException;
 import java.util.Scanner;
 
 import calendar.CalendarException;
-import calendar.model.ICalendar;
 import calendar.model.ICalendarSystem;
 import calendar.view.ICalendarView;
 
@@ -45,7 +42,11 @@ public class CreateCalendar extends AbstractCommand {
    * @throws CalendarException if there are missing or invalid inputs during parsing.
    */
   private void handleCreate(ICalendarSystem system) throws CalendarException {
-    String calName = checkValidCalendarName(sc);
+    if (!sc.hasNext() || !sc.next().equalsIgnoreCase("--name")) {
+      throw new CalendarException("Expected '--name' after 'calendar");
+    }
+
+    String calName = checkName(sc, "--timezone");
     // check that there is a valid calendar name provided
     if (calName.isEmpty()) {
       throw new CalendarException("Missing calendar name.");
@@ -58,29 +59,10 @@ public class CreateCalendar extends AbstractCommand {
     try { // attempt to parse timezoneString, throw error if invalid format
       ZoneId timezone = ZoneId.of(timezoneString);
       system.createCalendar(calName, timezone);
+      view.writeMessage("Calendar '" + calName + "' in timezone '" + timezone + "' created."
+              + System.lineSeparator());
     } catch(DateTimeException e) {
       throw new CalendarException("Invalid timezone format. Must be in 'Area/Location' format.");
     }
   }
-
-  private String checkValidCalendarName(Scanner sc) {
-    StringBuilder subjectBuilder = new StringBuilder();
-    while (sc.hasNext()) {
-      String token = sc.next();
-      // check if subject only contains 1 word
-      if (token.equalsIgnoreCase("--timezone")) {
-        break; // keyword found, subject is complete
-      }
-      // if subject already contains word, add a space
-      if (subjectBuilder.length() > 0) {
-        subjectBuilder.append(" ");
-      }
-      // append next word to subject
-      subjectBuilder.append(token);
-    }
-    return subjectBuilder.toString();
-  }
-
-
-
 }

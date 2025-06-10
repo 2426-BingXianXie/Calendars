@@ -1,10 +1,8 @@
 package calendar.controller.commands;
 
-import java.time.LocalDateTime;
 import java.util.Scanner;
 
 import calendar.CalendarException;
-import calendar.model.ICalendar;
 import calendar.model.ICalendarSystem;
 import calendar.view.ICalendarView;
 
@@ -37,7 +35,7 @@ public class Use extends AbstractCommand {
     }
     // check that input entered after 'use' is 'calendar'
     if (!sc.next().equalsIgnoreCase("calendar")) {
-      throw new CalendarException("Expected 'events' after 'print'.");
+      throw new CalendarException("Expected 'calendar' after 'use'.");
     } else {
       checkCalendarName();
     }
@@ -47,6 +45,8 @@ public class Use extends AbstractCommand {
     String calendarName = sc.next();
     // set given calendar name to active. Will throw an error if calendar is not found in system
     system.useCalendar(calendarName);
+    view.writeMessage("Calendar '" + calendarName + "' set to be in use."
+            + System.lineSeparator());
   }
 
   /**

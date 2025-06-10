@@ -5,8 +5,7 @@ import java.util.Arrays;
 import calendar.CalendarException;
 
 /**
- * Represents the status of an event in a calendar.
- * The status can be either PUBLIC or PRIVATE.
+ * Represents the various properties of an event in a calendar.
  */
 public enum Property {
   SUBJECT("subject"),

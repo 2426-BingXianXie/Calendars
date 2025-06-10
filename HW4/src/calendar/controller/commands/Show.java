@@ -33,6 +33,9 @@ public class Show extends AbstractCommand {
   @Override
   public void execute(ICalendarSystem system) throws CalendarException {
     ICalendar calendar = system.getCurrentCalendar();
+    if (calendar == null) {
+      throw new CalendarException("No calendar currently in use.");
+    }
     handleShow(calendar);
   }
 

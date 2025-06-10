@@ -29,12 +29,13 @@ public interface ICalendarSystem {
    * Edits a property of an existing calendar.
    *
    * @param name        the name of the calendar to edit
-   * @param property    the property to edit ("name" or "timezone")
+   * @param property    the property to edit (name or timezone)
    * @param newValue    the new value for the property
    * @throws CalendarException if the calendar doesn't exist, property is invalid,
    *                          or new value would cause conflicts
    */
-  void editCalendar(String name, String property, String newValue) throws CalendarException;
+  void editCalendar(String name, CalendarProperty property, String newValue)
+          throws CalendarException;
 
   /**
    * Sets the current calendar context for event operations.
