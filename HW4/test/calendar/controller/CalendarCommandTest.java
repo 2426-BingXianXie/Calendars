@@ -68,7 +68,7 @@ public class CalendarCommandTest {
    */
   @Test
   public void testCreateSingleAllDayEvent() throws CalendarException {
-    Scanner scanner = new Scanner("event Meeting on 2025-06-05");
+    Scanner scanner = new Scanner("Meeting on 2025-06-05");
     CreateEvent cmd = new CreateEvent(scanner, view);
     cmd.execute(system);
 
@@ -95,7 +95,7 @@ public class CalendarCommandTest {
    */
   @Test
   public void testCreateSingleTimedEvent() throws CalendarException {
-    Scanner scanner = new Scanner("event Conference from 2025-06-05T09:00 to " +
+    Scanner scanner = new Scanner("Conference from 2025-06-05T09:00 to " +
             "2025-06-05T17:00");
     CreateEvent cmd = new CreateEvent(scanner, view);
     cmd.execute(system);
@@ -121,7 +121,7 @@ public class CalendarCommandTest {
    */
   @Test
   public void testCreateEventWithMultiWordSubject() throws CalendarException {
-    Scanner scanner = new Scanner("event Team Building Activity on 2025-06-05");
+    Scanner scanner = new Scanner("Team Building Activity on 2025-06-05");
     CreateEvent cmd = new CreateEvent(scanner, view);
     cmd.execute(system);
 
@@ -138,7 +138,7 @@ public class CalendarCommandTest {
    */
   @Test
   public void testCreateAllDaySeriesWithForCount() throws CalendarException {
-    Scanner scanner = new Scanner("event Meeting on 2025-06-02 repeats MWF for 5 times");
+    Scanner scanner = new Scanner("Meeting on 2025-06-02 repeats MWF for 5 times");
     CreateEvent cmd = new CreateEvent(scanner, view);
     cmd.execute(system);
 
@@ -218,32 +218,6 @@ public class CalendarCommandTest {
   }
 
   /**
-   * Tests that a {@link CalendarException} is thrown when the "event" keyword is missing
-   * from the create command.
-   *
-   * @throws CalendarException expected exception.
-   */
-  @Test(expected = CalendarException.class)
-  public void testCreateMissingEventKeyword() throws CalendarException {
-    Scanner scanner = new Scanner("Meeting on 2025-06-05");
-    CreateEvent cmd = new CreateEvent(scanner, view);
-    cmd.execute(system);
-  }
-
-  /**
-   * Tests that a {@link CalendarException} is thrown when an invalid keyword
-   * immediately follows "event" in the create command (e.g., "meeting" instead of a property name).
-   *
-   * @throws CalendarException expected exception.
-   */
-  @Test(expected = CalendarException.class)
-  public void testCreateInvalidKeywordAfterCreate() throws CalendarException {
-    Scanner scanner = new Scanner("meeting on 2025-06-05");
-    CreateEvent cmd = new CreateEvent(scanner, view);
-    cmd.execute(system);
-  }
-
-  /**
    * Tests that a {@link CalendarException} is thrown when the event subject is missing
    * from the create command.
    *
@@ -251,7 +225,7 @@ public class CalendarCommandTest {
    */
   @Test(expected = CalendarException.class)
   public void testCreateMissingSubject() throws CalendarException {
-    Scanner scanner = new Scanner("event on 2025-06-05");
+    Scanner scanner = new Scanner("on 2025-06-05");
     CreateEvent cmd = new CreateEvent(scanner, view);
     cmd.execute(system);
   }
@@ -426,7 +400,7 @@ public class CalendarCommandTest {
    */
   @Test
   public void testCreateCaseInsensitiveKeywords() throws CalendarException {
-    Scanner scanner = new Scanner("EVENT meeting ON 2025-06-05");
+    Scanner scanner = new Scanner("meeting ON 2025-06-05");
     CreateEvent cmd = new CreateEvent(scanner, view);
     cmd.execute(system);
 
@@ -1026,7 +1000,7 @@ public class CalendarCommandTest {
    */
   @Test
   public void testCreateEventWithSpecialCharactersInSubject() throws CalendarException {
-    Scanner scanner = new Scanner("event Meeting@Office#123 on 2025-06-05");
+    Scanner scanner = new Scanner("Meeting@Office#123 on 2025-06-05");
     CreateEvent cmd = new CreateEvent(scanner, view);
     cmd.execute(system);
 
@@ -1154,7 +1128,7 @@ public class CalendarCommandTest {
    */
   @Test
   public void testCommandsWithExtraSpaces() throws CalendarException {
-    Scanner scanner = new Scanner("event   Meeting   on   2025-06-05");
+    Scanner scanner = new Scanner("  Meeting   on   2025-06-05");
     CreateEvent cmd = new CreateEvent(scanner, view);
     cmd.execute(system);
 
@@ -1193,7 +1167,7 @@ public class CalendarCommandTest {
   @Test
   public void testCompleteWorkflow() throws CalendarException {
     // Create an event (all-day event from 8am to 5pm)
-    Scanner createScanner = new Scanner("event Team Meeting on 2025-06-05");
+    Scanner createScanner = new Scanner("Team Meeting on 2025-06-05");
     CreateEvent cmd = new CreateEvent(createScanner, view);
     cmd.execute(system);
 

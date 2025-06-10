@@ -7,6 +7,7 @@ import java.io.StringReader;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -83,109 +84,252 @@ public class ICalendarControllerTest {
         actualOutput.append(message);
       }
 
-      public void showMenu() {
+      /**
+       * Displays the main menu of the calendar program to the user.
+       * This includes a welcome message and a list of supported instructions.
+       *
+       * @throws IllegalStateException if an I/O error occurs while writing to the output.
+       */
+      public void showMenu() throws IllegalStateException {
         welcomeMessage();
         showOptions();
       }
 
-      private void welcomeMessage() {
-        writeMessage("Welcome to the calendar program!" + System.lineSeparator());
+      /**
+       * Prints a welcome message to the output.
+       *
+       * @throws IllegalStateException if an I/O error occurs while writing to the output.
+       */
+      private void welcomeMessage() throws IllegalStateException {
+        writeMessage("Welcome to the Multi-Calendar Program!" + System.lineSeparator());
       }
 
-      public void farewellMessage() {
+      /**
+       * Prints a farewell message to the output when the program is exiting.
+       *
+       * @throws IllegalStateException if an I/O error occurs while writing to the output.
+       */
+      public void farewellMessage() throws IllegalStateException {
         writeMessage("Thank you for using this program!");
       }
 
-      public void showCalendarEvents(List<Event> events, LocalDate date) {
+      /**
+       * Displays a list of calendar events for a specific date.
+       *
+       * @param events The list of {@link Event} objects to display.
+       * @param date   The {@link LocalDate} for which the events are being displayed.
+       * @throws IllegalStateException if an I/O error occurs while writing to the output.
+       */
+      public void showCalendarEvents(List<Event> events, LocalDate date) throws IllegalStateException {
         writeMessage("Printing events on " + date.toString() + "." + System.lineSeparator());
         printEvents(events);
       }
 
+      /**
+       * Displays a list of calendar events that fall within a specified date and time range.
+       *
+       * @param start  The {@link LocalDateTime} representing the start of the range (inclusive).
+       * @param end    The {@link LocalDateTime} representing the end of the range (inclusive).
+       * @param events The list of {@link Event} objects to display.
+       * @throws IllegalStateException if an I/O error occurs while writing to the output.
+       */
       @Override
       public void showCalendarEventsInDateRange(LocalDateTime start, LocalDateTime end,
-                                                List<Event> events) {
+                                                List<Event> events) throws IllegalStateException {
         writeMessage("Printing events from " + start + " to " + end + "." + System.lineSeparator());
         printEvents(events);
       }
 
-      private void printEvents(List<Event> events) {
+      /**
+       * Helper method to iterate through a list of events and print their details.
+       * If the list is empty, it prints a "No events found" message.
+       *
+       * @param events The list of {@link Event} objects to print.
+       * @throws IllegalStateException if an I/O error occurs while writing to the output.
+       */
+      private void printEvents(List<Event> events) throws IllegalStateException {
         if (events.isEmpty()) {
           writeMessage("No events found" + System.lineSeparator());
         }
+        // Iterate through each event in the list.
         for (Event event : events) {
+          // Check if the event has a specific location.
           if (event.getLocation() == null) { // check for valid location in event
+            // If no location, print event subject, date, and time range.
             writeMessage("Event '" + event.getSubject() + "' on " + event.getStart().toLocalDate()
                     + " from " + event.getStart().toLocalTime() + " to " +
                     event.getEnd().toLocalTime() + System.lineSeparator());
           } else { // print out location as well
+            // If location exists, print location type, subject, date, and time range.
             writeMessage(event.getLocation() + " event '" + event.getSubject() + "' on " +
-                    event.getStart().toLocalDate() + "' from " + event.getStart().toLocalTime()
+                    event.getStart().toLocalDate() + " from " + event.getStart().toLocalTime()
                     + " to " + event.getEnd().toLocalTime() + System.lineSeparator());
           }
         }
       }
 
-      private void showOptions() {
+      /**
+       * Displays the various command options available to the user, categorized by function.
+       * Updated to include new multi-calendar commands.
+       *
+       * @throws IllegalStateException if an I/O error occurs while writing to the output.
+       */
+      private void showOptions() throws IllegalStateException {
+        writeMessage("Supported user instructions are: " + System.lineSeparator());
+
+        // Calendar management commands
+        calendarManagementOptions();
+
+        // Event management commands (require calendar context)
+        eventManagementOptions();
+
+        // Copy commands
+        copyOptions();
+
+        // Utility commands
+        utilityOptions();
+      }
+
+      /**
+       * Displays calendar management command options.
+       */
+      private void calendarManagementOptions() throws IllegalStateException {
+        writeMessage("=== Calendar Management ===" + System.lineSeparator());
+
+        writeMessage("create calendar --name <calName> --timezone <area/location>" +
+                " (Create a new calendar with unique name and timezone)" + System.lineSeparator());
+
+        writeMessage("edit calendar --name <name-of-calendar> --property <property-name> <new-property-value>" +
+                " (Modify calendar name or timezone)" + System.lineSeparator());
+
+        writeMessage("use calendar --name <name-of-calendar>" +
+                " (Set calendar context for event operations)" + System.lineSeparator());
+
+        writeMessage(System.lineSeparator());
+      }
+
+      /**
+       * Displays event management command options.
+       */
+      private void eventManagementOptions() throws IllegalStateException {
+        writeMessage("=== Event Management (requires active calendar) ===" + System.lineSeparator());
+
         createOptions();
         editOptions();
         printOptions();
+
+        // Show status command
         writeMessage("show status on <dateStringTtimeString>" +
-                "(Prints busy status if the user has events scheduled on a given day and time, " +
-                "otherwise, available)." + System.lineSeparator());
-        writeMessage("menu (Print supported instruction list)" + System.lineSeparator());
-        writeMessage("q or quit (quit the program) " + System.lineSeparator());
+                " (Check if user is busy at specified date/time)" + System.lineSeparator());
+
+        writeMessage(System.lineSeparator());
       }
 
-      private void createOptions() {
-        writeMessage("Supported user instructions are: " + System.lineSeparator());
+      /**
+       * Displays copy command options.
+       */
+      private void copyOptions() throws IllegalStateException {
+        writeMessage("=== Copy Commands ===" + System.lineSeparator());
+
+        writeMessage("copy event <eventName> on <dateStringTtimeString> --target <calendarName> to <dateStringTtimeString>" +
+                " (Copy single event to target calendar)" + System.lineSeparator());
+
+        writeMessage("copy events on <dateString> --target <calendarName> to <dateString>" +
+                " (Copy all events on date to target calendar)" + System.lineSeparator());
+
+        writeMessage("copy events between <dateString> and <dateString> --target <calendarName> to <dateString>" +
+                " (Copy events in date range to target calendar)" + System.lineSeparator());
+
+        writeMessage(System.lineSeparator());
+      }
+
+      /**
+       * Displays utility command options.
+       */
+      private void utilityOptions() throws IllegalStateException {
+        writeMessage("=== Utility Commands ===" + System.lineSeparator());
+
+        writeMessage("menu (Display this help menu)" + System.lineSeparator());
+        writeMessage("q or quit (Exit the program)" + System.lineSeparator());
+
+        writeMessage(System.lineSeparator());
+        writeMessage("Note: Event operations require an active calendar. Use 'use calendar --name <name>' first." +
+                System.lineSeparator());
+      }
+
+      /**
+       * Displays the command options related to creating new events.
+       *
+       * @throws IllegalStateException if an I/O error occurs while writing to the output.
+       */
+      private void createOptions() throws IllegalStateException {
+        // Option to create a singular event.
         writeMessage("create event <eventSubject> from <dateStringTtimeString> to " +
                 "<dateStringTtimeString> (Create a singular event)"
                 + System.lineSeparator());
+        // Option to create an event series repeating N times.
         writeMessage("create event <eventSubject> from <dateStringTtimeString> to " +
                 "<dateStringTtimeString> repeats <weekdays> for <N> times " +
                 "(Creates an event series that repeats N times on specific weekdays)"
                 + System.lineSeparator());
+        // Option to create an event series repeating until a specific date.
         writeMessage("create event <eventSubject> from <dateStringTtimeString> to " +
                 "<dateStringTtimeString> repeats <weekdays> until <dateString> " +
                 "(Creates an event series until a specific date (inclusive))"
                 + System.lineSeparator());
+        // Option to create a single all-day event.
         writeMessage("create event <eventSubject> on <dateString> " +
                 "(Creates a single all day event.)"
                 + System.lineSeparator());
-        writeMessage("create event <eventSubject> on <dateString> repeats <weekdays> for <N> times"
-                + "(Creates a series of all day events that repeats N times on specific weekdays)"
+        // Option to create an all-day event series repeating N times.
+        writeMessage("create event <eventSubject> on <dateString> repeats <weekdays> for <N> times" +
+                "(Creates a series of all day events that repeats N times on specific weekdays)"
                 + System.lineSeparator());
+        // Option to create an all-day event series repeating until a specific date.
         writeMessage("create event <eventSubject> on <dateString> repeats <weekdays> until " +
                 "<dateString>" + "(Creates a series of all day events until a specific date " +
                 "(inclusive)."
                 + System.lineSeparator());
       }
 
-      private void editOptions() {
+      /**
+       * Displays the command options related to editing existing events or event series.
+       *
+       * @throws IllegalStateException if an I/O error occurs while writing to the output.
+       */
+      private void editOptions() throws IllegalStateException {
+        // Option to edit a property of a singular event.
         writeMessage("edit event <property> <eventSubject> from <dateStringTtimeString> to " +
                 "<dateStringTtimeString> with <NewPropertyValue>" +
                 "(Changes the property of the given event)." + System.lineSeparator());
+        // Option to edit properties of an event and subsequent events in its series from a given date.
         writeMessage("edit events <property> <eventSubject> from <dateStringTtimeString> " +
                 "with <NewPropertyValue>" +
                 "(Identify the event that has the given subject and starts at the given date " +
                 "and time and edit its property. If this event is part of a series then the " +
                 "properties of all events in that series that start at or after the given date " +
                 "and time is changed)." + System.lineSeparator());
+        // Option to edit properties of all events within an entire series.
         writeMessage("edit series <property> <eventSubject> from <dateStringTtimeString> " +
                 "with <NewPropertyValue>" +
-                "(Identify the event that has the given subject and starts at the given date and "
-                + "time and edit its property. If this event is part of a series then the " +
-                "properties " + "of all events in that series is changed)."
-                + System.lineSeparator());
+                "(Identify the event that has the given subject and starts at the given date and " +
+                "time and edit its property. If this event is part of a series then the properties " +
+                "of all events in that series is changed)." + System.lineSeparator());
       }
 
-      private void printOptions() {
+      /**
+       * Displays the command options related to printing calendar events.
+       *
+       * @throws IllegalStateException if an I/O error occurs while writing to the output.
+       */
+      private void printOptions() throws IllegalStateException {
+        // Option to print events on a specific date.
         writeMessage("print events on <dateString>" +
                 "(Prints a bulleted list of all events on that day along with their start and " +
                 "end time and location (if any))." + System.lineSeparator());
+        // Option to print events within a specific date and time interval.
         writeMessage("print events from <dateStringTtimeString> to <dateStringTtimeString>" +
-                "(Prints a bulleted list of all events in the given interval including " +
-                "their start " +
+                "(Prints a bulleted list of all events in the given interval including their start " +
                 "and end times and location (if any))." + System.lineSeparator());
       }
     }
@@ -210,59 +354,48 @@ public class ICalendarControllerTest {
 
   private static String getExpectedFullMenuOutput() {
     StringBuilder sb = new StringBuilder();
-    // Welcome message
-    sb.append("Welcome to the calendar program!").append(System.lineSeparator());
+    sb.append("Welcome to the Multi-Calendar Program!").append(System.lineSeparator());
     sb.append("Supported user instructions are: ").append(System.lineSeparator());
-    sb.append("create event <eventSubject> from <dateStringTtimeString> to " +
-            "<dateStringTtimeString> (Create a singular event)").append(System.lineSeparator());
-    sb.append("create event <eventSubject> from <dateStringTtimeString> to " +
-            "<dateStringTtimeString> repeats <weekdays> for <N> times (Creates an event series " +
-            "that repeats N times on specific weekdays)").append(System.lineSeparator());
-    sb.append("create event <eventSubject> from <dateStringTtimeString> to " +
-            "<dateStringTtimeString> repeats <weekdays> until <dateString> " +
-            "(Creates an event series until a specific date (inclusive))")
-            .append(System.lineSeparator());
-    sb.append("create event <eventSubject> on <dateString> (Creates a single all day event.)")
-            .append(System.lineSeparator());
-    sb.append("create event <eventSubject> on <dateString> repeats <weekdays> for <N> times" +
-            "(Creates a series of all day events that repeats N times on specific weekdays)")
-            .append(System.lineSeparator());
-    sb.append("create event <eventSubject> on <dateString> repeats <weekdays> until " +
-            "<dateString>(Creates a series of all day events until a specific date (inclusive).")
-            .append(System.lineSeparator());
 
-    // Edit options
-    sb.append("edit event <property> <eventSubject> from <dateStringTtimeString> to " +
-            "<dateStringTtimeString> with <NewPropertyValue>(Changes the property of the" +
-            " given event).").append(System.lineSeparator());
-    sb.append("edit events <property> <eventSubject> from <dateStringTtimeString> with" +
-            " <NewPropertyValue>(Identify the event that has the given subject and starts" +
-            " at the given date and time and edit its property. If this event is part of a " +
-            "series then the properties of all events in that series that start at or after " +
-            "the given date and time is changed).").append(System.lineSeparator());
-    sb.append("edit series <property> <eventSubject> from <dateStringTtimeString> with " +
-            "<NewPropertyValue>(Identify the event that has the given subject and starts at " +
-            "the given date and time and edit its property. If this event is part of a series " +
-            "then the properties of all events in that series is changed).")
-            .append(System.lineSeparator());
+    sb.append("=== Calendar Management ===").append(System.lineSeparator());
+    sb.append("create calendar --name <calName> --timezone <area/location> (Create a new calendar with unique name and timezone)").append(System.lineSeparator());
+    sb.append("edit calendar --name <name-of-calendar> --property <property-name> <new-property-value> (Modify calendar name or timezone)").append(System.lineSeparator());
+    sb.append("use calendar --name <name-of-calendar> (Set calendar context for event operations)").append(System.lineSeparator());
+    sb.append(System.lineSeparator());
 
-    // Print options
-    sb.append("print events on <dateString>(Prints a bulleted list of all events on that day " +
-            "along with their start and end time and location (if any)).")
-            .append(System.lineSeparator());
-    sb.append("print events from <dateStringTtimeString> to <dateStringTtimeString>" +
-            "(Prints a bulleted list of all events in the given interval including their " +
-            "start and end times and location (if any)).").append(System.lineSeparator());
-    sb.append("show status on <dateStringTtimeString>(Prints busy status if the user has " +
-            "events scheduled on a given day and time, otherwise, available).")
-            .append(System.lineSeparator());
-    sb.append("menu (Print supported instruction list)").append(System.lineSeparator());
-    sb.append("q or quit (quit the program) ").append(System.lineSeparator());
+    sb.append("=== Event Management (requires active calendar) ===").append(System.lineSeparator());
+    sb.append("create event <eventSubject> from <dateStringTtimeString> to <dateStringTtimeString> (Create a singular event)").append(System.lineSeparator());
+    sb.append("create event <eventSubject> from <dateStringTtimeString> to <dateStringTtimeString> repeats <weekdays> for <N> times (Creates an event series that repeats N times on specific weekdays)").append(System.lineSeparator());
+    sb.append("create event <eventSubject> from <dateStringTtimeString> to <dateStringTtimeString> repeats <weekdays> until <dateString> (Creates an event series until a specific date (inclusive))").append(System.lineSeparator());
+    sb.append("create event <eventSubject> on <dateString> (Creates a single all day event.)").append(System.lineSeparator());
+    sb.append("create event <eventSubject> on <dateString> repeats <weekdays> for <N> times(Creates a series of all day events that repeats N times on specific weekdays)").append(System.lineSeparator());
+    sb.append("create event <eventSubject> on <dateString> repeats <weekdays> until <dateString>(Creates a series of all day events until a specific date (inclusive).").append(System.lineSeparator());
+    sb.append("edit event <property> <eventSubject> from <dateStringTtimeString> to <dateStringTtimeString> with <NewPropertyValue>(Changes the property of the given event).").append(System.lineSeparator());
+    sb.append("edit events <property> <eventSubject> from <dateStringTtimeString> with <NewPropertyValue>(Identify the event that has the given subject and starts at the given date and time and edit its property. If this event is part of a series then the properties of all events in that series that start at or after the given date and time is changed).").append(System.lineSeparator());
+    sb.append("edit series <property> <eventSubject> from <dateStringTtimeString> with <NewPropertyValue>(Identify the event that has the given subject and starts at the given date and time and edit its property. If this event is part of a series then the properties of all events in that series is changed).").append(System.lineSeparator());
+    sb.append("print events on <dateString>(Prints a bulleted list of all events on that day along with their start and end time and location (if any)).").append(System.lineSeparator());
+    sb.append("print events from <dateStringTtimeString> to <dateStringTtimeString>(Prints a bulleted list of all events in the given interval including their start and end times and location (if any)).").append(System.lineSeparator());
+    sb.append("show status on <dateStringTtimeString> (Check if user is busy at specified date/time)").append(System.lineSeparator());
+    sb.append(System.lineSeparator());
+
+    sb.append("=== Copy Commands ===").append(System.lineSeparator());
+    sb.append("copy event <eventName> on <dateStringTtimeString> --target <calendarName> to <dateStringTtimeString> (Copy single event to target calendar)").append(System.lineSeparator());
+    sb.append("copy events on <dateString> --target <calendarName> to <dateString> (Copy all events on date to target calendar)").append(System.lineSeparator());
+    sb.append("copy events between <dateString> and <dateString> --target <calendarName> to <dateString> (Copy events in date range to target calendar)").append(System.lineSeparator());
+    sb.append(System.lineSeparator());
+
+    sb.append("=== Utility Commands ===").append(System.lineSeparator());
+    sb.append("menu (Display this help menu)").append(System.lineSeparator());
+    sb.append("q or quit (Exit the program)").append(System.lineSeparator());
+    sb.append(System.lineSeparator());
+
+    sb.append("Note: Event operations require an active calendar. Use 'use calendar --name <name>' first.").append(System.lineSeparator());
+
     return sb.toString();
   }
 
   private static String getExpectedEnterCommandPrompt() {
-    return "Enter command: "; // Your controller adds this
+    return "Enter command: ";
   }
 
   private static String getExpectedFarewellMessage() {
@@ -283,8 +416,8 @@ public class ICalendarControllerTest {
   }
 
   private static String getSuccessfulForSeriesMessage(String subject, LocalDate startDate,
-                                                   LocalTime startTime, LocalTime endTime,
-                                                   Set<Days> daysOfWeek, int repeatCount) {
+                                                      LocalTime startTime, LocalTime endTime,
+                                                      Set<Days> daysOfWeek, int repeatCount) {
     return "Event series '" + subject + "' created on " + startDate +
             " from " + startTime + " to " + endTime + " repeating on " + daysOfWeek + " " +
             repeatCount + " times.\n";
@@ -333,6 +466,22 @@ public class ICalendarControllerTest {
                                                        String newValue) {
     return "Edited event series '" + subject + "' " + property + " property to " + newValue
             + System.lineSeparator();
+  }
+
+  private static String printCreateTestCalendar() {
+    return "create calendar --name test --timezone America/New_York\n";
+  }
+
+  private static String useTestCalendar() {
+    return "use calendar --name test\n";
+  }
+  
+  private static String printCalendarCreated(String name, String timezone) {
+    return "Calendar '" + name + "' in timezone '" + timezone + "' created." + System.lineSeparator();
+  }
+  
+  private static String printCalendarInUse(String name) {
+    return "Calendar '" + name + "' set to be in use." + System.lineSeparator();
   }
 
 
@@ -410,9 +559,15 @@ public class ICalendarControllerTest {
 
   @Test
   public void testInputOnlyCreate() throws CalendarException {
-    String errorMessage = "Missing 'event' keyword after 'create'.\n";
+    String errorMessage = "Missing 'event' or 'calendar' after 'create'.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create\n"),
             prints(getErrorMessage(errorMessage)),
@@ -423,9 +578,16 @@ public class ICalendarControllerTest {
 
   @Test
   public void testInputOnlyCreateAllCapitalLetters() throws CalendarException {
-    String errorMessage = "Missing 'event' keyword after 'create'.\n";
+    String errorMessage = "Missing 'event' or 'calendar' after " +
+            "'create'.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("CREATE\n"), // input 'create' in all capital letters
             // controller should register input disregarding capitalization, output should be
@@ -438,9 +600,15 @@ public class ICalendarControllerTest {
   @Test
   public void testInvalidInputAfterCreate() throws CalendarException {
     String input = "hello";
-    String errorMessage = "Invalid command 'create " + input + "'.\n";
+    String errorMessage = "Unknown command: 'create " + input + "'\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create " + input), // input "create hello"
             prints(getErrorMessage(errorMessage)),
@@ -451,9 +619,15 @@ public class ICalendarControllerTest {
   @Test
   public void testInvalidInputNumberAfterCreate() throws CalendarException {
     String input = "1";
-    String errorMessage = "Invalid command 'create " + input + "'.\n";
+    String errorMessage = "Unknown command: 'create " + input + "'\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create " + input), // input "create 1"
             prints(getErrorMessage(errorMessage)),
@@ -467,6 +641,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -478,6 +658,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Missing event subject.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("CREATE EVENT"), // input 'create event' all capitalized
             // again, controller disregards capitalization, output should be same as above test
@@ -492,6 +678,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test"), // input subject without 'on' or 'from' afterward
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -503,6 +695,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Incomplete command, expected 'on' or 'from'.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test test"), // input subject without 'on' or 'from' afterward
             prints(getErrorMessage(errorMessage)),
@@ -516,6 +714,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on"), // input 'on' keyword without date
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -527,6 +731,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Missing <dateString>.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             // input 'on' keyword without date
             // controller should register all words before 'on' as subject name
@@ -542,6 +752,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             // input 'on' keyword without date in all capital letters
             // controller should disregard capital letters
             inputs("create event test ON"),
@@ -556,6 +772,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on test"), // input invalid date
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -567,6 +789,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Invalid date format for <dateString>. Expected YYYY-MM-DD\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 0000-00-00"), // input invalid date
             prints(getErrorMessage(errorMessage)),
@@ -580,6 +808,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2024/11/12"), // input date with '/' instead of '-'
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -591,6 +825,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Invalid date format for <dateString>. Expected YYYY-MM-DD\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2024-1-1"), // input YYYY-MM-DD without leading zeros
             prints(getErrorMessage(errorMessage)),
@@ -604,6 +844,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 01-01-2024"), // input DD-MM-YYYY
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -615,6 +861,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Invalid date format for <dateString>. Expected YYYY-MM-DD\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 12-31-2024"), // input MM-DD-YYYY
             prints(getErrorMessage(errorMessage)),
@@ -628,6 +880,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2025-31-12"), // input YYYY-DD-MM
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -639,6 +897,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Invalid date format for <dateString>. Expected YYYY-MM-DD\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2025-12-00"), // input day as 0
             prints(getErrorMessage(errorMessage)),
@@ -652,6 +916,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2025-00-31"), // input month as 0
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -663,6 +933,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Invalid date format for <dateString>. Expected YYYY-MM-DD\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2025-00-00"), // input day and month as 0
             prints(getErrorMessage(errorMessage)),
@@ -676,6 +952,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2025-02-29"), // input Feb 29 2025
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -687,6 +969,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Invalid date format for <dateString>. Expected YYYY-MM-DD\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2025-04-31"), // input Apr 31 2025
             prints(getErrorMessage(errorMessage)),
@@ -700,6 +988,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2025-04-31T09:00"), // input Apr 31 2025 09:00
             // given LocalDateTime instade of LocalDate, throw an error
             prints(getErrorMessage(errorMessage)),
@@ -711,6 +1005,12 @@ public class ICalendarControllerTest {
   public void testInputValidDate() throws CalendarException {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2025-06-05"), // input Jun 5 2025
             // date is valid, print success message
@@ -726,6 +1026,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event 123 on 2025-06-05"), // input Jun 5 2025
             // date is valid, print success message
             prints(getSuccessfulAllDayMessage("123", LocalDate.of(2025, 6,
@@ -740,6 +1046,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Event already exists\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2025-06-05\n"), // input Jun 5 2025
             // date is valid, print success message
@@ -759,6 +1071,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 0000-01-01"), // input Jan 1 0000
             // date is valid, print success message
             prints(getSuccessfulAllDayMessage("test", LocalDate.of(0000, 1,
@@ -772,6 +1090,12 @@ public class ICalendarControllerTest {
   public void testInputMaxDate() throws CalendarException {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 9999-12-31"), // input Dec 31 9999
             // date is valid, print success message
@@ -787,6 +1111,12 @@ public class ICalendarControllerTest {
   public void testInputFeb29OnLeapYear() throws CalendarException {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2024-02-29"), // input Feb 29 2024
             // date is valid, print success message
@@ -804,6 +1134,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2024-02-29 test"), // input 'test' after date
             // expected is 'repeats', throw an error
             prints(getErrorMessage(errorMessage)),
@@ -818,6 +1154,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2024-02-29 repeats"), // input 'repeats' after date
             // expected is 'repeats', throw an error
             prints(getErrorMessage(errorMessage)),
@@ -831,6 +1173,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Invalid weekday symbol: X\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             // input invalid weekday string
             inputs("create event test on 2024-02-29 repeats " + input),
@@ -847,6 +1195,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             // input invalid weekday string
             inputs("create event test on 2024-02-29 repeats " + input),
             // expected is 'repeats', throw an error
@@ -861,6 +1215,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Invalid weekday symbol: 1\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             // input invalid weekday string
             inputs("create event test on 2024-02-29 repeats " + input),
@@ -877,6 +1237,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             inputs("create event test on 2024-02-29 repeats " + input),
             // expected is 'from' or 'until' after, throw error
@@ -891,6 +1257,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Missing 'for' or 'until'.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             // should ignore capitalization
@@ -908,6 +1280,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             // should ignore capitalization
             inputs("create event test on 2024-02-29 repeats " + input + " test"),
@@ -924,6 +1302,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             // should ignore capitalization
             inputs("create event test on 2024-02-29 repeats " + input + " for"),
@@ -939,6 +1323,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Missing <N> after 'for'.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             // should ignore capitalization
@@ -957,6 +1347,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             // should ignore capitalization
             inputs("create event test on 2024-02-29 repeats " + input + " for j"),
@@ -973,6 +1369,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             // should ignore capitalization
             inputs("create event test on 2024-02-29 repeats " + input + " for 5"),
@@ -988,6 +1390,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Missing 'times' after 'for <N>'.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             // should ignore capitalization
@@ -1013,6 +1421,12 @@ public class ICalendarControllerTest {
     LocalTime endTime = LocalTime.of(17, 0);
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             inputs("create event test on " + dateString + " repeats " + days + " for " + repeats +
@@ -1042,7 +1456,13 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
-            // input valid weekday string
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+// input valid weekday string
             inputs("create event " + subject + " on " + dateString + " repeats " + days + " for "
                     + repeats + " times\n"),
             // given valid input, should successfully create a event series
@@ -1074,7 +1494,13 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
-            // input valid weekday string
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+// input valid weekday string
             inputs("create event " + subject + " on " + dateString + " repeats " + days + " for "
                     + repeats + " times\n"),
             // given valid input, should successfully create a event series
@@ -1094,7 +1520,13 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
-            // input valid weekday string
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+// input valid weekday string
             // should ignore capitalization
             inputs("create event test on 2024-02-29 repeats " + input + " until"),
             // expected is end date after 'until', throw an error
@@ -1110,7 +1542,13 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
-            // input valid weekday string
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+// input valid weekday string
             // should ignore capitalization
             inputs("create event test on 2024-02-29 repeats " + input + " UNTIL"),
             // expected is end date after 'until', throw an error
@@ -1127,7 +1565,13 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
-            // input valid weekday string
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+// input valid weekday string
             // should ignore capitalization
             inputs("create event test on 2024-02-29 repeats " + input + " until test"),
             // given invalid input after 'until', throw error
@@ -1143,7 +1587,13 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
-            // input valid weekday string
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+// input valid weekday string
             // should ignore capitalization
             inputs("create event test on 2024-02-29 repeats " + input + " until 2025-02-29"),
             // given invalid date, throw error
@@ -1159,7 +1609,13 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
-            // input valid weekday string
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+// input valid weekday string
             // should ignore capitalization
             inputs("create event test on 2024-02-29 repeats " + input + " until 2024-05-05T08:00"),
             // given LocalDateTime instead of LocalDate after 'until', throw error
@@ -1175,7 +1631,13 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
-            // input valid weekday string
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+// input valid weekday string
             // should ignore capitalization
             inputs("create event test on 2024-02-29 repeats " + input + " until 2024-02-28"),
             // end date is before start date, throw error
@@ -1200,6 +1662,12 @@ public class ICalendarControllerTest {
     LocalTime endTime = LocalTime.of(17, 0);
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on " + startDateString + " repeats " + days + " until " +
                     endDateString),
@@ -1230,7 +1698,13 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
-            // input valid weekday string
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+// input valid weekday string
             inputs("create event test on " + startDateString + " repeats " + days + " until " +
                     endDateString + "\n"),
             // given valid input, should successfully create a event series
@@ -1249,6 +1723,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from"), // input 'from' keyword without date
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -1261,6 +1741,12 @@ public class ICalendarControllerTest {
             "Expected YYYY-MM-DDThh:mm\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from test"), // input invalid date
             prints(getErrorMessage(errorMessage)),
@@ -1275,6 +1761,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from 2024-11-12"), // input date instead of datetime
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -1287,6 +1779,12 @@ public class ICalendarControllerTest {
             "Expected YYYY-MM-DDThh:mm\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from 2024-11-12T00:61"), // input mm as 61
             prints(getErrorMessage(errorMessage)),
@@ -1301,6 +1799,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from 2024-11-12T24:00"), // input hh as 24
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -1314,6 +1818,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from 2024-11-31T00:00"), // input nov 31
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -1325,6 +1835,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Missing 'to' keyword.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from 2024-11-12T00:00"), // input valid date
             prints(getErrorMessage(errorMessage)),
@@ -1338,6 +1854,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from 2024-11-12T00:00 test"), // not 'to', throw error
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -1349,6 +1871,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Missing <dateStringTtimeString>\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from 2024-11-12T00:00 to"), // no input after 'to', error
             prints(getErrorMessage(errorMessage)),
@@ -1362,7 +1890,13 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
-            // should ignore capitalization, return same error as above
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+// should ignore capitalization, return same error as above
             inputs("create event test from 2024-11-12T00:00 TO"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -1375,6 +1909,12 @@ public class ICalendarControllerTest {
             "Expected YYYY-MM-DDThh:mm\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from 2024-11-12T00:00 to test"),
             prints(getErrorMessage(errorMessage)),
@@ -1389,6 +1929,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from 2024-11-12T00:00 to 2024-11-13"), // input date, error
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -1401,7 +1947,13 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
-            // input end date that is before start date
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+// input end date that is before start date
             inputs("create event test from 2024-11-12T00:00 to 2024-11-11T00:00"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -1414,7 +1966,13 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
-            // input same day, earlier hour for end date
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+// input same day, earlier hour for end date
             inputs("create event test from 2024-11-12T01:00 to 2024-11-12T00:00"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -1427,6 +1985,12 @@ public class ICalendarControllerTest {
             "Expected YYYY-MM-DDThh:mm\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from 2024-11-12T00:00 to 2024-11-31T00:00"), // input nov 31
             prints(getErrorMessage(errorMessage)),
@@ -1442,6 +2006,12 @@ public class ICalendarControllerTest {
     LocalDateTime endDateTime = LocalDateTime.parse(endDateTimeString);
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString),
             // date is valid, print success message
@@ -1460,6 +2030,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString),
             // date is valid, print success message
             prints(getSuccessfulEventMessage("test", startDateTime, endDateTime)),
@@ -1477,6 +2053,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString),
             // date is valid, print success message
             prints(getSuccessfulEventMessage("test", startDateTime, endDateTime)),
@@ -1493,8 +2075,14 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
-            + " test"), // invalid input 'test' after end date
+                    + " test"), // invalid input 'test' after end date
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
     assertEquals(array[0], array[1]);
@@ -1507,6 +2095,12 @@ public class ICalendarControllerTest {
     String endDateTimeString = "2024-11-12T01:00"; // same day, different time
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
                     + " repeats"), // no input after 'repeats', throw error
@@ -1523,6 +2117,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
                     + " repeats"), // each event goes overnight, throw error
             prints(getErrorMessage(errorMessage)),
@@ -1537,6 +2137,12 @@ public class ICalendarControllerTest {
     String endDateTimeString = "2024-11-12T01:00";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
                     + " repeats XYZ"), // input invalid days string
@@ -1553,6 +2159,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
                     + " repeats MWFX"), // input invalid days string
             prints(getErrorMessage(errorMessage)),
@@ -1568,6 +2180,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Missing 'for' or 'until'.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
@@ -1587,6 +2205,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
                     + " repeats " + input + " for"),
@@ -1604,6 +2228,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Missing <N> after 'for'.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
@@ -1623,6 +2253,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
                     + " repeats " + input + " for 5"),
@@ -1640,6 +2276,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Missing 'times' after 'for <N>'.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
@@ -1667,6 +2309,12 @@ public class ICalendarControllerTest {
     LocalTime endTime = LocalTime.of(1, 0);
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
@@ -1696,6 +2344,12 @@ public class ICalendarControllerTest {
     LocalTime endTime = LocalTime.of(1, 0);
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
@@ -1730,6 +2384,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
                     + " repeats " + days + " for 5 times\n"),
@@ -1754,6 +2414,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
                     + " repeats " + input + " until"),
@@ -1771,6 +2437,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Invalid date format for <dateString>. Expected YYYY-MM-DD\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
@@ -1790,6 +2462,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
                     + " repeats " + input + " until 2025-02-29"),
@@ -1807,6 +2485,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Invalid date format for <dateString>. Expected YYYY-MM-DD\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             // input valid weekday string
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
@@ -1826,6 +2510,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
                     + " repeats " + input + " until 2024-11-13"),
             prints(getErrorMessage(errorMessage)),
@@ -1841,6 +2531,12 @@ public class ICalendarControllerTest {
     String endDateTimeString = "2024-11-12T01:00"; // end date goes overnight
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
                     + " repeats " + input + " until 2024-11-11"),
@@ -1870,6 +2566,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from " + startDateTimeString + " to " + endDateTimeString
                     + " repeats " + input + " until " + endDateString),
             // end date is before start date
@@ -1883,6 +2585,12 @@ public class ICalendarControllerTest {
   public void testPrintOnDateWithNoEvents() throws CalendarException {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("print events on 2025-10-10\n"),
             prints(getNoEventsFoundMessage(LocalDate.of(2025, 10, 10))),
@@ -1901,6 +2609,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2025-11-11\n"),
             prints(getSuccessfulAllDayMessage(subject, date)),
             prints(getExpectedEnterCommandPrompt()),
@@ -1916,6 +2630,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("print events on 2025/11/11\n"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -1928,6 +2648,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("print events\n"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -1939,6 +2665,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Expected 'events' after 'print'.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("print users\n"),
             prints(getErrorMessage(errorMessage)),
@@ -1954,15 +2686,21 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event Event 1 from 2025-07-04T10:00 to 2025-07-04T11:00\n"),
-            prints(getSuccessfulEventMessage("Event 1", LocalDateTime.of(2025,7,
-                            4,10,0),
-                    LocalDateTime.of(2025,7,4,11,0))),
+            prints(getSuccessfulEventMessage("Event 1", LocalDateTime.of(2025, 7,
+                            4, 10, 0),
+                    LocalDateTime.of(2025, 7, 4, 11, 0))),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event Event 2 from 2025-07-05T12:00 to 2025-07-05T13:00\n"),
-            prints(getSuccessfulEventMessage("Event 2", LocalDateTime.of(2025,7,
-                            5,12,0),
-                    LocalDateTime.of(2025,7,5,13,0))),
+            prints(getSuccessfulEventMessage("Event 2", LocalDateTime.of(2025, 7,
+                            5, 12, 0),
+                    LocalDateTime.of(2025, 7, 5, 13, 0))),
             prints(getExpectedEnterCommandPrompt()),
             inputs("print events from 2025-07-04T09:00 to 2025-07-05T14:00\n"),
             prints("Printing events from 2025-07-04T09:00 to 2025-07-05T14:00." +
@@ -1978,6 +2716,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("print events from 2025-07-04 to 2025-07-05\n"), // Using date, not datetime
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -1990,6 +2734,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("print events from 2025-07-04T09:00\n"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -2001,6 +2751,12 @@ public class ICalendarControllerTest {
     LocalDateTime time = LocalDateTime.of(2025, 8, 8, 10, 0);
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("show status on 2025-08-08T10:00\n"),
             prints(getBusyStatusMessage(time, false)),
@@ -2015,6 +2771,12 @@ public class ICalendarControllerTest {
     LocalDateTime time = LocalDateTime.of(2025, 8, 8, 10, 0);
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2025-08-08\n"),
             prints(getSuccessfulAllDayMessage(subject, date)),
@@ -2034,6 +2796,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2025-08-09\n"),
             prints(getSuccessfulAllDayMessage(subject, date)),
             prints(getExpectedEnterCommandPrompt()),
@@ -2049,6 +2817,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("show availability on 2025-01-01T10:00\n"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -2060,6 +2834,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Expected 'on' after 'status'.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("show status at 2025-01-01T10:00\n"),
             prints(getErrorMessage(errorMessage)),
@@ -2073,6 +2853,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("show status on\n"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()),
@@ -2082,9 +2868,15 @@ public class ICalendarControllerTest {
 
   @Test
   public void testEditCommandMissingEverything() throws CalendarException {
-    String errorMessage = "Missing 'event' keyword after 'create'.\n";
+    String errorMessage = "Missing 'event'/'events'/'series' or 'calendar' after 'edit'.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("edit\n"),
             prints(getErrorMessage(errorMessage)),
@@ -2097,6 +2889,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Missing event property.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("edit event\n"),
             prints(getErrorMessage(errorMessage)),
@@ -2111,6 +2909,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("edit event fake_prop\n"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -2122,6 +2926,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Missing event subject\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("edit event subject\n"),
             prints(getErrorMessage(errorMessage)),
@@ -2135,6 +2945,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("edit event subject some_event\n"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -2147,10 +2963,16 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from 2025-01-01T10:00 to 2025-01-01T11:00\n"),
-            prints(getSuccessfulEventMessage("test", LocalDateTime.of(2025,1,
-                            1,10,0),
-                    LocalDateTime.of(2025,1,1,11,0))),
+            prints(getSuccessfulEventMessage("test", LocalDateTime.of(2025, 1,
+                            1, 10, 0),
+                    LocalDateTime.of(2025, 1, 1, 11, 0))),
             prints(getExpectedEnterCommandPrompt()),
             inputs("edit events subject test from 2025-01-01T10:00 with\n"),
             prints(getErrorMessage(errorMessage)),
@@ -2164,6 +2986,12 @@ public class ICalendarControllerTest {
     LocalDate date = LocalDate.of(2025, 1, 1);
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2025-01-01\n"),
             prints(getSuccessfulAllDayMessage(subject, date)),
@@ -2182,6 +3010,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event test on 2025-01-01\n"),
             prints(getSuccessfulAllDayMessage(subject, date)),
             prints(getExpectedEnterCommandPrompt()),
@@ -2198,6 +3032,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("edit event subject fake from 2025-01-01T08:00 to 2025-01-01T17:00 with new\n"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -2209,6 +3049,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Event conflicts with existing event\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event eventA on 2025-02-02\n"), // 8am-5pm
             prints(getSuccessfulAllDayMessage("eventA", LocalDate.of(2025, 2,
@@ -2233,6 +3079,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event meeting from 2025-03-01T09:00 to 2025-03-01T10:00 " +
                     "repeats M for 2 times\n"),
             prints(successCreate),
@@ -2254,6 +3106,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("create event review from 2025-04-01T14:00 to 2025-04-01T15:00 " +
                     "repeats T for 4 times\n"),
             prints(successCreate),
@@ -2273,6 +3131,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             // Create two events with same subject and start, but different end
             inputs("create event ambiguous from 2025-05-05T10:00 to 2025-05-05T11:00\n"),
             prints("Event 'ambiguous' created from 2025-05-05T10:00 to 2025-05-05T11:00.\n"),
@@ -2289,9 +3153,15 @@ public class ICalendarControllerTest {
 
   @Test
   public void testEditWithOnlyKeyword() throws CalendarException {
-    String errorMessage = "Missing 'event' keyword after 'create'.\n"; // Your parser throws this
+    String errorMessage = "Missing 'event'/'events'/'series' or 'calendar' after 'edit'.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("edit\n"),
             prints(getErrorMessage(errorMessage)),
@@ -2304,6 +3174,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Missing event property.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("edit event\n"),
             prints(getErrorMessage(errorMessage)),
@@ -2318,6 +3194,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("edit event color\n"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -2329,6 +3211,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Missing event subject\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("edit event subject\n"),
             prints(getErrorMessage(errorMessage)),
@@ -2342,6 +3230,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("edit event subject Some Event\n"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -2353,6 +3247,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Missing 'to' after from <dateStringTTimeString>.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("edit event subject Some Event from 2025-01-01T10:00\n"),
             prints(getErrorMessage(errorMessage)),
@@ -2366,6 +3266,12 @@ public class ICalendarControllerTest {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
             inputs("edit event subject Some Event from 2025-01-01T10:00 to " +
                     "2025-01-01T11:00 for new_value\n"),
             prints(getErrorMessage(errorMessage)),
@@ -2378,6 +3284,12 @@ public class ICalendarControllerTest {
     String errorMessage = "Missing <NewPropertyValue>.\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event test from 2025-01-01T10:00 to 2025-01-01T11:00\n"),
             prints(getSuccessfulEventMessage("test", LocalDateTime.of(2025, 1,
@@ -2395,6 +3307,12 @@ public class ICalendarControllerTest {
     String errorMessage = "New start time cannot be after current end time\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()), 
+            inputs(useTestCalendar()), 
+            prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("create event original on 2025-04-04\n"),
             prints(getSuccessfulAllDayMessage("original", LocalDate.of(2025, 4,

@@ -21,5 +21,5 @@ public class CalendarSystemTest {
   public void setUp() {
     system = new CalendarSystem();
   }
-  
+
 }
