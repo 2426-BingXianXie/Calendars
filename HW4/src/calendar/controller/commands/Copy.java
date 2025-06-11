@@ -64,10 +64,10 @@ public class Copy extends AbstractCommand {
         String nextKeyword = sc.next(); // check if next word is 'on' or 'from'
         if (nextKeyword.equalsIgnoreCase("on")) {
           handleOnVariants(sc, system, true);
-        } else if (nextKeyword.equalsIgnoreCase("from")) {
+        } else if (nextKeyword.equalsIgnoreCase("between")) {
           handleBetweenVariants(sc, system);
         } else {
-          throw new CalendarException("Expected 'on' or 'from' after events.");
+          throw new CalendarException("Expected 'on' or 'between' after events.");
         }
         break;
       default:
@@ -103,7 +103,7 @@ public class Copy extends AbstractCommand {
     // attempt to parse given target dateTime string
     LocalDateTime targetDateTime = parseDateTime(sc);
     system.copyEvent(eventName, startDateTime, targetCalName, targetDateTime);
-    view.writeMessage("Copied event '" + eventName + "' to calendar '" + targetCalName + "'."
+    view.writeMessage("Copied event '" + eventName + "' to calendar '" + targetCalName + "' "
             + "on '" + targetDateTime + "'." + System.lineSeparator());
   }
 
@@ -128,9 +128,6 @@ public class Copy extends AbstractCommand {
 
   private void handleBetweenVariants(Scanner sc, ICalendarSystem system)
           throws CalendarException {
-    if (!sc.hasNext() || !sc.next().equalsIgnoreCase("between")) {
-      throw new CalendarException("Expected 'between' after 'events'.");
-    }
     // attempt to parse given start date input
     LocalDate startDate = parseDate(sc);
     if (!sc.hasNext() || !sc.next().equalsIgnoreCase("and")) {

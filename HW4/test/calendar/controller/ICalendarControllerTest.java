@@ -484,6 +484,29 @@ public class ICalendarControllerTest {
     return "Calendar '" + name + "' set to be in use." + System.lineSeparator();
   }
 
+  private static String getSuccessfulCalendarEditMessage(String calName, String property, String newValue) {
+    return "Edited calendar '" + calName + "' property '" + property + "' to '" + newValue
+            + "'." + System.lineSeparator();
+  }
+
+  private static String getSuccessfulCopyEventMessage(String eventName, String calName, LocalDateTime targetTime) {
+    return "Copied event '" + eventName + "' to calendar '" + calName + "' on '" + targetTime
+            + "'." + System.lineSeparator();
+  }
+
+  private static String getSuccessfulCopyEventsOnDateMessage(LocalDate sourceDate, String calName,
+                                                             LocalDate targetDate) {
+    return "Copied events on '" + sourceDate + "' to calendar '" + calName + "' on '"
+            + targetDate + "'." + System.lineSeparator();
+  }
+
+  private static String getSuccessfulCopyEventsBetweenMessage(LocalDate startDate, LocalDate endDate,
+                                                              String calName,
+                                                              LocalDate targetStartDate) {
+    return "Copied events from '" + startDate + "' to '" + endDate + "'in calendar '"
+            + calName + "' on '" + targetStartDate + "'." + System.lineSeparator();
+  }
+
 
   @Test
   public void testNoInput() throws CalendarException {
@@ -2582,6 +2605,85 @@ public class ICalendarControllerTest {
   }
 
   @Test
+  public void testCreateWithoutCalendar() throws CalendarException {
+    String errorMessage = "No calendar currently in use.\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test on 2024-11-12"),
+            // end date is before start date
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testCreatWithCalendarNotInUse() throws CalendarException {
+    String errorMessage = "No calendar currently in use.\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test on 2024-11-12"),
+            // end date is before start date
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testCreateCalendar() throws CalendarException {
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testCreateCalendarWithoutNameCommand() throws CalendarException {
+    String errorMessage = "Expected '--name' after 'calendar\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar test --timezone America/New_York"),
+            // end date is before start date
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testCreateCalendarWithoutTimezoneCommand() throws CalendarException {
+    String errorMessage = "Incomplete command, missing timezone.\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name test"),
+            // end date is before start date
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testCreateCalendarInvalidTimezone() throws CalendarException {
+    String errorMessage = "Invalid timezone format. Must be in 'Area/Location' format.\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name test --timezone Japan/Tokyo"),
+            // end date is before start date
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
   public void testPrintOnDateWithNoEvents() throws CalendarException {
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
@@ -2620,6 +2722,42 @@ public class ICalendarControllerTest {
             prints(getExpectedEnterCommandPrompt()),
             inputs("print events on 2025-11-11\n"),
             prints(getPrintOnDateMessage(date, eventListOutput)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testPrintOnDifferentCalendar() throws CalendarException {
+    String subject = "test";
+    LocalDate date = LocalDate.of(2025, 11, 11);
+    // Expected output string for one event
+    String eventListOutput = "Event 'test' on 2025-11-11 from 08:00 to 17:00"
+            + System.lineSeparator();
+    String errorMessage = "No calendar currently in use.\n";
+
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(useTestCalendar()),
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test on 2025-11-11\n"),
+            prints(getSuccessfulAllDayMessage(subject, date)),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name test2 --timezone America/New_York\n"),
+            prints(printCalendarCreated("test2", "America/New_York")),
+            inputs("print events on 2025-11-11\n"),
+            prints(getExpectedEnterCommandPrompt()),
+            prints(getPrintOnDateMessage(date, eventListOutput)),
+            inputs("use calendar --name test2\n"), // use different calendar
+            prints(getExpectedEnterCommandPrompt()),
+            prints(printCalendarInUse("test2")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("print events on 2025-11-11\n"),
+            prints(getNoEventsFoundMessage(LocalDate.of(2025, 11, 11))),
             prints(getExpectedEnterCommandPrompt()));
     assertEquals(array[0], array[1]);
   }
@@ -2747,6 +2885,18 @@ public class ICalendarControllerTest {
   }
 
   @Test
+  public void testPrintWithoutCalendar() throws CalendarException {
+    String errorMessage = "No calendar currently in use.\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("print events from 2025-07-04T09:00\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
   public void testShowStatusWhenAvailable() throws CalendarException {
     LocalDateTime time = LocalDateTime.of(2025, 8, 8, 10, 0);
     String[] array = testRun(model,
@@ -2783,6 +2933,38 @@ public class ICalendarControllerTest {
             prints(getExpectedEnterCommandPrompt()),
             inputs("show status on 2025-08-08T10:00\n"),
             prints(getBusyStatusMessage(time, true)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testShowStatusDifferentCalendar() throws CalendarException {
+    String subject = "test";
+    LocalDate date = LocalDate.of(2025, 8, 8);
+    LocalDateTime time = LocalDateTime.of(2025, 8, 8, 10, 0);
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(useTestCalendar()),
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test on 2025-08-08\n"),
+            prints(getSuccessfulAllDayMessage(subject, date)),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("show status on 2025-08-08T10:00\n"),
+            prints(getBusyStatusMessage(time, true)),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name test2 --timezone America/New_York\n"),
+            prints(printCalendarCreated("test2", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("use calendar --name test2\n"), //use 'test2' calendar
+            prints(printCalendarInUse("test2")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("show status on 2025-08-08T10:00\n"), // check status on same day
+            prints(getBusyStatusMessage(time, false)),
             prints(getExpectedEnterCommandPrompt()));
     assertEquals(array[0], array[1]);
   }
@@ -2863,6 +3045,18 @@ public class ICalendarControllerTest {
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()),
             inputs("q\n"));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testShowWithoutCalendar() throws CalendarException {
+    String errorMessage = "No calendar currently in use.\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("show availability on 2025-01-01T10:00\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
     assertEquals(array[0], array[1]);
   }
 
@@ -3325,7 +3519,454 @@ public class ICalendarControllerTest {
             prints(getExpectedEnterCommandPrompt()));
     assertEquals(array[0], array[1]);
   }
+
+  @Test
+  public void testEditEventWithoutCalendar() throws CalendarException {
+    String errorMessage = "No calendar currently in use.\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event original on 2025-04-04\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+  
+  @Test
+  public void testEditEventDifferentCalendar() throws CalendarException {
+    String subject = "test";
+    LocalDateTime startDateTime = LocalDateTime.of(2025, 1, 1, 10, 0);
+    LocalDateTime endDateTime = LocalDateTime.of(2025, 1, 1, 11, 0);
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(useTestCalendar()),
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event test from 2025-01-01T10:00 to 2025-01-01T11:00\n"),
+            prints(getSuccessfulEventMessage(subject, startDateTime, endDateTime)),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name test2 --timezone America/New_York\n"),
+            prints(printCalendarCreated("test2", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("use calendar --name test2\n"),
+            prints(printCalendarInUse("test2")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("edit event subject test from 2025-01-01T10:00 " +
+                    "to 2025-01-01T11:00 with new_test\n"),
+            prints(getErrorMessage("No events found.\n")),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testEditCalendarToDuplicateName() throws CalendarException {
+    String errorMessage = "Error processing command: Calendar with name 'Work' already exists\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name Work --timezone America/New_York\n"),
+            prints(printCalendarCreated("Work", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name Personal --timezone America/New_York\n"),
+            prints(printCalendarCreated("Personal", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            // Attempt to edit 'Personal' calendar's name to 'Work', which already exists
+            inputs("edit calendar --name Personal --property name Work\n"),
+            prints(errorMessage),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testUseNonExistentCalendar() throws CalendarException {
+    String errorMessage = "Error processing command: Calendar not found: NonExistent\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("use calendar --name NonExistent\n"),
+            prints(errorMessage),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testEditNonExistentCalendar() throws CalendarException {
+    String errorMessage = "Error processing command: Calendar not found: NonExistent\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("edit calendar --name NonExistent --property timezone America/Los_Angeles\n"),
+            prints(errorMessage),
+            prints(getExpectedEnterCommandPrompt()));
+  }
+
+  @Test
+  public void testEditSingleInstanceOfSeriesDetachesIt() throws CalendarException {
+    String successCreateCal = printCalendarCreated("test", "America/New_York");
+    String successUseCal = printCalendarInUse("test");
+    String successCreateSeries = getSuccessfulForSeriesMessage("Weekly Sync",
+            LocalDate.of(2025, 6, 2), LocalTime.of(9,0),
+            LocalTime.of(10,0), Set.of(Days.MONDAY), 2);
+    String successEdit = getSuccessfulEditMessage("Weekly Sync", "subject", "Important");
+
+    String firstMondayEvents = "Printing events on 2025-06-02." + System.lineSeparator() +
+            "Event 'Important' on 2025-06-02 from 09:00 to 10:00" + System.lineSeparator();
+
+    String secondMondayEvents = "Printing events on 2025-06-09." + System.lineSeparator() +
+            "Event 'Weekly Sync' on 2025-06-09 from 09:00 to 10:00" + System.lineSeparator();
+
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(successCreateCal),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(useTestCalendar()),
+            prints(successUseCal),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event Weekly Sync from 2025-06-02T09:00 to 2025-06-02T10:00 " +
+                    "repeats M for 2 times\n"),
+            prints(successCreateSeries),
+            prints(getExpectedEnterCommandPrompt()),
+            // Edit only the first instance (on 2025-06-02)
+            inputs("edit event subject Weekly Sync from 2025-06-02T09:00 to 2025-06-02T10:00 " +
+                    "with Important Sync\n"),
+            prints(successEdit),
+            prints(getExpectedEnterCommandPrompt()),
+            // Print the first Monday to see the change
+            inputs("print events on 2025-06-02\n"),
+            prints(firstMondayEvents),
+            prints(getExpectedEnterCommandPrompt()),
+            // Print the second Monday to see it's unchanged
+            inputs("print events on 2025-06-09\n"),
+            prints(secondMondayEvents),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testEditCalendarTimezoneDoesNotAlterExistingEventTimes() throws CalendarException {
+    String eventInPST = "Event 'Conference' on 2025-11-03 from 11:00 to 12:00"
+            + System.lineSeparator();
+    String eventInEST = "Event 'Conference' on 2025-11-03 from 11:00 to 12:00"
+            + System.lineSeparator();
+
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            // create a source calendar in New York time (EST)
+            inputs("create calendar --name NY_Calendar --timezone America/New_York\n"),
+            prints(printCalendarCreated("NY_Calendar", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            // create a target calendar in Los Angeles time (PST)
+            inputs("create calendar --name LA_Calendar --timezone America/Los_Angeles\n"),
+            prints(printCalendarCreated("LA_Calendar", "America/Los_Angeles")),
+            prints(getExpectedEnterCommandPrompt()),
+            // use the source calendar and create an event at 2 PM New York time
+            inputs("use calendar --name NY_Calendar\n"),
+            prints(printCalendarInUse("NY_Calendar")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event Conference from 2025-11-03T14:00 to 2025-11-03T15:00\n"),
+            prints(getSuccessfulEventMessage("Conference",
+                    LocalDateTime.of(2025, 11, 3, 14, 0),
+                    LocalDateTime.of(2025, 11, 3, 15, 0))),
+            prints(getExpectedEnterCommandPrompt()),
+            // copy the event to the LA calendar. 2 PM EST should become 11 AM PST.
+            inputs("copy event Conference on 2025-11-03T14:00 --target LA_Calendar to 2025-11-03T11:00\n"),
+            prints("Copied event 'Conference' to calendar 'LA_Calendar' on '2025-11-03T11:00'."
+                    + System.lineSeparator()),
+            prints(getExpectedEnterCommandPrompt()),
+            // use the LA calendar and print the event to verify it's at 11 AM PST
+            inputs("use calendar --name LA_Calendar\n"),
+            prints(printCalendarInUse("LA_Calendar")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("print events on 2025-11-03\n"),
+            prints(getPrintOnDateMessage(LocalDate.of(2025, 11, 3), eventInPST)),
+            prints(getExpectedEnterCommandPrompt()),
+            // edit the LA calendar's timezone to be New York time
+            inputs("edit calendar --name LA_Calendar --property timezone America/New_York\n"),
+            prints(getSuccessfulCalendarEditMessage(
+                    "LA_Calendar", "TIMEZONE", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            // print events in the now-EST LA_Calendar again.
+            inputs("print events on 2025-11-03\n"),
+            prints(getPrintOnDateMessage(LocalDate.of(2025, 11, 3), eventInEST)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testCopyCommandWithoutActiveCalendar() throws CalendarException {
+    String errorMessage = "No calendar currently in use.\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name targetCal --timezone America/New_York\n"),
+            prints(printCalendarCreated("targetCal", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            // Attempt to copy without 'use' command first
+            inputs("copy event MyEvent on 2025-01-01T10:00 --target targetCal to 2025-02-01T10:00\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testCopyEventSuccessDifferentTimezone() throws CalendarException {
+    // 2 PM in New York (EST, UTC-5) is 11 AM in Los Angeles (PST, UTC-8) on this date
+    String eventInTargetCal = "Event 'Conference' on 2025-11-03 from 11:00 to 12:00"
+            + System.lineSeparator();
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name NY_Cal --timezone America/New_York\n"),
+            prints(printCalendarCreated("NY_Cal", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name LA_Cal --timezone America/Los_Angeles\n"),
+            prints(printCalendarCreated("LA_Cal", "America/Los_Angeles")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("use calendar --name NY_Cal\n"),
+            prints(printCalendarInUse("NY_Cal")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event Conference from 2025-11-03T14:00 to 2025-11-03T15:00\n"),
+            prints(getSuccessfulEventMessage("Conference",
+                    LocalDateTime.of(2025, 11, 3, 14, 0),
+                    LocalDateTime.of(2025, 11, 3, 15, 0))),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("copy event Conference on 2025-11-03T14:00 --target LA_Cal to 2025-11-03T11:00\n"),
+            prints(getSuccessfulCopyEventMessage("Conference", "LA_Cal",
+                    LocalDateTime.of(2025, 11, 3, 11, 0))),
+            prints(getExpectedEnterCommandPrompt()),
+            // Switch to target calendar and print to verify
+            inputs("use calendar --name LA_Cal\n"),
+            prints(printCalendarInUse("LA_Cal")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("print events on 2025-11-03\n"),
+            prints(getPrintOnDateMessage(LocalDate.of(2025, 11, 3), eventInTargetCal)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testCopyEventsOnDateSuccess() throws CalendarException {
+    String eventListInTarget = "Event 'Event 1' on 2026-01-10 from 08:00 to 17:00"
+            + System.lineSeparator();
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name Source --timezone UTC\n"),
+            prints(printCalendarCreated("Source", "UTC")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name Target --timezone UTC\n"),
+            prints(printCalendarCreated("Target", "UTC")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("use calendar --name Source\n"),
+            prints(printCalendarInUse("Source")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event Event 1 on 2025-12-25\n"),
+            prints(getSuccessfulAllDayMessage("Event 1", LocalDate.of(2025,12,25))),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("copy events on 2025-12-25 --target Target to 2026-01-10\n"),
+            prints(getSuccessfulCopyEventsOnDateMessage(LocalDate.of(2025,12,25), "Target", LocalDate.of(2026,1,10))),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("use calendar --name Target\n"),
+            prints(printCalendarInUse("Target")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("print events on 2026-01-10\n"),
+            prints(getPrintOnDateMessage(LocalDate.of(2026, 1, 10), eventListInTarget)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testCopyEventsBetweenDatesSuccess() throws CalendarException {
+    String eventListInTarget = "Event 'Meeting' on 2026-02-02 from 09:00 to 10:00"
+            + System.lineSeparator();
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name Source --timezone UTC\n"),
+            prints(printCalendarCreated("Source", "UTC")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name Target --timezone UTC\n"),
+            prints(printCalendarCreated("Target", "UTC")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("use calendar --name Source\n"),
+            prints(printCalendarInUse("Source")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event Meeting from 2025-01-02T09:00 to 2025-01-02T10:00\n"),
+            prints(getSuccessfulEventMessage("Meeting", LocalDateTime.of(2025,1,2,9,0),
+                    LocalDateTime.of(2025,1,2,10,0))),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("copy events between 2025-01-01 and 2025-01-31 --target Target to 2026-02-01\n"),
+            prints(getSuccessfulCopyEventsBetweenMessage(LocalDate.of(2025,1,1),
+                    LocalDate.of(2025,1,31), "Target", LocalDate.of(2026,2,1))),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("use calendar --name Target\n"),
+            prints(printCalendarInUse("Target")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("print events on 2026-02-02\n"), // 2025-01-02 is shifted to 2026-02-02
+            prints(getPrintOnDateMessage(LocalDate.of(2026, 2, 2), eventListInTarget)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testCopyEventTargetCalendarNotFound() throws CalendarException {
+    String errorMessage = "Target calendar not found: FakeCalendar\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name Source --timezone UTC\n"),
+            prints(printCalendarCreated("Source", "UTC")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("use calendar --name Source\n"),
+            prints(printCalendarInUse("Source")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("copy event MyEvent on 2025-01-01T10:00 --target FakeCalendar" +
+                    " to 2025-02-01T10:00\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testCopyEventSourceEventNotFound() throws CalendarException {
+    String errorMessage = "Event not found: FakeEvent starting at 2025-01-01T10:00\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name Source --timezone UTC\n"),
+            prints(printCalendarCreated("Source", "UTC")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name Target --timezone UTC\n"),
+            prints(printCalendarCreated("Target", "UTC")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("use calendar --name Source\n"),
+            prints(printCalendarInUse("Source")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("copy event FakeEvent on 2025-01-01T10:00 --target Target to" +
+                    " 2025-02-01T10:00\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testCopyEventsBetweenInvalidDateRange() throws CalendarException {
+    String errorMessage = "Start date cannot be after end date\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name Source --timezone UTC\n"),
+            prints(printCalendarCreated("Source", "UTC")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name Target --timezone UTC\n"),
+            prints(printCalendarCreated("Target", "UTC")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("use calendar --name Source\n"),
+            prints(printCalendarInUse("Source")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("copy events between 2025-02-01 and 2025-01-01 " +
+                    "--target Target to 2026-01-01\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testCopyMissingEventOrEventsKeyword() throws CalendarException {
+    String errorMessage = "No input after 'copy'\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(useTestCalendar()),
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("copy\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testCopyEventMissingArgumentsAfterOn() throws CalendarException {
+    String errorMessage = "Expected '--target' after <dateStringTtimeString>.\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(useTestCalendar()),
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("copy event MyEvent on 2025-01-01T10:00\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testCopyEventWithInvalidSourceTimeFormat() throws CalendarException {
+    String errorMessage = "Invalid date format for <dateStringTtimeString>. Expected YYYY-MM-DDThh:mm\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(useTestCalendar()),
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("copy event MyEvent on 2025/01/01 --target test to 2025-02-01T10:00\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testCopyEventsOnWithNoEvents() throws CalendarException {
+    String successMessage = "Copied events on '2025-12-25' to calendar 'Target' on '2026-01-10'."
+            + System.lineSeparator();
+    String printNoEvents = "Printing events on 2026-01-10." + System.lineSeparator()
+            + "No events found" + System.lineSeparator();
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name Source --timezone UTC\n"),
+            prints(printCalendarCreated("Source", "UTC")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name Target --timezone UTC\n"),
+            prints(printCalendarCreated("Target", "UTC")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("use calendar --name Source\n"),
+            prints(printCalendarInUse("Source")),
+            prints(getExpectedEnterCommandPrompt()),
+            // Try to copy from a date with no events
+            inputs("copy events on 2025-12-25 --target Target to 2026-01-10\n"),
+            prints(successMessage), // The operation succeeds but copies nothing
+            prints(getExpectedEnterCommandPrompt()),
+            // Verify by printing from target
+            inputs("use calendar --name Target\n"),
+            prints(printCalendarInUse("Target")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("print events on 2026-01-10\n"),
+            prints(printNoEvents),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+
 }
+
 
 
 
