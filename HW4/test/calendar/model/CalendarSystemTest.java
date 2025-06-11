@@ -582,8 +582,10 @@ public class CalendarSystemTest {
     system.copyEvent("Meeting", eventStart, "Source", targetStart);
 
     // Verify both events exist
-    List<Event> events15 = calendar.getEventsList(LocalDate.of(2024, 1, 15));
-    List<Event> events16 = calendar.getEventsList(LocalDate.of(2024, 1, 16));
+    List<Event> events15 = calendar.getEventsList(LocalDate.of(2024, 1,
+            15));
+    List<Event> events16 = calendar.getEventsList(LocalDate.of(2024, 1,
+            16));
 
     assertEquals(1, events15.size());
     assertEquals(1, events16.size());

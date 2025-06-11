@@ -2,7 +2,6 @@ package calendar.model;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -10,8 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 
 import calendar.CalendarException;
 
@@ -37,7 +34,8 @@ public class CalendarSystem implements ICalendarSystem {
    *
    * @param name     the name of the calendar to create.
    * @param timezone the timezone for the new calendar.
-   * @throws CalendarException if the calendar name is empty or already exists, or if the timezone is invalid.
+   * @throws CalendarException if the calendar name is empty or already exists,
+   *         or if the timezone is invalid.
    */
   @Override
   public void createCalendar(String name, ZoneId timezone) throws CalendarException {
@@ -224,7 +222,8 @@ public class CalendarSystem implements ICalendarSystem {
 
     Event sourceEvent = events.get(0);
 
-    // Convert target time from target calendar's timezone to source calendar's timezone for duration calculation
+    // Convert target time from target calendar's timezone to
+    // source calendar's timezone for duration calculation
     ZonedDateTime sourceZoned = sourceTime.atZone(currentCalendar.getTimezone());
     ZonedDateTime targetZoned = targetTime.atZone(targetCalendar.getTimezone());
 
@@ -274,8 +273,10 @@ public class CalendarSystem implements ICalendarSystem {
       ZonedDateTime sourceStartZoned = sourceStart.atZone(currentCalendar.getTimezone());
       ZonedDateTime sourceEndZoned = sourceEnd.atZone(currentCalendar.getTimezone());
 
-      ZonedDateTime targetStartZoned = sourceStartZoned.withZoneSameInstant(targetCalendar.getTimezone());
-      ZonedDateTime targetEndZoned = sourceEndZoned.withZoneSameInstant(targetCalendar.getTimezone());
+      ZonedDateTime targetStartZoned =
+              sourceStartZoned.withZoneSameInstant(targetCalendar.getTimezone());
+      ZonedDateTime targetEndZoned =
+              sourceEndZoned.withZoneSameInstant(targetCalendar.getTimezone());
 
       // Adjust for target date
       LocalDateTime targetStart = targetDate.atTime(targetStartZoned.toLocalTime());
@@ -290,7 +291,8 @@ public class CalendarSystem implements ICalendarSystem {
         targetCalendar.createEvent(sourceEvent.getSubject(), targetStart, targetEnd);
       } catch (CalendarException e) {
         // Continue with other events if one fails
-        System.err.println("Failed to copy event '" + sourceEvent.getSubject() + "': " + e.getMessage());
+        System.err.println("Failed to copy event '"
+                + sourceEvent.getSubject() + "': " + e.getMessage());
       }
     }
   }
@@ -343,11 +345,15 @@ public class CalendarSystem implements ICalendarSystem {
 
       // Convert timezone if different calendars
       if (!currentCalendar.getTimezone().equals(targetCalendar.getTimezone())) {
-        ZonedDateTime sourceStartZoned = sourceEvent.getStart().atZone(currentCalendar.getTimezone());
-        ZonedDateTime sourceEndZoned = sourceEvent.getEnd().atZone(currentCalendar.getTimezone());
+        ZonedDateTime sourceStartZoned =
+                sourceEvent.getStart().atZone(currentCalendar.getTimezone());
+        ZonedDateTime sourceEndZoned =
+                sourceEvent.getEnd().atZone(currentCalendar.getTimezone());
 
-        ZonedDateTime targetStartZoned = sourceStartZoned.withZoneSameInstant(targetCalendar.getTimezone());
-        ZonedDateTime targetEndZoned = sourceEndZoned.withZoneSameInstant(targetCalendar.getTimezone());
+        ZonedDateTime targetStartZoned =
+                sourceStartZoned.withZoneSameInstant(targetCalendar.getTimezone());
+        ZonedDateTime targetEndZoned =
+                sourceEndZoned.withZoneSameInstant(targetCalendar.getTimezone());
 
         newStart = newStartDate.atTime(targetStartZoned.toLocalTime());
         newEnd = newEndDate.atTime(targetEndZoned.toLocalTime());
