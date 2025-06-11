@@ -33,8 +33,6 @@ public class CalendarSystemTest {
     system = new CalendarSystem();
   }
 
-  // ==================== Calendar Creation Tests ====================
-
   @Test
   public void testCreateCalendarSuccess() throws CalendarException {
     system.createCalendar("Work", EST);
@@ -95,8 +93,6 @@ public class CalendarSystemTest {
     List<String> names = system.getCalendarNames();
     assertTrue(names.contains("Work Calendar"));
   }
-
-  // ==================== Calendar Editing Tests ====================
 
   @Test
   public void testEditCalendarName() throws CalendarException {
@@ -171,8 +167,6 @@ public class CalendarSystemTest {
     assertNotNull(system.getCurrentCalendar());
   }
 
-  // ==================== Calendar Usage Tests ====================
-
   @Test
   public void testUseCalendar() throws CalendarException {
     system.createCalendar("Work", EST);
@@ -204,8 +198,6 @@ public class CalendarSystemTest {
     assertNull(system.getCurrentCalendar());
     assertNull(system.getCurrentCalendarName());
   }
-
-  // ==================== Calendar Retrieval Tests ====================
 
   @Test
   public void testGetCalendar() throws CalendarException {
@@ -258,8 +250,6 @@ public class CalendarSystemTest {
     assertEquals(2, names3.size());
   }
 
-  // ==================== Event Copying Tests ====================
-
   @Test
   public void testCopyEventBetweenCalendars() throws CalendarException {
     // Setup calendars
@@ -269,23 +259,28 @@ public class CalendarSystemTest {
     // Use source calendar and create event
     system.useCalendar("Source");
     ICalendar sourceCalendar = system.getCurrentCalendar();
-    LocalDateTime eventStart = LocalDateTime.of(2024, 1, 15, 10, 0);
-    LocalDateTime eventEnd = LocalDateTime.of(2024, 1, 15, 11, 0);
+    LocalDateTime eventStart = LocalDateTime.of(2024, 1, 15, 10,
+            0);
+    LocalDateTime eventEnd = LocalDateTime.of(2024, 1, 15, 11,
+            0);
     sourceCalendar.createEvent("Meeting", eventStart, eventEnd);
 
     // Copy event to target calendar (source calendar is current)
-    LocalDateTime targetStart = LocalDateTime.of(2024, 1, 20, 14, 0);
+    LocalDateTime targetStart = LocalDateTime.of(2024, 1, 20, 14,
+            0);
     system.copyEvent("Meeting", eventStart, "Target", targetStart);
 
     // Verify event was copied
     ICalendar targetCalendar = system.getCalendar("Target");
-    List<Event> targetEvents = targetCalendar.getEventsList(LocalDate.of(2024, 1, 20));
+    List<Event> targetEvents = targetCalendar.getEventsList(LocalDate.of(2024, 1,
+            20));
     assertEquals(1, targetEvents.size());
     assertEquals("Meeting", targetEvents.get(0).getSubject());
     assertEquals(targetStart, targetEvents.get(0).getStart());
 
     // Verify original event still exists
-    List<Event> sourceEvents = sourceCalendar.getEventsList(LocalDate.of(2024, 1, 15));
+    List<Event> sourceEvents = sourceCalendar.getEventsList(LocalDate.of(2024, 1,
+            15));
     assertEquals(1, sourceEvents.size());
     assertEquals("Meeting", sourceEvents.get(0).getSubject());
   }
@@ -299,17 +294,21 @@ public class CalendarSystemTest {
     ICalendar sourceCalendar = system.getCurrentCalendar();
 
     // Create event with 2-hour duration
-    LocalDateTime eventStart = LocalDateTime.of(2024, 1, 15, 10, 0);
-    LocalDateTime eventEnd = LocalDateTime.of(2024, 1, 15, 12, 0);
+    LocalDateTime eventStart = LocalDateTime.of(2024, 1, 15, 10,
+            0);
+    LocalDateTime eventEnd = LocalDateTime.of(2024, 1, 15, 12,
+            0);
     sourceCalendar.createEvent("Long Meeting", eventStart, eventEnd);
 
     // Copy to target calendar
-    LocalDateTime targetStart = LocalDateTime.of(2024, 1, 20, 14, 0);
+    LocalDateTime targetStart = LocalDateTime.of(2024, 1, 20, 14,
+            0);
     system.copyEvent("Long Meeting", eventStart, "Target", targetStart);
 
     // Verify duration is preserved (2 hours)
     ICalendar targetCalendar = system.getCalendar("Target");
-    List<Event> targetEvents = targetCalendar.getEventsList(LocalDate.of(2024, 1, 20));
+    List<Event> targetEvents = targetCalendar.getEventsList(LocalDate.of(2024, 1,
+            20));
     assertEquals(1, targetEvents.size());
 
     Event copiedEvent = targetEvents.get(0);
@@ -320,8 +319,10 @@ public class CalendarSystemTest {
   @Test(expected = CalendarException.class)
   public void testCopyEventWithoutCurrentCalendar() throws CalendarException {
     system.createCalendar("Target", PST);
-    LocalDateTime eventStart = LocalDateTime.of(2024, 1, 15, 10, 0);
-    LocalDateTime targetStart = LocalDateTime.of(2024, 1, 20, 14, 0);
+    LocalDateTime eventStart = LocalDateTime.of(2024, 1, 15, 10,
+            0);
+    LocalDateTime targetStart = LocalDateTime.of(2024, 1, 20, 14,
+            0);
     system.copyEvent("Meeting", eventStart, "Target", targetStart);
   }
 
@@ -330,8 +331,10 @@ public class CalendarSystemTest {
     system.createCalendar("Source", EST);
     system.useCalendar("Source");
 
-    LocalDateTime eventStart = LocalDateTime.of(2024, 1, 15, 10, 0);
-    LocalDateTime targetStart = LocalDateTime.of(2024, 1, 20, 14, 0);
+    LocalDateTime eventStart = LocalDateTime.of(2024, 1, 15, 10,
+            0);
+    LocalDateTime targetStart = LocalDateTime.of(2024, 1, 20, 14,
+            0);
     system.copyEvent("Meeting", eventStart, "NonExistent", targetStart);
   }
 
@@ -341,8 +344,10 @@ public class CalendarSystemTest {
     system.createCalendar("Target", PST);
     system.useCalendar("Source");
 
-    LocalDateTime eventStart = LocalDateTime.of(2024, 1, 15, 10, 0);
-    LocalDateTime targetStart = LocalDateTime.of(2024, 1, 20, 14, 0);
+    LocalDateTime eventStart = LocalDateTime.of(2024, 1, 15, 10,
+            0);
+    LocalDateTime targetStart = LocalDateTime.of(2024, 1, 20, 14,
+            0);
     system.copyEvent("NonExistent", eventStart, "Target", targetStart);
   }
 
@@ -391,15 +396,18 @@ public class CalendarSystemTest {
     ICalendar estCalendar = system.getCurrentCalendar();
 
     // Create event at 3 PM EST
-    LocalDateTime eventTime = LocalDateTime.of(2024, 1, 15, 15, 0);
+    LocalDateTime eventTime = LocalDateTime.of(2024, 1, 15, 15,
+            0);
     estCalendar.createEvent("Meeting", eventTime, eventTime.plusHours(1));
 
     // Copy to UTC calendar
-    system.copyEventsOnDate(LocalDate.of(2024, 1, 15), "UTC_Cal", LocalDate.of(2024, 1, 15));
+    system.copyEventsOnDate(LocalDate.of(2024, 1, 15),
+            "UTC_Cal", LocalDate.of(2024, 1, 15));
 
     // Verify event exists in UTC calendar
     ICalendar utcCalendar = system.getCalendar("UTC_Cal");
-    List<Event> utcEvents = utcCalendar.getEventsList(LocalDate.of(2024, 1, 15));
+    List<Event> utcEvents = utcCalendar.getEventsList(LocalDate.of(2024, 1,
+            15));
     assertEquals(1, utcEvents.size());
     assertEquals("Meeting", utcEvents.get(0).getSubject());
   }
@@ -434,9 +442,12 @@ public class CalendarSystemTest {
 
     // Verify events were copied with correct date offset
     ICalendar targetCalendar = system.getCalendar("Target");
-    List<Event> targetEvents1 = targetCalendar.getEventsList(LocalDate.of(2024, 2, 1));
-    List<Event> targetEvents2 = targetCalendar.getEventsList(LocalDate.of(2024, 2, 2));
-    List<Event> targetEvents3 = targetCalendar.getEventsList(LocalDate.of(2024, 2, 3));
+    List<Event> targetEvents1 = targetCalendar.getEventsList(LocalDate.of(2024, 2,
+            1));
+    List<Event> targetEvents2 = targetCalendar.getEventsList(LocalDate.of(2024, 2,
+            2));
+    List<Event> targetEvents3 = targetCalendar.getEventsList(LocalDate.of(2024, 2,
+            3));
 
     assertEquals(1, targetEvents1.size());
     assertEquals(1, targetEvents2.size());
@@ -469,8 +480,6 @@ public class CalendarSystemTest {
     system.copyEventsBetweenDates(startDate, endDate, "Target", targetStartDate);
   }
 
-  // ==================== Integration Tests ====================
-
   @Test
   public void testCompleteWorkflow() throws CalendarException {
     // Create multiple calendars
@@ -496,7 +505,8 @@ public class CalendarSystemTest {
 
     // Verify event was copied
     ICalendar personalCalendar = system.getCurrentCalendar();
-    List<Event> personalEvents = personalCalendar.getEventsList(LocalDate.of(2024, 1, 16));
+    List<Event> personalEvents = personalCalendar.getEventsList(LocalDate.of(2024, 1,
+            16));
     assertEquals(1, personalEvents.size());
     assertEquals("Daily Standup", personalEvents.get(0).getSubject());
 
@@ -520,20 +530,21 @@ public class CalendarSystemTest {
     // Create event in EST calendar
     system.useCalendar("EST_Cal");
     ICalendar estCalendar = system.getCurrentCalendar();
-    LocalDateTime eventTime = LocalDateTime.of(2024, 1, 15, 15, 0); // 3 PM EST
+    LocalDateTime eventTime = LocalDateTime.of(2024, 1, 15, 15,
+            0);
     estCalendar.createEvent("Conference Call", eventTime, eventTime.plusHours(1));
 
     // Copy to PST calendar on same date
-    system.copyEventsOnDate(LocalDate.of(2024, 1, 15), "PST_Cal", LocalDate.of(2024, 1, 15));
+    system.copyEventsOnDate(LocalDate.of(2024, 1, 15),
+            "PST_Cal", LocalDate.of(2024, 1, 15));
 
     // Verify event exists in PST calendar
     ICalendar pstCalendar = system.getCalendar("PST_Cal");
-    List<Event> pstEvents = pstCalendar.getEventsList(LocalDate.of(2024, 1, 15));
+    List<Event> pstEvents = pstCalendar.getEventsList(LocalDate.of(2024, 1,
+            15));
     assertEquals(1, pstEvents.size());
     assertEquals("Conference Call", pstEvents.get(0).getSubject());
   }
-
-  // ==================== Edge Case Tests ====================
 
   @Test
   public void testCopyEmptyDateRange() throws CalendarException {
@@ -550,7 +561,8 @@ public class CalendarSystemTest {
 
     // Verify no events were copied
     ICalendar targetCalendar = system.getCalendar("Target");
-    List<Event> targetEvents = targetCalendar.getEventsList(LocalDate.of(2024, 2, 1));
+    List<Event> targetEvents = targetCalendar.getEventsList(LocalDate.of(2024, 2,
+            1));
     assertTrue(targetEvents.isEmpty());
   }
 
@@ -560,11 +572,13 @@ public class CalendarSystemTest {
     system.useCalendar("Source");
 
     ICalendar calendar = system.getCurrentCalendar();
-    LocalDateTime eventStart = LocalDateTime.of(2024, 1, 15, 10, 0);
+    LocalDateTime eventStart = LocalDateTime.of(2024, 1, 15, 10,
+            0);
     calendar.createEvent("Meeting", eventStart, eventStart.plusHours(1));
 
     // Copy event to same calendar but different time
-    LocalDateTime targetStart =  LocalDateTime.of(2024, 1, 16, 14, 0);
+    LocalDateTime targetStart =  LocalDateTime.of(2024, 1, 16, 14,
+            0);
     system.copyEvent("Meeting", eventStart, "Source", targetStart);
 
     // Verify both events exist
