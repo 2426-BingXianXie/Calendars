@@ -1,13 +1,15 @@
 # Virtual Calendar Application
-A command-line calendar application that mimics features found in widely-used 
+A command-line multi-calendar application that mimics features found in widely-used 
 calendar apps such as Google Calendar. The application supports both single 
-events and recurring event series with comprehensive editing capabilities.
+events and recurring event series with comprehensive editing capabilities. 
+The application also supports the use of multiple calendars, with the ability to 
+switch between and edit calendars, as well as support for specific timezone implementation.
 
 # Work Distribution
 ## Joshua Chan
 - Setup a basic structure of files
 - revised the methods and debugged for better development
-- Mostly Controller, Enum property, Command Patterns package
+- Mostly Controller, View, Enum property, Command Patterns package
 - Testing Controller packages, figure out the usage of mocks
 
 
@@ -45,6 +47,10 @@ java -cp out calendar.CalendarRunner --mode headless res/valid_commands.txt
 - Program will display error if file doesn't end with exit
 
 ## Example Commands
+
+#### Create Calendar
+create calendar --name "Work Calendar" --timezone America/New_York
+
 #### Single event
 create event "Team Meeting" from 2025-06-04T09:00 to 2025-06-04T10:00
 
@@ -58,6 +64,7 @@ create event "Weekly Standup" from 2025-06-02T09:00 to 2025-06-02T10:00 repeats 
 create event "Daily Workout" on 2025-06-01 repeats MTWRFSU until 2025-06-30
 
 ## Feature
+
 ### Event Management
 
 Single Event Creation: Create individual events with start/end times
@@ -80,6 +87,18 @@ Series Editing: Three modes of series editing:
 Property Support: Edit subject, start time, end time, description, location, status
 Series Membership: Events automatically break from series when start/end times are individually modified
 Conflict Prevention: Editing validates against existing events to prevent duplicates
+
+### Calendar Management
+
+Single Calendar Creation: Create calendars with a name and
+timezone. Comprehensive Validation: Prevents duplicate calendars,
+validates timezone formats (Area/Location)
+
+Calendar Editing: Modify either the name or timezone of a calendar.
+
+Calendar Copying: Copy an event or events on a specific date, or between
+two dates from one calendar to another.
+
 
 ### Querying & Display
 
@@ -110,11 +129,6 @@ Help System: Built-in menu system with command examples
 - Location details are supported but display formatting is basic
 - No validation for location detail format or content
 
-### Time Zone Support
-
-- Application assumes EST timezone as specified in requirements
-- No multi-timezone support or daylight saving time handling
-
 ### Series Constraints
 
 - Individual events in a series must start and end on the same day
@@ -127,6 +141,7 @@ Help System: Built-in menu system with command examples
 - MVC Pattern: Clean separation between Model, View, and Controller
 - Command Pattern: Each command type implemented as separate class
 - Interface-based Design: Extensible architecture using interfaces
+- Decorator Pattern: NamedCalendar class decorates a VirtualCalendar to add a new state while reusing the existing event management functionality.
 
 ### Data Structures
 
@@ -140,7 +155,6 @@ Help System: Built-in menu system with command examples
 - Graceful Error Recovery: Application continues after command errors
 - Clear Error Messages: Specific feedback for different error types
 
-## Command Reference
 ### Date/Time Formats
 
 - Date: YYYY-MM-DD (e.g., 2025-06-04)

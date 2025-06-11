@@ -1,3 +1,5 @@
+create calendar --name test --timezone America/New_York
+use calendar --name test
 create event "Meeting" from invalid-date to 2025-06-04T10:00
 create event from 2025-06-04T09:00 to 2025-06-04T10:00
 print events invalid-date
