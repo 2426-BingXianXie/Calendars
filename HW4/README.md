@@ -32,6 +32,11 @@ cd path/to/your/project
 javac -d out -cp src src/calendar/*.java src/calendar/*/*.java src/calendar/*/*/*.java
 
 ## Running the Application
+
+### Jar
+- java -jar res/group.jar --mode interactive
+- java -jar res/group.jar --mode headless with a valid command file followed
+
 ### Interactive Mode
 java -cp out calendar.CalendarRunner --mode interactive
 
