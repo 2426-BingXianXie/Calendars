@@ -120,7 +120,8 @@ public class ICalendarControllerTest {
        * @param date   The {@link LocalDate} for which the events are being displayed.
        * @throws IllegalStateException if an I/O error occurs while writing to the output.
        */
-      public void showCalendarEvents(List<IEvent> events, LocalDate date) throws IllegalStateException {
+      public void showCalendarEvents(List<IEvent> events, LocalDate date)
+              throws IllegalStateException {
         writeMessage("Printing events on " + date.toString() + "." + System.lineSeparator());
         printEvents(events);
       }
@@ -136,7 +137,8 @@ public class ICalendarControllerTest {
       @Override
       public void showCalendarEventsInDateRange(LocalDateTime start, LocalDateTime end,
                                                 List<IEvent> events) throws IllegalStateException {
-        writeMessage("Printing events from " + start + " to " + end + "." + System.lineSeparator());
+        writeMessage(
+                "Printing events from " + start + " to " + end + "." + System.lineSeparator());
         printEvents(events);
       }
 
@@ -199,7 +201,8 @@ public class ICalendarControllerTest {
         writeMessage("create calendar --name <calName> --timezone <area/location>" +
                 " (Create a new calendar with unique name and timezone)" + System.lineSeparator());
 
-        writeMessage("edit calendar --name <name-of-calendar> --property <property-name> <new-property-value>" +
+        writeMessage("edit calendar --name <name-of-calendar> " +
+                "--property <property-name> <new-property-value>" +
                 " (Modify calendar name or timezone)" + System.lineSeparator());
 
         writeMessage("use calendar --name <name-of-calendar>" +
@@ -212,7 +215,8 @@ public class ICalendarControllerTest {
        * Displays event management command options.
        */
       private void eventManagementOptions() throws IllegalStateException {
-        writeMessage("=== Event Management (requires active calendar) ===" + System.lineSeparator());
+        writeMessage("=== Event Management (requires active calendar) ===" +
+                System.lineSeparator());
 
         createOptions();
         editOptions();
@@ -231,13 +235,15 @@ public class ICalendarControllerTest {
       private void copyOptions() throws IllegalStateException {
         writeMessage("=== Copy Commands ===" + System.lineSeparator());
 
-        writeMessage("copy event <eventName> on <dateStringTtimeString> --target <calendarName> to <dateStringTtimeString>" +
+        writeMessage("copy event <eventName> on <dateStringTtimeString> --target <calendarName> " +
+                "to <dateStringTtimeString>" +
                 " (Copy single event to target calendar)" + System.lineSeparator());
 
         writeMessage("copy events on <dateString> --target <calendarName> to <dateString>" +
                 " (Copy all events on date to target calendar)" + System.lineSeparator());
 
-        writeMessage("copy events between <dateString> and <dateString> --target <calendarName> to <dateString>" +
+        writeMessage("copy events between <dateString> and <dateString> --target " +
+                "<calendarName> to <dateString>" +
                 " (Copy events in date range to target calendar)" + System.lineSeparator());
 
         writeMessage(System.lineSeparator());
@@ -253,7 +259,8 @@ public class ICalendarControllerTest {
         writeMessage("q or quit (Exit the program)" + System.lineSeparator());
 
         writeMessage(System.lineSeparator());
-        writeMessage("Note: Event operations require an active calendar. Use 'use calendar --name <name>' first." +
+        writeMessage("Note: Event operations require an active calendar. " +
+                "Use 'use calendar --name <name>' first." +
                 System.lineSeparator());
       }
 
@@ -282,7 +289,8 @@ public class ICalendarControllerTest {
                 "(Creates a single all day event.)"
                 + System.lineSeparator());
         // Option to create an all-day event series repeating N times.
-        writeMessage("create event <eventSubject> on <dateString> repeats <weekdays> for <N> times" +
+        writeMessage("create event <eventSubject> on <dateString> repeats <weekdays> for" +
+                " <N> times" +
                 "(Creates a series of all day events that repeats N times on specific weekdays)"
                 + System.lineSeparator());
         // Option to create an all-day event series repeating until a specific date.
@@ -302,7 +310,8 @@ public class ICalendarControllerTest {
         writeMessage("edit event <property> <eventSubject> from <dateStringTtimeString> to " +
                 "<dateStringTtimeString> with <NewPropertyValue>" +
                 "(Changes the property of the given event)." + System.lineSeparator());
-        // Option to edit properties of an event and subsequent events in its series from a given date.
+        // Option to edit properties of an event and subsequent events in
+        // its series from a given date.
         writeMessage("edit events <property> <eventSubject> from <dateStringTtimeString> " +
                 "with <NewPropertyValue>" +
                 "(Identify the event that has the given subject and starts at the given date " +
@@ -312,8 +321,9 @@ public class ICalendarControllerTest {
         // Option to edit properties of all events within an entire series.
         writeMessage("edit series <property> <eventSubject> from <dateStringTtimeString> " +
                 "with <NewPropertyValue>" +
-                "(Identify the event that has the given subject and starts at the given date and " +
-                "time and edit its property. If this event is part of a series then the properties " +
+                "(Identify the event that has the given subject and starts at the given date " +
+                "and " + "time and edit its property. If this event is part of a series " +
+                "then the " + "properties " +
                 "of all events in that series is changed)." + System.lineSeparator());
       }
 
@@ -329,7 +339,8 @@ public class ICalendarControllerTest {
                 "end time and location (if any))." + System.lineSeparator());
         // Option to print events within a specific date and time interval.
         writeMessage("print events from <dateStringTtimeString> to <dateStringTtimeString>" +
-                "(Prints a bulleted list of all events in the given interval including their start " +
+                "(Prints a bulleted list of all events in the given interval " +
+                "including their start " +
                 "and end times and location (if any))." + System.lineSeparator());
       }
     }
@@ -358,30 +369,72 @@ public class ICalendarControllerTest {
     sb.append("Supported user instructions are: ").append(System.lineSeparator());
 
     sb.append("=== Calendar Management ===").append(System.lineSeparator());
-    sb.append("create calendar --name <calName> --timezone <area/location> (Create a new calendar with unique name and timezone)").append(System.lineSeparator());
-    sb.append("edit calendar --name <name-of-calendar> --property <property-name> <new-property-value> (Modify calendar name or timezone)").append(System.lineSeparator());
-    sb.append("use calendar --name <name-of-calendar> (Set calendar context for event operations)").append(System.lineSeparator());
+    sb.append("create calendar --name <calName> --timezone <area/location> " +
+            "(Create a new calendar with unique name and timezone)")
+            .append(System.lineSeparator());
+    sb.append("edit calendar --name <name-of-calendar> --property <property-name> " +
+            "<new-property-value> (Modify calendar name or timezone)")
+            .append(System.lineSeparator());
+    sb.append("use calendar --name <name-of-calendar> (Set calendar context for event operations)")
+            .append(System.lineSeparator());
     sb.append(System.lineSeparator());
 
-    sb.append("=== Event Management (requires active calendar) ===").append(System.lineSeparator());
-    sb.append("create event <eventSubject> from <dateStringTtimeString> to <dateStringTtimeString> (Create a singular event)").append(System.lineSeparator());
-    sb.append("create event <eventSubject> from <dateStringTtimeString> to <dateStringTtimeString> repeats <weekdays> for <N> times (Creates an event series that repeats N times on specific weekdays)").append(System.lineSeparator());
-    sb.append("create event <eventSubject> from <dateStringTtimeString> to <dateStringTtimeString> repeats <weekdays> until <dateString> (Creates an event series until a specific date (inclusive))").append(System.lineSeparator());
-    sb.append("create event <eventSubject> on <dateString> (Creates a single all day event.)").append(System.lineSeparator());
-    sb.append("create event <eventSubject> on <dateString> repeats <weekdays> for <N> times(Creates a series of all day events that repeats N times on specific weekdays)").append(System.lineSeparator());
-    sb.append("create event <eventSubject> on <dateString> repeats <weekdays> until <dateString>(Creates a series of all day events until a specific date (inclusive).").append(System.lineSeparator());
-    sb.append("edit event <property> <eventSubject> from <dateStringTtimeString> to <dateStringTtimeString> with <NewPropertyValue>(Changes the property of the given event).").append(System.lineSeparator());
-    sb.append("edit events <property> <eventSubject> from <dateStringTtimeString> with <NewPropertyValue>(Identify the event that has the given subject and starts at the given date and time and edit its property. If this event is part of a series then the properties of all events in that series that start at or after the given date and time is changed).").append(System.lineSeparator());
-    sb.append("edit series <property> <eventSubject> from <dateStringTtimeString> with <NewPropertyValue>(Identify the event that has the given subject and starts at the given date and time and edit its property. If this event is part of a series then the properties of all events in that series is changed).").append(System.lineSeparator());
-    sb.append("print events on <dateString>(Prints a bulleted list of all events on that day along with their start and end time and location (if any)).").append(System.lineSeparator());
-    sb.append("print events from <dateStringTtimeString> to <dateStringTtimeString>(Prints a bulleted list of all events in the given interval including their start and end times and location (if any)).").append(System.lineSeparator());
-    sb.append("show status on <dateStringTtimeString> (Check if user is busy at specified date/time)").append(System.lineSeparator());
+    sb.append("=== Event Management (requires active calendar) ===")
+            .append(System.lineSeparator());
+    sb.append("create event <eventSubject> from <dateStringTtimeString> to " +
+            "<dateStringTtimeString> (Create a singular event)").append(System.lineSeparator());
+    sb.append("create event <eventSubject> from <dateStringTtimeString> to" +
+            " <dateStringTtimeString> repeats <weekdays> for <N> times " +
+            "(Creates an event series that repeats N times on specific " +
+            "weekdays)").append(System.lineSeparator());
+    sb.append("create event <eventSubject> from <dateStringTtimeString>" +
+            " to <dateStringTtimeString> repeats <weekdays> until" +
+            " <dateString> (Creates an event series until a specific" +
+            " date (inclusive))").append(System.lineSeparator());
+    sb.append("create event <eventSubject> on <dateString> " +
+            "(Creates a single all day event.)").append(System.lineSeparator());
+    sb.append("create event <eventSubject> on <dateString> " +
+            "repeats <weekdays> for <N> times(Creates a series of " +
+            "all day events that repeats N times on specific weekdays)")
+            .append(System.lineSeparator());
+    sb.append("create event <eventSubject> on <dateString> repeats" +
+            " <weekdays> until <dateString>(Creates a series of all day " +
+            "events until a specific date (inclusive).").append(System.lineSeparator());
+    sb.append("edit event <property> <eventSubject> from <dateStringTtimeString> " +
+            "to <dateStringTtimeString> with <NewPropertyValue>(Changes the" +
+            " property of the given event).").append(System.lineSeparator());
+    sb.append("edit events <property> <eventSubject> from <dateStringTtimeString> " +
+            "with <NewPropertyValue>(Identify the event that has the given subject " +
+            "and starts at the given date and time and edit its property. If this " +
+            "event is part of a series then the properties of all events in that " +
+            "series that start at or after the given date and time is changed).")
+            .append(System.lineSeparator());
+    sb.append("edit series <property> <eventSubject> from <dateStringTtimeString> " +
+            "with <NewPropertyValue>(Identify the event that has the given subject " +
+            "and starts at the given date and time and edit its property. If this " +
+            "event is part of a series then the properties of all events in that " +
+            "series is changed).").append(System.lineSeparator());
+    sb.append("print events on <dateString>(Prints a bulleted list of all events " +
+            "on that day along with their start and end time and location " +
+            "(if any)).").append(System.lineSeparator());
+    sb.append("print events from <dateStringTtimeString> to <dateStringTtimeString>" +
+            "(Prints a bulleted list of all events in the given interval " +
+            "including their start and end times and location (if any)).")
+            .append(System.lineSeparator());
+    sb.append("show status on <dateStringTtimeString> (Check if user is" +
+            " busy at specified date/time)").append(System.lineSeparator());
     sb.append(System.lineSeparator());
 
     sb.append("=== Copy Commands ===").append(System.lineSeparator());
-    sb.append("copy event <eventName> on <dateStringTtimeString> --target <calendarName> to <dateStringTtimeString> (Copy single event to target calendar)").append(System.lineSeparator());
-    sb.append("copy events on <dateString> --target <calendarName> to <dateString> (Copy all events on date to target calendar)").append(System.lineSeparator());
-    sb.append("copy events between <dateString> and <dateString> --target <calendarName> to <dateString> (Copy events in date range to target calendar)").append(System.lineSeparator());
+    sb.append("copy event <eventName> on <dateStringTtimeString> --target " +
+            "<calendarName> to <dateStringTtimeString> (Copy single event to" +
+            " target calendar)").append(System.lineSeparator());
+    sb.append("copy events on <dateString> --target <calendarName> to " +
+            "<dateString> (Copy all events on date to target calendar)")
+            .append(System.lineSeparator());
+    sb.append("copy events between <dateString> and <dateString> --target" +
+            " <calendarName> to <dateString> (Copy events in date range to" +
+            " target calendar)").append(System.lineSeparator());
     sb.append(System.lineSeparator());
 
     sb.append("=== Utility Commands ===").append(System.lineSeparator());
@@ -389,7 +442,8 @@ public class ICalendarControllerTest {
     sb.append("q or quit (Exit the program)").append(System.lineSeparator());
     sb.append(System.lineSeparator());
 
-    sb.append("Note: Event operations require an active calendar. Use 'use calendar --name <name>' first.").append(System.lineSeparator());
+    sb.append("Note: Event operations require an active calendar. " +
+            "Use 'use calendar --name <name>' first.").append(System.lineSeparator());
 
     return sb.toString();
   }
@@ -432,7 +486,8 @@ public class ICalendarControllerTest {
   }
 
   private static String getPrintOnDateMessage(LocalDate date, String eventListString) {
-    return "Printing events on " + date.toString() + "." + System.lineSeparator() + eventListString;
+    return "Printing events on " + date.toString() + "." + System.lineSeparator()
+            + eventListString;
   }
 
   private static String getNoEventsFoundMessage(LocalDate date) {
@@ -450,7 +505,8 @@ public class ICalendarControllerTest {
             + System.lineSeparator();
   }
 
-  private static String getSuccessfulEditMessage(String subject, String property, String newValue) {
+  private static String getSuccessfulEditMessage(String subject, String property,
+                                                 String newValue) {
     return "Edited event '" + subject + "' " + property + " property to " + newValue
             + System.lineSeparator();
   }
@@ -477,19 +533,22 @@ public class ICalendarControllerTest {
   }
   
   private static String printCalendarCreated(String name, String timezone) {
-    return "Calendar '" + name + "' in timezone '" + timezone + "' created." + System.lineSeparator();
+    return "Calendar '" + name + "' in timezone '" + timezone + "' created."
+            + System.lineSeparator();
   }
   
   private static String printCalendarInUse(String name) {
     return "Calendar '" + name + "' set to be in use." + System.lineSeparator();
   }
 
-  private static String getSuccessfulCalendarEditMessage(String calName, String property, String newValue) {
+  private static String getSuccessfulCalendarEditMessage(String calName, String property,
+                                                         String newValue) {
     return "Edited calendar '" + calName + "' property '" + property + "' to '" + newValue
             + "'." + System.lineSeparator();
   }
 
-  private static String getSuccessfulCopyEventMessage(String eventName, String calName, LocalDateTime targetTime) {
+  private static String getSuccessfulCopyEventMessage(String eventName, String calName,
+                                                      LocalDateTime targetTime) {
     return "Copied event '" + eventName + "' to calendar '" + calName + "' on '" + targetTime
             + "'." + System.lineSeparator();
   }
@@ -500,7 +559,8 @@ public class ICalendarControllerTest {
             + targetDate + "'." + System.lineSeparator();
   }
 
-  private static String getSuccessfulCopyEventsBetweenMessage(LocalDate startDate, LocalDate endDate,
+  private static String getSuccessfulCopyEventsBetweenMessage(LocalDate startDate,
+                                                              LocalDate endDate,
                                                               String calName,
                                                               LocalDate targetStartDate) {
     return "Copied events from '" + startDate + "' to '" + endDate + "'in calendar '"
@@ -1485,7 +1545,7 @@ public class ICalendarControllerTest {
             inputs(useTestCalendar()), 
             prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
-// input valid weekday string
+            // input valid weekday string
             inputs("create event " + subject + " on " + dateString + " repeats " + days + " for "
                     + repeats + " times\n"),
             // given valid input, should successfully create a event series
@@ -1523,7 +1583,7 @@ public class ICalendarControllerTest {
             inputs(useTestCalendar()), 
             prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
-// input valid weekday string
+            // input valid weekday string
             inputs("create event " + subject + " on " + dateString + " repeats " + days + " for "
                     + repeats + " times\n"),
             // given valid input, should successfully create a event series
@@ -1549,7 +1609,7 @@ public class ICalendarControllerTest {
             inputs(useTestCalendar()), 
             prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
-// input valid weekday string
+            // input valid weekday string
             // should ignore capitalization
             inputs("create event test on 2024-02-29 repeats " + input + " until"),
             // expected is end date after 'until', throw an error
@@ -1571,7 +1631,7 @@ public class ICalendarControllerTest {
             inputs(useTestCalendar()), 
             prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
-// input valid weekday string
+            // input valid weekday string
             // should ignore capitalization
             inputs("create event test on 2024-02-29 repeats " + input + " UNTIL"),
             // expected is end date after 'until', throw an error
@@ -1594,7 +1654,7 @@ public class ICalendarControllerTest {
             inputs(useTestCalendar()), 
             prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
-// input valid weekday string
+            // input valid weekday string
             // should ignore capitalization
             inputs("create event test on 2024-02-29 repeats " + input + " until test"),
             // given invalid input after 'until', throw error
@@ -1616,7 +1676,7 @@ public class ICalendarControllerTest {
             inputs(useTestCalendar()), 
             prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
-// input valid weekday string
+            // input valid weekday string
             // should ignore capitalization
             inputs("create event test on 2024-02-29 repeats " + input + " until 2025-02-29"),
             // given invalid date, throw error
@@ -1638,7 +1698,7 @@ public class ICalendarControllerTest {
             inputs(useTestCalendar()), 
             prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
-// input valid weekday string
+            // input valid weekday string
             // should ignore capitalization
             inputs("create event test on 2024-02-29 repeats " + input + " until 2024-05-05T08:00"),
             // given LocalDateTime instead of LocalDate after 'until', throw error
@@ -1660,7 +1720,7 @@ public class ICalendarControllerTest {
             inputs(useTestCalendar()), 
             prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
-// input valid weekday string
+            // input valid weekday string
             // should ignore capitalization
             inputs("create event test on 2024-02-29 repeats " + input + " until 2024-02-28"),
             // end date is before start date, throw error
@@ -1727,7 +1787,7 @@ public class ICalendarControllerTest {
             inputs(useTestCalendar()), 
             prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
-// input valid weekday string
+            // input valid weekday string
             inputs("create event test on " + startDateString + " repeats " + days + " until " +
                     endDateString + "\n"),
             // given valid input, should successfully create a event series
@@ -1919,7 +1979,7 @@ public class ICalendarControllerTest {
             inputs(useTestCalendar()), 
             prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
-// should ignore capitalization, return same error as above
+            // should ignore capitalization, return same error as above
             inputs("create event test from 2024-11-12T00:00 TO"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -1976,7 +2036,7 @@ public class ICalendarControllerTest {
             inputs(useTestCalendar()), 
             prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
-// input end date that is before start date
+            // input end date that is before start date
             inputs("create event test from 2024-11-12T00:00 to 2024-11-11T00:00"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -1995,7 +2055,7 @@ public class ICalendarControllerTest {
             inputs(useTestCalendar()), 
             prints(printCalendarInUse("test")),
             prints(getExpectedEnterCommandPrompt()),
-// input same day, earlier hour for end date
+            // input same day, earlier hour for end date
             inputs("create event test from 2024-11-12T01:00 to 2024-11-12T00:00"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
@@ -3603,6 +3663,7 @@ public class ICalendarControllerTest {
             inputs("edit calendar --name NonExistent --property timezone America/Los_Angeles\n"),
             prints(errorMessage),
             prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
   }
 
   @Test
@@ -3677,7 +3738,8 @@ public class ICalendarControllerTest {
                     LocalDateTime.of(2025, 11, 3, 15, 0))),
             prints(getExpectedEnterCommandPrompt()),
             // copy the event to the LA calendar. 2 PM EST should become 11 AM PST.
-            inputs("copy event Conference on 2025-11-03T14:00 --target LA_Calendar to 2025-11-03T11:00\n"),
+            inputs("copy event Conference on 2025-11-03T14:00 --target LA_Calendar to " +
+                    "2025-11-03T11:00\n"),
             prints("Copied event 'Conference' to calendar 'LA_Calendar' on '2025-11-03T11:00'."
                     + System.lineSeparator()),
             prints(getExpectedEnterCommandPrompt()),
@@ -3710,7 +3772,8 @@ public class ICalendarControllerTest {
             prints(printCalendarCreated("targetCal", "America/New_York")),
             prints(getExpectedEnterCommandPrompt()),
             // Attempt to copy without 'use' command first
-            inputs("copy event MyEvent on 2025-01-01T10:00 --target targetCal to 2025-02-01T10:00\n"),
+            inputs("copy event MyEvent on 2025-01-01T10:00 --target " +
+                    "targetCal to 2025-02-01T10:00\n"),
             prints(getErrorMessage(errorMessage)),
             prints(getExpectedEnterCommandPrompt()));
     assertEquals(array[0], array[1]);
@@ -3738,7 +3801,8 @@ public class ICalendarControllerTest {
                     LocalDateTime.of(2025, 11, 3, 14, 0),
                     LocalDateTime.of(2025, 11, 3, 15, 0))),
             prints(getExpectedEnterCommandPrompt()),
-            inputs("copy event Conference on 2025-11-03T14:00 --target LA_Cal to 2025-11-03T11:00\n"),
+            inputs("copy event Conference on 2025-11-03T14:00 --target " +
+                    "LA_Cal to 2025-11-03T11:00\n"),
             prints(getSuccessfulCopyEventMessage("Conference", "LA_Cal",
                     LocalDateTime.of(2025, 11, 3, 11, 0))),
             prints(getExpectedEnterCommandPrompt()),
@@ -3772,13 +3836,15 @@ public class ICalendarControllerTest {
             prints(getSuccessfulAllDayMessage("Event 1", LocalDate.of(2025,12,25))),
             prints(getExpectedEnterCommandPrompt()),
             inputs("copy events on 2025-12-25 --target Target to 2026-01-10\n"),
-            prints(getSuccessfulCopyEventsOnDateMessage(LocalDate.of(2025,12,25), "Target", LocalDate.of(2026,1,10))),
+            prints(getSuccessfulCopyEventsOnDateMessage(LocalDate.of(2025,12,25), "Target",
+                    LocalDate.of(2026,1,10))),
             prints(getExpectedEnterCommandPrompt()),
             inputs("use calendar --name Target\n"),
             prints(printCalendarInUse("Target")),
             prints(getExpectedEnterCommandPrompt()),
             inputs("print events on 2026-01-10\n"),
-            prints(getPrintOnDateMessage(LocalDate.of(2026, 1, 10), eventListInTarget)),
+            prints(getPrintOnDateMessage(LocalDate.of(2026, 1, 10),
+                    eventListInTarget)),
             prints(getExpectedEnterCommandPrompt()));
     assertEquals(array[0], array[1]);
   }
@@ -3917,7 +3983,8 @@ public class ICalendarControllerTest {
 
   @Test
   public void testCopyEventWithInvalidSourceTimeFormat() throws CalendarException {
-    String errorMessage = "Invalid date format for <dateStringTtimeString>. Expected YYYY-MM-DDThh:mm\n";
+    String errorMessage = "Invalid date format for <dateStringTtimeString>. " +
+            "Expected YYYY-MM-DDThh:mm\n";
     String[] array = testRun(model,
             prints(getExpectedFullMenuOutput()),
             prints(getExpectedEnterCommandPrompt()),
@@ -4040,8 +4107,6 @@ public class ICalendarControllerTest {
             prints(getExpectedEnterCommandPrompt()));
     assertEquals(array[0], array[1]);
   }
-
-
 }
 
 

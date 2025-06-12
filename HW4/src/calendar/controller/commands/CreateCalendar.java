@@ -61,7 +61,7 @@ public class CreateCalendar extends AbstractCommand {
       system.createCalendar(calName, timezone);
       view.writeMessage("Calendar '" + calName + "' in timezone '" + timezone + "' created."
               + System.lineSeparator());
-    } catch(DateTimeException e) {
+    } catch (DateTimeException e) {
       throw new CalendarException("Invalid timezone format. Must be in 'Area/Location' format.");
     }
   }

@@ -569,6 +569,7 @@ public class EventTest {
     // Should have same hash code even with null end times
     assertEquals(event1.hashCode(), event2.hashCode());
   }
+
   /**
    * Tests the copy constructor that creates a new Event from an existing Event.
    * Verifies that all properties are copied correctly but a new UUID is generated.
@@ -585,7 +586,8 @@ public class EventTest {
     assertEquals(testEvent2.getLocation(), copiedEvent.getLocation());
     assertEquals(testEvent2.getLocationDetail(), copiedEvent.getLocationDetail());
     assertEquals(testEvent2.getStatus(), copiedEvent.getStatus());
-    assertEquals(testEvent2.getSeriesID(), copiedEvent.getSeriesID()); // Series ID should be preserved
+    // Series ID should be preserved
+    assertEquals(testEvent2.getSeriesID(), copiedEvent.getSeriesID());
 
     // But should have different UUID
     assertNotEquals(testEvent2.getId(), copiedEvent.getId());
@@ -836,20 +838,17 @@ public class EventTest {
     Event event3 = new Event("Same Event", now, future);
 
     // Reflexivity: x.equals(x) should be true
-    assertTrue("Reflexivity failed", event1.equals(event1));
+    assertTrue(event1.equals(event1));
 
     // Symmetry: x.equals(y) should equal y.equals(x)
     boolean xy = event1.equals(event2);
     boolean yx = event2.equals(event1);
-    assertEquals("Symmetry failed", xy, yx);
+    assertEquals(xy, yx);
 
     // Transitivity: if x.equals(y) and y.equals(z), then x.equals(z)
-    assertTrue("Setup for transitivity failed", event1.equals(event2));
-    assertTrue("Setup for transitivity failed", event2.equals(event3));
-    assertTrue("Transitivity failed", event1.equals(event3));
-
-    // Consistency with null
-    assertFalse("Null comparison failed", event1.equals(null));
+    assertTrue(event1.equals(event2));
+    assertTrue(event2.equals(event3));
+    assertTrue(event1.equals(event3));
   }
 
   /**

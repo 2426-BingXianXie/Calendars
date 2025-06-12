@@ -579,11 +579,25 @@ public class VirtualCalendar implements ICalendar {
     }
 
     // Getters
-    public String getOriginalSubject() { return originalSubject; }
-    public LocalDateTime getOriginalStart() { return originalStart; }
-    public LocalDateTime getOriginalEnd() { return originalEnd; }
-    public UUID getOriginalSeriesId() { return originalSeriesId; }
-    public boolean shouldBreakSeries() { return shouldBreakSeries; }
+    public String getOriginalSubject() {
+      return originalSubject;
+    }
+
+    public LocalDateTime getOriginalStart() {
+      return originalStart;
+    }
+
+    public LocalDateTime getOriginalEnd() {
+      return originalEnd;
+    }
+
+    public UUID getOriginalSeriesId() {
+      return originalSeriesId;
+    }
+
+    public boolean shouldBreakSeries() {
+      return shouldBreakSeries;
+    }
   }
 
   /**

@@ -35,7 +35,7 @@ public class CalendarSystem implements ICalendarSystem {
    * @param name     the name of the calendar to create.
    * @param timezone the timezone for the new calendar.
    * @throws CalendarException if the calendar name is empty or already exists,
-   *         or if the timezone is invalid.
+   *                           or if the timezone is invalid.
    */
   @Override
   public void createCalendar(String name, ZoneId timezone) throws CalendarException {
@@ -63,7 +63,8 @@ public class CalendarSystem implements ICalendarSystem {
    * @param property the property to edit ("name" or "timezone").
    * @param newValue the new value for the property.
    * @throws CalendarException if the calendar is not found, the property is invalid,
-   * the new name is empty or already exists, or the new timezone is invalid.
+   *                           the new name is empty or already exists,
+   *                           or the new timezone is invalid.
    */
   @Override
   public void editCalendar(String name, CalendarProperty property, String newValue)
@@ -191,13 +192,13 @@ public class CalendarSystem implements ICalendarSystem {
    * The new event in the target calendar will have its start and end times
    * adjusted based on the target time and maintaining the original event's duration.
    *
-   * @param eventName        the subject/name of the event to copy.
-   * @param sourceTime       the start time of the event in the current calendar.
+   * @param eventName          the subject/name of the event to copy.
+   * @param sourceTime         the start time of the event in the current calendar.
    * @param targetCalendarName the name of the calendar to which the event will be copied.
-   * @param targetTime       the desired new start time for the event in the target calendar.
+   * @param targetTime         the desired new start time for the event in the target calendar.
    * @throws CalendarException if no calendar is in use, the target calendar is not found,
-   * the event is not found in the current calendar, or multiple events
-   * match the criteria.
+   *                           the event is not found in the current calendar, or multiple events
+   *                           match the criteria.
    */
   @Override
   public void copyEvent(String eventName, LocalDateTime sourceTime, String targetCalendarName,
@@ -245,9 +246,9 @@ public class CalendarSystem implements ICalendarSystem {
    * Copies all events from a specific date in the current calendar to a target date
    * in another calendar. Timezone conversions are handled.
    *
-   * @param sourceDate        the date in the current calendar from which events will be copied.
+   * @param sourceDate         the date in the current calendar from which events will be copied.
    * @param targetCalendarName the name of the calendar to which events will be copied.
-   * @param targetDate        the date in the target calendar where events will be placed.
+   * @param targetDate         the date in the target calendar where events will be placed.
    * @throws CalendarException if no calendar is in use, or the target calendar is not found.
    */
   @Override
@@ -301,13 +302,13 @@ public class CalendarSystem implements ICalendarSystem {
    * Copies events within a specified date range from the current calendar to a target calendar,
    * shifting them by a relative number of days.
    *
-   * @param startDate         the start date of the range in the current calendar.
-   * @param endDate           the end date of the range in the current calendar.
+   * @param startDate          the start date of the range in the current calendar.
+   * @param endDate            the end date of the range in the current calendar.
    * @param targetCalendarName the name of the calendar to which events will be copied.
-   * @param targetStartDate   the desired start date in the target calendar. The difference
-   * between this and {@code startDate} will be applied to all events.
+   * @param targetStartDate    the desired start date in the target calendar. The difference
+   *                           between this and {@code startDate} will be applied to all events.
    * @throws CalendarException if no calendar is in use, the target calendar is not found,
-   * or the start date is after the end date.
+   *                           or the start date is after the end date.
    */
   @Override
   public void copyEventsBetweenDates(LocalDate startDate, LocalDate endDate,
@@ -363,7 +364,8 @@ public class CalendarSystem implements ICalendarSystem {
         targetCalendar.createEvent(sourceEvent.getSubject(), newStart, newEnd);
       } catch (CalendarException e) {
         // Continue with other events if one fails
-        System.err.println("Failed to copy event '" + sourceEvent.getSubject() + "': " + e.getMessage());
+        System.err.println("Failed to copy event '" + sourceEvent.getSubject() + "': "
+                + e.getMessage());
       }
     }
   }

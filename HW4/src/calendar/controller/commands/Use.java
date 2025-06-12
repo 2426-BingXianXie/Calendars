@@ -52,8 +52,7 @@ public class Use extends AbstractCommand {
   /**
    * Checks that the input after 'calendar' is '--name'.
    *
-   * @throws CalendarException if there is no input after 'calendar', or the next keyword
-   * isn't '--name'.
+   * @throws CalendarException if there is no input after 'calendar', or incorrect input.
    */
   private void checkCalendarName() throws CalendarException {
     // input is valid, check for next keyword after 'calendar'
