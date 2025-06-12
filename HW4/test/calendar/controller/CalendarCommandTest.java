@@ -1528,9 +1528,31 @@ public class CalendarCommandTest {
     cmd.execute(system);
 
     ICalendar targetCal = system.getCalendar("Target");
-    // Original date was 10-15. New start date is 01-01. Day offset is the same.
+    // original date was 10-15. New start date is 01-01. Day offset is the same.
     List<IEvent> events = targetCal.getEventsList(LocalDate.of(2026, 1, 15));
     assertEquals(1, events.size());
     assertEquals("Event 1", events.get(0).getSubject());
   }
+
+  @Test
+  public void testControllerSendsInputToModel() throws CalendarException {
+    // define the input for the controller to process
+    String subject = "Verify Model Interaction";
+    LocalDate date = LocalDate.of(2025, 12, 25);
+    Scanner scanner = new Scanner(subject + " on " + date.toString());
+    CreateEvent cmd = new CreateEvent(scanner, view);
+
+    // execute the command, which sends input to model
+    cmd.execute(system);
+
+    // query the model to verify its state has changed
+    ICalendar activeCalendar = system.getCurrentCalendar();
+    List<IEvent> eventsOnDate = activeCalendar.getEventsList(date);
+
+    assertEquals( 1, eventsOnDate.size());
+    IEvent createdEvent = eventsOnDate.get(0);
+    assertEquals(subject, createdEvent.getSubject());
+    assertEquals(date.atTime(8, 0), createdEvent.getStart());
+  }
+
 }
