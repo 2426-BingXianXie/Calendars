@@ -3964,6 +3964,82 @@ public class ICalendarControllerTest {
     assertEquals(array[0], array[1]);
   }
 
+  @Test
+  public void testCopyEventCausesDuplicateConflict() throws CalendarException {
+    String errorMessage = "Event already exists\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name Source --timezone America/New_York\n"),
+            prints(printCalendarCreated("Source", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name Target --timezone America/New_York\n"),
+            prints(printCalendarCreated("Target", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            // Create the same event in both calendars
+            inputs("use calendar --name Source\n"),
+            prints(printCalendarInUse("Source")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event Meeting from 2025-01-01T10:00 to 2025-01-01T11:00\n"),
+            prints(getSuccessfulEventMessage("Meeting", LocalDateTime.of(2025,1,1,10,0),
+                    LocalDateTime.of(2025,1,1,11,0))),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("use calendar --name Target\n"),
+            prints(printCalendarInUse("Target")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create event Meeting from 2025-01-01T10:00 to 2025-01-01T11:00\n"),
+            prints(getSuccessfulEventMessage("Meeting",
+                    LocalDateTime.of(2025,1,1,10,0), LocalDateTime.of(2025,1,1,11,0))),
+            prints(getExpectedEnterCommandPrompt()),
+            // Switch back to Source and attempt to copy, which should fail
+            inputs("use calendar --name Source\n"),
+            prints(printCalendarInUse("Source")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("copy event Meeting on 2025-01-01T10:00 --target Target to 2025-01-01T10:00\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testCopyEventsOnDateInvalidDateFormat() throws CalendarException {
+    String errorMessage = "Invalid date format for <dateString>. Expected YYYY-MM-DD\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("create calendar --name Target --timezone America/New_York\n"),
+            prints(printCalendarCreated("Target", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(useTestCalendar()),
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("copy events on 2025/12/25 --target Target to 2026-01-10\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
+  @Test
+  public void testCopyEventsBetweenMissingAndKeyword() throws CalendarException {
+    String errorMessage = "Expected 'and' after <dateString>.\n";
+    String[] array = testRun(model,
+            prints(getExpectedFullMenuOutput()),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(printCreateTestCalendar()),
+            prints(printCalendarCreated("test", "America/New_York")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs(useTestCalendar()),
+            prints(printCalendarInUse("test")),
+            prints(getExpectedEnterCommandPrompt()),
+            inputs("copy events between 2025-01-01 --target test to 2026-01-01\n"),
+            prints(getErrorMessage(errorMessage)),
+            prints(getExpectedEnterCommandPrompt()));
+    assertEquals(array[0], array[1]);
+  }
+
 
 }
 

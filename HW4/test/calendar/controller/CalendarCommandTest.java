@@ -10,7 +10,6 @@ import calendar.controller.commands.EditEvent;
 import calendar.controller.commands.Show;
 import calendar.model.Days;
 import calendar.controller.commands.Print;
-import calendar.model.Event;
 import calendar.CalendarException;
 import calendar.view.CalendarView;
 import calendar.view.ICalendarView;

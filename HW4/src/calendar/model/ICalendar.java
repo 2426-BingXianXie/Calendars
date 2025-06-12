@@ -69,7 +69,7 @@ public interface ICalendar {
    * @param startTime the exact start time to match
    * @return a list of events matching the criteria, or empty list if none found
    */
-  List<Event> getEventsBySubjectAndStartTime(String subject, LocalDateTime startTime);
+  List<IEvent> getEventsBySubjectAndStartTime(String subject, LocalDateTime startTime);
 
   /**
    * Retrieves events that match the specified subject, start time, and end time.
@@ -82,7 +82,7 @@ public interface ICalendar {
    * @param endTime   the exact end time to match
    * @return a list of events matching all criteria, or empty list if none found
    */
-  List<Event> getEventsByDetails(String subject, LocalDateTime startTime,
+  List<IEvent> getEventsByDetails(String subject, LocalDateTime startTime,
                                  LocalDateTime endTime);
 
   /**
@@ -95,7 +95,7 @@ public interface ICalendar {
    * @param date the date to query for events
    * @return a list of events on the specified date, or empty list if none
    */
-  List<Event> getEventsList(LocalDate date);
+  List<IEvent> getEventsList(LocalDate date);
 
   /**
    * Retrieves all events that occur within a specified date and time range.
@@ -109,7 +109,7 @@ public interface ICalendar {
    * @return a list of events within the specified range, or empty list if none
    * @throws IllegalArgumentException if start is after end
    */
-  List<Event> getEventsListInDateRange(LocalDateTime start, LocalDateTime end);
+  List<IEvent> getEventsListInDateRange(LocalDateTime start, LocalDateTime end);
 
   /**
    * Checks if the user is busy at a specific date and time.
@@ -139,7 +139,7 @@ public interface ICalendar {
    * @throws CalendarException if the event is not found, the property value is
    *                          invalid, or the edit would create a conflict
    */
-  Event editEvent(UUID eventID, Property property, String newProperty)
+  IEvent editEvent(UUID eventID, Property property, String newProperty)
           throws CalendarException;
 
   /**
