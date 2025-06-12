@@ -2683,6 +2683,7 @@ public class ICalendarControllerTest {
     assertEquals(array[0], array[1]);
   }
 
+
   @Test
   public void testPrintOnDateWithNoEvents() throws CalendarException {
     String[] array = testRun(model,

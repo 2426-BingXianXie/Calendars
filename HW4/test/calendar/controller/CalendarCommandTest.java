@@ -1,6 +1,10 @@
 package calendar.controller;
 
+import calendar.controller.commands.Copy;
+import calendar.controller.commands.CreateCalendar;
 import calendar.controller.commands.CreateEvent;
+import calendar.controller.commands.EditCalendar;
+import calendar.controller.commands.Use;
 import calendar.model.CalendarSystem;
 import calendar.model.ICalendar;
 import calendar.model.ICalendarSystem;
@@ -22,6 +26,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertFalse;
@@ -814,6 +819,13 @@ public class CalendarCommandTest {
     assertTrue(outputStr.contains("Printing events on 2025-06-05"));
   }
 
+  @Test(expected = CalendarException.class)
+  public void testPrintOnDateMissingDate() throws CalendarException {
+    Scanner scanner = new Scanner("events on");
+    Print cmd = new Print(scanner, view);
+    cmd.execute(system);
+  }
+
 
   /**
    * Tests the scenario where the user is busy due to a scheduled event
@@ -1213,4 +1225,271 @@ public class CalendarCommandTest {
     String showOutput = output.toString();
     assertTrue("User should be busy during event", showOutput.contains("User is busy"));
   }
+
+  @Test
+  public void testCreateCalendarSuccess() throws CalendarException {
+    Scanner scanner = new Scanner("--name MyCal --timezone America/New_York");
+    CreateCalendar cmd = new CreateCalendar(scanner, view);
+    cmd.execute(system);
+    assertNotNull(system.getCalendar("MyCal"));
+  }
+
+  @Test(expected = CalendarException.class)
+  public void testCreateCalendarMissingNameKeyword() throws CalendarException {
+    Scanner scanner = new Scanner("MyCal --timezone America/New_York");
+    CreateCalendar cmd = new CreateCalendar(scanner, view);
+    cmd.execute(system);
+  }
+
+  @Test(expected = CalendarException.class)
+  public void testCreateCalendarMissingTimezoneKeyword() throws CalendarException {
+    Scanner scanner = new Scanner("--name MyCal America/New_York");
+    CreateCalendar cmd = new CreateCalendar(scanner, view);
+    cmd.execute(system);
+  }
+
+  @Test(expected = CalendarException.class)
+  public void testCreateCalendarInvalidTimezone() throws CalendarException {
+    Scanner scanner = new Scanner("--name MyCal --timezone Invalid/Zone");
+    CreateCalendar cmd = new CreateCalendar(scanner, view);
+    cmd.execute(system);
+  }
+
+  @Test(expected = CalendarException.class)
+  public void testCreateCalendarDuplicateName() throws CalendarException {
+    system.createCalendar("Work", ZoneId.of("UTC"));
+    Scanner scanner = new Scanner("--name Work --timezone America/New_York");
+    CreateCalendar cmd = new CreateCalendar(scanner, view);
+    cmd.execute(system);
+  }
+
+  @Test(expected = CalendarException.class)
+  public void testCreateCalendarMissingNameValue() throws CalendarException {
+    // Tests that the command fails if no name is provided after the --name flag.
+    Scanner scanner = new Scanner("--name --timezone America/New_York");
+    CreateCalendar cmd = new CreateCalendar(scanner, view);
+    cmd.execute(system);
+  }
+
+  @Test(expected = CalendarException.class)
+  public void testCreateCalendarMissingTimezoneValue() throws CalendarException {
+    // Tests that the command fails if no timezone is provided after the --timezone flag.
+    Scanner scanner = new Scanner("--name MyCal --timezone");
+    CreateCalendar cmd = new CreateCalendar(scanner, view);
+    cmd.execute(system);
+  }
+
+  @Test
+  public void testCreateCalendarWithSpacedName() throws CalendarException {
+    // Tests that a calendar name with spaces is parsed correctly.
+    Scanner scanner = new Scanner("--name My Work Calendar --timezone America/Chicago");
+    CreateCalendar cmd = new CreateCalendar(scanner, view);
+    cmd.execute(system);
+    assertNotNull(system.getCalendar("My Work Calendar"));
+  }
+
+
+  @Test
+  public void testUseCalendarSuccess() throws CalendarException {
+    system.createCalendar("Personal", ZoneId.of("UTC"));
+    Scanner scanner = new Scanner("calendar --name Personal");
+    Use cmd = new Use(scanner, view);
+    cmd.execute(system);
+    assertEquals("Personal", system.getCurrentCalendarName());
+  }
+
+  @Test(expected = CalendarException.class)
+  public void testUseCalendarNotFound() throws CalendarException {
+    Scanner scanner = new Scanner("calendar --name NonExistent");
+    Use cmd = new Use(scanner, view);
+    cmd.execute(system);
+  }
+
+  @Test(expected = CalendarException.class)
+  public void testUseCalendarMissingName() throws CalendarException {
+    Scanner scanner = new Scanner("calendar --name");
+    Use cmd = new Use(scanner, view);
+    cmd.execute(system);
+  }
+
+  @Test(expected = CalendarException.class)
+  public void testUseCalendarMissingNameCommand() throws CalendarException {
+    // Tests that the 'use calendar' command fails if the --name flag is missing.
+    system.createCalendar("Personal", ZoneId.of("UTC"));
+    Scanner scanner = new Scanner("calendar Personal");
+    Use cmd = new Use(scanner, view);
+    cmd.execute(system);
+  }
+
+  @Test
+  public void testEditCalendarNameSuccess() throws CalendarException {
+    system.createCalendar("OldName", ZoneId.of("UTC"));
+    Scanner scanner = new Scanner("--name OldName --property name NewName");
+    EditCalendar cmd = new EditCalendar(scanner, view);
+    cmd.execute(system);
+    assertNotNull(system.getCalendar("NewName"));
+  }
+
+  @Test(expected = CalendarException.class)
+  public void testEditCalendarToDuplicateName() throws CalendarException {
+    system.createCalendar("CalA", ZoneId.of("America/New_York"));
+    system.createCalendar("CalB", ZoneId.of("America/New_York"));
+    Scanner scanner = new Scanner("--name CalB --property name CalA");
+    EditCalendar cmd = new EditCalendar(scanner, view);
+    cmd.execute(system);
+  }
+
+  @Test(expected = CalendarException.class)
+  public void testEditNonExistentCalendar() throws CalendarException {
+    Scanner scanner = new Scanner("--name FakeCal --property name NewName");
+    EditCalendar cmd = new EditCalendar(scanner, view);
+    cmd.execute(system);
+  }
+
+  @Test(expected = CalendarException.class)
+  public void testEditCalendarInvalidProperty() throws CalendarException {
+    // Tests editing a calendar with a non-existent property.
+    Scanner scanner = new Scanner("--name test --property color red");
+    EditCalendar cmd = new EditCalendar(scanner, view);
+    cmd.execute(system);
+  }
+
+  @Test(expected = CalendarException.class)
+  public void testEditCalendarMissingNewValue() throws CalendarException {
+    // Tests editing a calendar but providing no new value.
+    Scanner scanner = new Scanner("--name test --property name");
+    EditCalendar cmd = new EditCalendar(scanner, view);
+    cmd.execute(system);
+  }
+
+  @Test(expected = CalendarException.class)
+  public void testCopyWithoutActiveCalendar() throws CalendarException {
+    system.createCalendar("Target", ZoneId.of("America/New_York"));
+    Scanner scanner = new Scanner(
+            "event E on 2025-01-01T10:00 --target Target to 2025-02-01T10:00");
+    Copy cmd = new Copy(scanner, view);
+    cmd.execute(system);
+  }
+
+  @Test
+  public void testCopyEventSuccessDifferentTimezone() throws CalendarException {
+    system.createCalendar("NYC", ZoneId.of("America/New_York"));
+    system.createCalendar("LA", ZoneId.of("America/Los_Angeles"));
+    system.useCalendar("NYC");
+    system.getCurrentCalendar().createEvent("Meeting",
+            LocalDateTime.of(2025, 11, 5, 14, 0), // 2 PM EST
+            LocalDateTime.of(2025, 11, 5, 15, 0));
+
+    Scanner scanner = new Scanner(
+            "event Meeting on 2025-11-05T14:00 --target LA to 2025-11-05T11:00");
+    Copy cmd = new Copy(scanner, view);
+    cmd.execute(system);
+
+    ICalendar targetCal = system.getCalendar("LA");
+    List<IEvent> events = targetCal.getEventsList(LocalDate.of(2025, 11, 5));
+    assertEquals(1, events.size());
+    // time should change
+    assertEquals(LocalTime.of(11, 0), events.get(0).getStart().toLocalTime());
+  }
+
+  @Test(expected = CalendarException.class)
+  public void testCopyEventSourceNotFound() throws CalendarException {
+    system.createCalendar("Source", ZoneId.of("UTC"));
+    system.createCalendar("Target", ZoneId.of("UTC"));
+    system.useCalendar("Source");
+
+    Scanner scanner = new Scanner(
+            "event Fake on 2025-01-01T10:00 --target Target to 2025-01-01T10:00");
+    Copy cmd = new Copy(scanner, view);
+    cmd.execute(system);
+  }
+
+  @Test
+  public void testCopyEventsOnDateWithConflict() throws CalendarException {
+    system.createCalendar("Source", ZoneId.of("UTC"));
+    system.createCalendar("Target", ZoneId.of("UTC"));
+    system.useCalendar("Source");
+    system.getCurrentCalendar().createEvent("A", LocalDateTime.of(
+            2025,10,10,9,0), LocalDateTime.of(2025,10,10,10,0));
+    system.getCurrentCalendar().createEvent("B", LocalDateTime.of(
+            2025,10,10,11,0), LocalDateTime.of(2025,10,10,12,0));
+    system.useCalendar("Target");
+    system.getCurrentCalendar().createEvent("B", LocalDate.of(
+            2025,11,11).atTime(11,0), LocalDate.of(2025,11,11).atTime(12,0));
+    system.useCalendar("Source");
+
+    // should fail to copy event b
+    Scanner scanner = new Scanner("events on 2025-10-10 --target Target to 2025-11-11");
+    Copy cmd = new Copy(scanner, view);
+    cmd.execute(system);
+
+    ICalendar targetCal = system.getCalendar("Target");
+    assertEquals(2, targetCal.getEventsList(LocalDate.of(2025,11,11)).size());
+  }
+
+  @Test(expected = CalendarException.class)
+  public void testCopyBetweenInvalidDateRange() throws CalendarException {
+    system.createCalendar("Source", ZoneId.of("America/New_York"));
+    system.createCalendar("Target", ZoneId.of("America/New_York"));
+    system.useCalendar("Source");
+
+    Scanner scanner = new Scanner(
+            "events between 2025-02-01 and 2025-01-01 --target Target to 2026-01-01");
+    Copy cmd = new Copy(scanner, view);
+    cmd.execute(system);
+  }
+
+  @Test
+  public void testCopyEventToSameCalendar() throws CalendarException {
+    // Tests copying an event to a new time within the same calendar.
+    ICalendar activeCal = system.getCurrentCalendar();
+    activeCal.createEvent("Original",
+            LocalDateTime.of(2025, 8, 1, 9, 0),
+            LocalDateTime.of(2025, 8, 1, 10, 0));
+
+    Scanner scanner = new Scanner(
+            "event Original on 2025-08-01T09:00 --target test to 2025-08-01T14:00");
+    Copy cmd = new Copy(scanner, view);
+    cmd.execute(system);
+
+    List<IEvent> events = activeCal.getEventsList(LocalDate.of(2025, 8, 1));
+    assertEquals(2, events.size()); // Should now have the original and the copy
+  }
+
+  @Test(expected = CalendarException.class)
+  public void testCopyEventToSameCalendarCausesConflict() throws CalendarException {
+    // Tests that copying an event to the same time in the same calendar fails.
+    ICalendar activeCal = system.getCurrentCalendar();
+    activeCal.createEvent("Original",
+            LocalDateTime.of(2025, 8, 1, 9, 0),
+            LocalDateTime.of(2025, 8, 1, 10, 0));
+
+    Scanner scanner = new Scanner(
+            "event Original on 2025-08-01T09:00 --target test to 2025-08-01T09:00");
+    Copy cmd = new Copy(scanner, view);
+    cmd.execute(system); // Should throw "Event already exists" from the model
+  }
+
+  @Test
+  public void testCopySeriesEventBecomesStandalone() throws CalendarException {
+    // Tests that a copied event from a series becomes a standalone event.
+    system.createCalendar("Target", ZoneId.of("UTC"));
+    Set<Days> days = EnumSet.of(Days.MONDAY);
+    // Create a series in the active "test" calendar
+    calendar.createEventSeries("Series Event", LocalTime.of(10,0), LocalTime.of(11,0),
+            days, LocalDate.of(2025, 8, 4), null, 1,
+            null, null, null);
+
+    Scanner scanner = new Scanner(
+            "event Series Event on 2025-08-04T10:00 --target Target to 2025-09-01T10:00");
+    Copy cmd = new Copy(scanner, view);
+    cmd.execute(system);
+
+    // Verify the copied event in the target calendar has no series ID
+    ICalendar targetCal = system.getCalendar("Target");
+    List<IEvent> events = targetCal.getEventsList(LocalDate.of(2025, 9, 1));
+    assertEquals(1, events.size());
+    assertNull(events.get(0).getSeriesID()); // Should be a standalone event
+  }
+
 }
