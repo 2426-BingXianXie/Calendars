@@ -70,13 +70,13 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testCreateEventValidSingleEvent() throws CalendarException {
-    Event event = calendar.createEvent("Test Event", today9AM, today10AM);
+    IEvent event = calendar.createEvent("Test Event", today9AM, today10AM);
     assertNotNull(event);
     assertEquals("Test Event", event.getSubject());
     assertEquals(today9AM, event.getStart());
     assertEquals(today10AM, event.getEnd());
 
-    List<Event> eventsOnDay = calendar.getEventsList(today9AM.toLocalDate());
+    List<IEvent> eventsOnDay = calendar.getEventsList(today9AM.toLocalDate());
     assertEquals(1, eventsOnDay.size());
     assertTrue(eventsOnDay.contains(event));
   }
@@ -92,11 +92,11 @@ public class VirtualCalendarTest {
   public void testCreateEventEventSpanningMultipleDays() throws CalendarException {
     LocalDateTime start = LocalDateTime.of(2025, 6, 4, 22, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 5, 2, 0);
-    Event event = calendar.createEvent("Overnight Event", start, end);
+    IEvent event = calendar.createEvent("Overnight Event", start, end);
 
-    List<Event> eventsOnDay1 = calendar.getEventsList(start.toLocalDate());
+    List<IEvent> eventsOnDay1 = calendar.getEventsList(start.toLocalDate());
     assertTrue(eventsOnDay1.contains(event));
-    List<Event> eventsOnDay2 = calendar.getEventsList(end.toLocalDate());
+    List<IEvent> eventsOnDay2 = calendar.getEventsList(end.toLocalDate());
     assertTrue(eventsOnDay2.contains(event));
   }
 
@@ -135,11 +135,11 @@ public class VirtualCalendarTest {
     LocalDateTime start = LocalDate.of(2025, 6, 4).atStartOfDay();
     LocalDateTime end = LocalDate.of(2025, 6, 4).atTime(23,
             59, 59);
-    Event event = calendar.createEvent("All Day Meeting", start, end);
+    IEvent event = calendar.createEvent("All Day Meeting", start, end);
     assertNotNull(event);
     assertEquals(start, event.getStart());
     assertEquals(end, event.getEnd());
-    List<Event> events = calendar.getEventsList(LocalDate.of(2025, 6, 4));
+    List<IEvent> events = calendar.getEventsList(LocalDate.of(2025, 6, 4));
     assertTrue(events.contains(event));
   }
 
@@ -159,27 +159,27 @@ public class VirtualCalendarTest {
             "Series Description", Location.PHYSICAL, EventStatus.PUBLIC);
 
     // Verify first event
-    List<Event> eventsOnMon = calendar.getEventsList(LocalDate.of(2025, 6,
+    List<IEvent> eventsOnMon = calendar.getEventsList(LocalDate.of(2025, 6,
             2));
     assertEquals(1, eventsOnMon.size());
     assertEquals("Series Test", eventsOnMon.get(0).getSubject());
 
     // Verify second event
-    List<Event> eventsOnWed = calendar.getEventsList(LocalDate.of(2025, 6,
+    List<IEvent> eventsOnWed = calendar.getEventsList(LocalDate.of(2025, 6,
             4));
     assertEquals(1, eventsOnWed.size());
 
     // Verify a later event
-    List<Event> eventsOnNextMon = calendar.getEventsList(LocalDate.of(2025, 6,
+    List<IEvent> eventsOnNextMon = calendar.getEventsList(LocalDate.of(2025, 6,
             9));
     assertEquals(1, eventsOnNextMon.size());
 
     // Collect all events belonging to this series and count distinct occurrences
-    List<Event> allSeriesEvents = new ArrayList<>();
+    List<IEvent> allSeriesEvents = new ArrayList<>();
     for (LocalDate date = LocalDate.of(2025, 6, 2);
          date.isBefore(LocalDate.of(2025, 6, 17));
          date = date.plusDays(1)) {
-      for (Event e : calendar.getEventsList(date)) {
+      for (IEvent e : calendar.getEventsList(date)) {
         if (e.getSubject().equals("Series Test") && e.getSeriesID() != null) {
           allSeriesEvents.add(e);
         }
@@ -206,23 +206,23 @@ public class VirtualCalendarTest {
             "Date Series Desc", Location.ONLINE, EventStatus.PRIVATE);
 
     // Verify first event
-    List<Event> eventsOnTue = calendar.getEventsList(LocalDate.of(2025,
+    List<IEvent> eventsOnTue = calendar.getEventsList(LocalDate.of(2025,
             6, 3));
     assertEquals(1, eventsOnTue.size());
     assertEquals("Date Series", eventsOnTue.get(0).getSubject());
 
     // Verify an intermediate event
-    List<Event> eventsOnThu = calendar.getEventsList(LocalDate.of(2025,
+    List<IEvent> eventsOnThu = calendar.getEventsList(LocalDate.of(2025,
             6, 5));
     assertEquals(1, eventsOnThu.size());
 
     // Verify event on the end date
-    List<Event> eventsOnNextTue = calendar.getEventsList(LocalDate.of(2025,
+    List<IEvent> eventsOnNextTue = calendar.getEventsList(LocalDate.of(2025,
             6, 10));
     assertEquals(1, eventsOnNextTue.size());
 
     // Verify no events after the end date
-    List<Event> eventsOnNextThu = calendar.getEventsList(LocalDate.of(2025,
+    List<IEvent> eventsOnNextThu = calendar.getEventsList(LocalDate.of(2025,
             6, 12));
     assertTrue(eventsOnNextThu.isEmpty());
   }
@@ -261,11 +261,11 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testGetEventsBySubjectAndStartTimeFound() throws CalendarException {
-    Event event1 = calendar.createEvent("Meeting", today9AM, today10AM);
-    Event event2 = calendar.createEvent("Meeting", tomorrow9AM, tomorrow10AM);
-    Event event3 = calendar.createEvent("Other Event", today9AM, today10AM);
+    IEvent event1 = calendar.createEvent("Meeting", today9AM, today10AM);
+    IEvent event2 = calendar.createEvent("Meeting", tomorrow9AM, tomorrow10AM);
+    IEvent event3 = calendar.createEvent("Other Event", today9AM, today10AM);
 
-    List<Event> result = calendar.getEventsBySubjectAndStartTime("Meeting", today9AM);
+    List<IEvent> result = calendar.getEventsBySubjectAndStartTime("Meeting", today9AM);
     assertEquals(1, result.size());
     assertTrue(result.contains(event1));
     assertFalse(result.contains(event2));
@@ -281,7 +281,7 @@ public class VirtualCalendarTest {
   @Test
   public void testGetEventsBySubjectAndStartTimeNotFound() throws CalendarException {
     calendar.createEvent("Meeting", today9AM, today10AM);
-    List<Event> result = calendar.getEventsBySubjectAndStartTime("Non Existent", today9AM);
+    List<IEvent> result = calendar.getEventsBySubjectAndStartTime("Non Existent", today9AM);
     assertTrue(result.isEmpty());
   }
 
@@ -293,8 +293,8 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testGetEventsBySubjectAndStartTimeCaseInsensitiveSubject() throws CalendarException {
-    Event event = calendar.createEvent("Case Test", today9AM, today10AM);
-    List<Event> result = calendar.getEventsBySubjectAndStartTime("case test", today9AM);
+    IEvent event = calendar.createEvent("Case Test", today9AM, today10AM);
+    List<IEvent> result = calendar.getEventsBySubjectAndStartTime("case test", today9AM);
     assertEquals(1, result.size());
     assertTrue(result.contains(event));
   }
@@ -308,11 +308,11 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testGetEventsByDetailsFound() throws CalendarException {
-    Event event1 = calendar.createEvent("Project Sync", today9AM, today10AM);
-    Event event2 = calendar.createEvent("Project Sync", tomorrow9AM, tomorrow10AM);
-    Event event3 = calendar.createEvent("Project Sync", today9AM, tomorrow10AM);
+    IEvent event1 = calendar.createEvent("Project Sync", today9AM, today10AM);
+    IEvent event2 = calendar.createEvent("Project Sync", tomorrow9AM, tomorrow10AM);
+    IEvent event3 = calendar.createEvent("Project Sync", today9AM, tomorrow10AM);
 
-    List<Event> result = calendar.getEventsByDetails("Project Sync", today9AM, today10AM);
+    List<IEvent> result = calendar.getEventsByDetails("Project Sync", today9AM, today10AM);
     assertEquals(1, result.size());
     assertTrue(result.contains(event1));
   }
@@ -326,7 +326,7 @@ public class VirtualCalendarTest {
   @Test
   public void testGetEventsByDetailsNotFound() throws CalendarException {
     calendar.createEvent("Project Sync", today9AM, today10AM);
-    List<Event> result = calendar.getEventsByDetails("Project Sync",
+    List<IEvent> result = calendar.getEventsByDetails("Project Sync",
             today9AM, today9AM.plusMinutes(30));
     assertTrue(result.isEmpty());
   }
@@ -340,11 +340,11 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testGetEventsListDateWithEvents() throws CalendarException {
-    Event event1 = calendar.createEvent("Morning Event", today9AM, today10AM);
-    Event event2 = calendar.createEvent("Afternoon Event", today10AM,
+    IEvent event1 = calendar.createEvent("Morning Event", today9AM, today10AM);
+    IEvent event2 = calendar.createEvent("Afternoon Event", today10AM,
             today10AM.plusHours(1));
 
-    List<Event> events = calendar.getEventsList(today9AM.toLocalDate());
+    List<IEvent> events = calendar.getEventsList(today9AM.toLocalDate());
     assertEquals(2, events.size());
     assertTrue(events.contains(event1));
     assertTrue(events.contains(event2));
@@ -356,7 +356,7 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testGetEventsListDateWithoutEvents() {
-    List<Event> events = calendar.getEventsList(tomorrow9AM.toLocalDate());
+    List<IEvent> events = calendar.getEventsList(tomorrow9AM.toLocalDate());
     assertTrue(events.isEmpty());
   }
 
@@ -370,13 +370,13 @@ public class VirtualCalendarTest {
   public void testGetEventsListEventSpanningMultipleDaysIsListedOnBoth() throws CalendarException {
     LocalDateTime start = LocalDateTime.of(2025, 6, 4, 23, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 5, 1, 0);
-    Event overnightEvent = calendar.createEvent("Overnight Event", start, end);
+    IEvent overnightEvent = calendar.createEvent("Overnight Event", start, end);
 
-    List<Event> eventsDay1 = calendar.getEventsList(start.toLocalDate());
+    List<IEvent> eventsDay1 = calendar.getEventsList(start.toLocalDate());
     assertEquals(1, eventsDay1.size());
     assertTrue(eventsDay1.contains(overnightEvent));
 
-    List<Event> eventsDay2 = calendar.getEventsList(end.toLocalDate());
+    List<IEvent> eventsDay2 = calendar.getEventsList(end.toLocalDate());
     assertEquals(1, eventsDay2.size());
     assertTrue(eventsDay2.contains(overnightEvent));
   }
@@ -390,12 +390,12 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testGetEventsListInDateRangeMultipleDays() throws CalendarException {
-    Event event1 = calendar.createEvent("Day 1 Event", today9AM, today10AM);
-    Event event2 = calendar.createEvent("Day 2 Event", tomorrow9AM, tomorrow10AM);
-    Event event3 = calendar.createEvent("Day 3 Event", dayAfterTomorrow9AM,
+    IEvent event1 = calendar.createEvent("Day 1 Event", today9AM, today10AM);
+    IEvent event2 = calendar.createEvent("Day 2 Event", tomorrow9AM, tomorrow10AM);
+    IEvent event3 = calendar.createEvent("Day 3 Event", dayAfterTomorrow9AM,
             dayAfterTomorrow9AM.plusHours(1));
 
-    List<Event> result = calendar.getEventsListInDateRange(today9AM.minusDays(1),
+    List<IEvent> result = calendar.getEventsListInDateRange(today9AM.minusDays(1),
             dayAfterTomorrow9AM.plusDays(1));
     assertEquals(3, result.size());
     assertTrue(result.contains(event1));
@@ -411,22 +411,22 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testGetEventsListInDateRangePartialOverlap() throws CalendarException {
-    Event event = calendar.createEvent("Partial", today9AM, today10AM); // 9:00 - 10:00
+    IEvent event = calendar.createEvent("Partial", today9AM, today10AM); // 9:00 - 10:00
 
     // Range: 9:30 - 10:30 (overlaps end)
-    List<Event> result1 = calendar.getEventsListInDateRange(today9AM.plusMinutes(30),
+    List<IEvent> result1 = calendar.getEventsListInDateRange(today9AM.plusMinutes(30),
             today10AM.plusMinutes(30));
     assertEquals(1, result1.size());
     assertTrue(result1.contains(event));
 
     // Range: 8:00 - 9:30 (overlaps start)
-    List<Event> result2 = calendar.getEventsListInDateRange(today9AM.minusHours(1),
+    List<IEvent> result2 = calendar.getEventsListInDateRange(today9AM.minusHours(1),
             today9AM.plusMinutes(30));
     assertEquals(1, result2.size());
     assertTrue(result2.contains(event));
 
     // Range: 10:30 - 11:00 (no overlap)
-    List<Event> result3 = calendar.getEventsListInDateRange(today10AM.plusMinutes(30),
+    List<IEvent> result3 = calendar.getEventsListInDateRange(today10AM.plusMinutes(30),
             today10AM.plusHours(1));
     assertTrue(result3.isEmpty());
   }
@@ -439,7 +439,7 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testGetEventsListInDateRangeNoEvents() throws CalendarException {
-    List<Event> result = calendar.getEventsListInDateRange(today9AM, today10AM);
+    List<IEvent> result = calendar.getEventsListInDateRange(today9AM, today10AM);
     assertTrue(result.isEmpty());
   }
 
@@ -552,8 +552,8 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testEditEventSubject() throws CalendarException {
-    Event event = calendar.createEvent("Old Subject", today9AM, today10AM);
-    Event editedEvent = calendar.editEvent(event.getId(), Property.SUBJECT, "New Subject");
+    IEvent event = calendar.createEvent("Old Subject", today9AM, today10AM);
+    IEvent editedEvent = calendar.editEvent(event.getId(), Property.SUBJECT, "New Subject");
     assertEquals("New Subject", editedEvent.getSubject());
     assertEquals("New Subject",
             calendar.getEventsList(today9AM.toLocalDate()).get(0).getSubject());
@@ -567,11 +567,11 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testEditEventStartTime() throws CalendarException {
-    Event event = calendar.createEvent("Edit Time", today9AM, today10AM);
+    IEvent event = calendar.createEvent("Edit Time", today9AM, today10AM);
     LocalDateTime newStartTime = today9AM.minusHours(1);
-    Event editedEvent = calendar.editEvent(event.getId(), Property.START, newStartTime.toString());
+    IEvent editedEvent = calendar.editEvent(event.getId(), Property.START, newStartTime.toString());
     assertEquals(newStartTime, editedEvent.getStart());
-    List<Event> eventsOnDay = calendar.getEventsList(today9AM.toLocalDate());
+    List<IEvent> eventsOnDay = calendar.getEventsList(today9AM.toLocalDate());
     assertEquals(1, eventsOnDay.size());
     assertEquals(newStartTime, eventsOnDay.get(0).getStart());
   }
@@ -585,7 +585,7 @@ public class VirtualCalendarTest {
    */
   @Test(expected = CalendarException.class)
   public void testEditEventStartTimeAfterEndTime() throws CalendarException {
-    Event event = calendar.createEvent("Test", today9AM, today10AM);
+    IEvent event = calendar.createEvent("Test", today9AM, today10AM);
     calendar.editEvent(event.getId(), Property.START, today10AM.plusMinutes(1).toString());
   }
 
@@ -597,9 +597,9 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testEditEventEndTime() throws CalendarException {
-    Event event = calendar.createEvent("Edit Time", today9AM, today10AM);
+    IEvent event = calendar.createEvent("Edit Time", today9AM, today10AM);
     LocalDateTime newEndTime = today10AM.plusHours(1);
-    Event editedEvent = calendar.editEvent(event.getId(), Property.END, newEndTime.toString());
+    IEvent editedEvent = calendar.editEvent(event.getId(), Property.END, newEndTime.toString());
     assertEquals(newEndTime, editedEvent.getEnd());
     assertEquals(1, calendar.getEventsList(today9AM.toLocalDate()).size());
   }
@@ -613,7 +613,7 @@ public class VirtualCalendarTest {
    */
   @Test(expected = CalendarException.class)
   public void testEditEventEndTimeBeforeStartTime() throws CalendarException {
-    Event event = calendar.createEvent("Test", today9AM, today10AM);
+    IEvent event = calendar.createEvent("Test", today9AM, today10AM);
     calendar.editEvent(event.getId(), Property.END, today9AM.minusMinutes(1).toString());
   }
 
@@ -625,8 +625,8 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testEditEventDescription() throws CalendarException {
-    Event event = calendar.createEvent("Desc Test", today9AM, today10AM);
-    Event editedEvent = calendar.editEvent(event.getId(), Property.DESCRIPTION,
+    IEvent event = calendar.createEvent("Desc Test", today9AM, today10AM);
+    IEvent editedEvent = calendar.editEvent(event.getId(), Property.DESCRIPTION,
             "New Description");
     assertEquals("New Description", editedEvent.getDescription());
   }
@@ -639,8 +639,8 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testEditEventLocation() throws CalendarException {
-    Event event = calendar.createEvent("Loc Test", today9AM, today10AM);
-    Event editedEvent = calendar.editEvent(event.getId(), Property.LOCATION, "ONLINE");
+    IEvent event = calendar.createEvent("Loc Test", today9AM, today10AM);
+    IEvent editedEvent = calendar.editEvent(event.getId(), Property.LOCATION, "ONLINE");
     assertEquals(Location.ONLINE, editedEvent.getLocation());
   }
 
@@ -652,8 +652,8 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testEditEventStatus() throws CalendarException {
-    Event event = calendar.createEvent("Status Test", today9AM, today10AM);
-    Event editedEvent = calendar.editEvent(event.getId(), Property.STATUS, "PRIVATE");
+    IEvent event = calendar.createEvent("Status Test", today9AM, today10AM);
+    IEvent editedEvent = calendar.editEvent(event.getId(), Property.STATUS, "PRIVATE");
     assertEquals(EventStatus.PRIVATE, editedEvent.getStatus());
   }
 
@@ -688,7 +688,7 @@ public class VirtualCalendarTest {
             days, LocalDate.of(2025, 6, 4), null, 1,
             "Original Desc", Location.PHYSICAL, EventStatus.PUBLIC);
 
-    Event event = calendar.getEventsList(LocalDate.of(2025, 6, 4)).get(0);
+    IEvent event = calendar.getEventsList(LocalDate.of(2025, 6, 4)).get(0);
     UUID seriesId = event.getSeriesID();
 
     // Attempt to set end time to 00:30, which with a 9:00 start implies crossing a day boundary.
@@ -710,8 +710,8 @@ public class VirtualCalendarTest {
             LocalTime.of(10, 0),
             days, LocalDate.of(2025, 6, 4), null, 1,
             null, null, null);
-    List<Event> eventsOnDay = calendar.getEventsList(today9AM.toLocalDate());
-    Event seriesEvent = eventsOnDay.get(0);
+    List<IEvent> eventsOnDay = calendar.getEventsList(today9AM.toLocalDate());
+    IEvent seriesEvent = eventsOnDay.get(0);
     assertNotNull(seriesEvent.getSeriesID());
 
 
@@ -719,7 +719,7 @@ public class VirtualCalendarTest {
     calendar.editEvent(seriesEvent.getId(), Property.START, newStart.toString());
 
 
-    Event updatedEvent = calendar.getEventsList(today9AM.toLocalDate()).get(0);
+    IEvent updatedEvent = calendar.getEventsList(today9AM.toLocalDate()).get(0);
     assertNull(updatedEvent.getSeriesID()); // Assert that the series ID is now null
   }
 
@@ -741,13 +741,13 @@ public class VirtualCalendarTest {
             LocalDate.of(2025, 6, 11), 0,
             null, null, null);
 
-    List<Event> allSeriesEventsBeforeEdit =
+    List<IEvent> allSeriesEventsBeforeEdit =
             calendar.getEventsListInDateRange(LocalDate.of(2025, 6,
                     2).atStartOfDay(), LocalDate.of(2025, 6,
                     11).atTime(23, 59,
                     59)).stream().distinct().collect(Collectors.toList());
 
-    Event firstEventBeforeEdit =
+    IEvent firstEventBeforeEdit =
             allSeriesEventsBeforeEdit.stream().filter(e -> e.getStart().toLocalDate()
                     .equals(LocalDate.of(2025, 6, 2))).findFirst().orElse(null);
     assertNotNull(firstEventBeforeEdit);
@@ -755,12 +755,12 @@ public class VirtualCalendarTest {
 
     calendar.editSeriesFromDate(seriesId, Property.SUBJECT, "New Series Subject");
 
-    List<Event> updatedAllSeriesEvents = calendar.getEventsListInDateRange(LocalDate.of(2025,
+    List<IEvent> updatedAllSeriesEvents = calendar.getEventsListInDateRange(LocalDate.of(2025,
                     6, 2).atStartOfDay(),
             LocalDate.of(2025, 6, 11).atTime(23, 59,
                     59)).stream().distinct().collect(Collectors.toList());
 
-    for (Event event : updatedAllSeriesEvents) {
+    for (IEvent event : updatedAllSeriesEvents) {
       assertEquals("New Series Subject", event.getSubject());
     }
   }
@@ -783,7 +783,7 @@ public class VirtualCalendarTest {
             days, LocalDate.of(2025, 6, 4), null, 1,
             "Original Desc", Location.PHYSICAL, EventStatus.PUBLIC);
 
-    Event originalEvent = calendar.getEventsList(LocalDate.of(2025, 6,
+    IEvent originalEvent = calendar.getEventsList(LocalDate.of(2025, 6,
             4)).get(0);
     UUID seriesId = originalEvent.getSeriesID();
 
@@ -797,10 +797,10 @@ public class VirtualCalendarTest {
     assertEquals(LocalTime.of(9, 30), updatedSeries.getStartTime());
 
     // Verify the change in the actual event retrieved from the calendar for the day
-    List<Event> eventsOnDay = calendar.getEventsList(LocalDate.of(2025, 6,
+    List<IEvent> eventsOnDay = calendar.getEventsList(LocalDate.of(2025, 6,
             4));
-    Event verifiedEvent = null;
-    for (Event e : eventsOnDay) {
+    IEvent verifiedEvent = null;
+    for (IEvent e : eventsOnDay) {
       if (seriesId.equals(e.getSeriesID())) {
         verifiedEvent = e;
         break;
@@ -829,7 +829,7 @@ public class VirtualCalendarTest {
             days, LocalDate.of(2025, 6, 4), null, 1,
             "Original Desc", Location.PHYSICAL, EventStatus.PUBLIC);
 
-    Event event = calendar.getEventsList(LocalDate.of(2025, 6, 4)).get(0);
+    IEvent event = calendar.getEventsList(LocalDate.of(2025, 6, 4)).get(0);
     UUID seriesId = event.getSeriesID();
 
     calendar.editSeriesFromDate(seriesId, Property.DESCRIPTION, "New Series Description");
@@ -868,24 +868,24 @@ public class VirtualCalendarTest {
             null, null, null);
 
 
-    List<Event> allSeriesEventsBeforeEdit =
+    List<IEvent> allSeriesEventsBeforeEdit =
             calendar.getEventsListInDateRange(LocalDate.of(2025, 6,
                             2).atStartOfDay(),
                     LocalDate.of(2025, 6, 11).atTime(23,
                             59, 59)).stream().distinct().collect(Collectors.toList());
 
-    Event firstEventBeforeEdit = allSeriesEventsBeforeEdit.stream().filter(e -> e.getStart()
+    IEvent firstEventBeforeEdit = allSeriesEventsBeforeEdit.stream().filter(e -> e.getStart()
             .toLocalDate().equals(LocalDate.of(2025, 6, 2))).findFirst().orElse(null);
     assertNotNull(firstEventBeforeEdit);
     UUID seriesId = firstEventBeforeEdit.getSeriesID();
 
     calendar.editSeries(seriesId, Property.SUBJECT, "Updated Series Subject");
 
-    List<Event> updatedEvents = calendar.getEventsListInDateRange(LocalDate.of(2025,
+    List<IEvent> updatedEvents = calendar.getEventsListInDateRange(LocalDate.of(2025,
                     6, 2).atStartOfDay(),
             LocalDate.of(2025, 6, 11).atTime(23,
                     59, 59)).stream().distinct().collect(Collectors.toList());
-    for (Event event : updatedEvents) {
+    for (IEvent event : updatedEvents) {
       assertEquals("Updated Series Subject", event.getSubject());
     }
   }
@@ -905,7 +905,7 @@ public class VirtualCalendarTest {
             days, LocalDate.of(2025, 6, 4), null, 1,
             "Original Desc", Location.PHYSICAL, EventStatus.PUBLIC);
 
-    Event event = calendar.getEventsList(LocalDate.of(2025, 6, 4)).get(0);
+    IEvent event = calendar.getEventsList(LocalDate.of(2025, 6, 4)).get(0);
     UUID seriesId = event.getSeriesID();
 
     String newStartTimeString = LocalTime.of(7,
@@ -916,10 +916,10 @@ public class VirtualCalendarTest {
     assertNotNull(updatedSeries);
     assertEquals(LocalTime.of(7, 0), updatedSeries.getStartTime());
 
-    List<Event> eventsOnDay = calendar.getEventsList(LocalDate.of(2025,
+    List<IEvent> eventsOnDay = calendar.getEventsList(LocalDate.of(2025,
             6, 4));
-    Event verifiedEvent = null;
-    for (Event e : eventsOnDay) {
+    IEvent verifiedEvent = null;
+    for (IEvent e : eventsOnDay) {
       if (seriesId.equals(e.getSeriesID())) {
         verifiedEvent = e;
         break;
@@ -947,7 +947,7 @@ public class VirtualCalendarTest {
             days, LocalDate.of(2025, 6, 4), null, 1,
             "Original Desc", Location.PHYSICAL, EventStatus.PUBLIC);
 
-    Event event = calendar.getEventsList(LocalDate.of(2025, 6, 4)).get(0);
+    IEvent event = calendar.getEventsList(LocalDate.of(2025, 6, 4)).get(0);
     UUID seriesId = event.getSeriesID();
     String newEndTimeString = LocalTime.of(0,
             30).format(DateTimeFormatter.ofPattern("HH:mm"));
@@ -972,7 +972,7 @@ public class VirtualCalendarTest {
             days, LocalDate.of(2025, 6, 4), null, 1,
             "Original Desc", Location.PHYSICAL, EventStatus.PUBLIC);
 
-    Event event = calendar.getEventsList(LocalDate.of(2025, 6, 4)).get(0);
+    IEvent event = calendar.getEventsList(LocalDate.of(2025, 6, 4)).get(0);
     UUID seriesId = event.getSeriesID();
 
     String newEndTimeString = LocalTime.of(0,
@@ -997,7 +997,7 @@ public class VirtualCalendarTest {
             days, LocalDate.of(2025, 6, 4), null, 1,
             "Original Desc", Location.PHYSICAL, EventStatus.PUBLIC);
 
-    Event event = calendar.getEventsList(LocalDate.of(2025, 6, 4)).get(0);
+    IEvent event = calendar.getEventsList(LocalDate.of(2025, 6, 4)).get(0);
     UUID seriesId = event.getSeriesID();
 
 
@@ -1029,7 +1029,7 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testCreateEventSameStartAndEndTime() throws CalendarException {
-    Event event = calendar.createEvent("Zero Duration", today9AM, today9AM);
+    IEvent event = calendar.createEvent("Zero Duration", today9AM, today9AM);
     assertNotNull(event);
     assertEquals(today9AM, event.getStart());
     assertEquals(today9AM, event.getEnd());
@@ -1045,13 +1045,13 @@ public class VirtualCalendarTest {
   public void testCreateEventSpanningMultipleDays() throws CalendarException {
     LocalDateTime start = LocalDateTime.of(2025, 6, 4, 22, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 6, 10, 0);
-    Event event = calendar.createEvent("Multi-day Conference", start, end);
+    IEvent event = calendar.createEvent("Multi-day Conference", start, end);
 
-    List<Event> day1Events = calendar.getEventsList(LocalDate.of(2025, 6,
+    List<IEvent> day1Events = calendar.getEventsList(LocalDate.of(2025, 6,
             4));
-    List<Event> day2Events = calendar.getEventsList(LocalDate.of(2025, 6,
+    List<IEvent> day2Events = calendar.getEventsList(LocalDate.of(2025, 6,
             5));
-    List<Event> day3Events = calendar.getEventsList(LocalDate.of(2025, 6,
+    List<IEvent> day3Events = calendar.getEventsList(LocalDate.of(2025, 6,
             6));
 
     assertTrue(day1Events.contains(event));
@@ -1109,13 +1109,13 @@ public class VirtualCalendarTest {
             days, LocalDate.of(2025, 6, 2), null, 4,
             "Test Description", Location.ONLINE, EventStatus.PUBLIC);
 
-    List<Event> mondayEvents = calendar.getEventsList(LocalDate.of(2025, 6,
+    List<IEvent> mondayEvents = calendar.getEventsList(LocalDate.of(2025, 6,
             2));
-    List<Event> wednesdayEvents = calendar.getEventsList(LocalDate.of(2025, 6,
+    List<IEvent> wednesdayEvents = calendar.getEventsList(LocalDate.of(2025, 6,
             4));
 
-    Event mondayEvent = mondayEvents.get(0);
-    Event wednesdayEvent = wednesdayEvents.get(0);
+    IEvent mondayEvent = mondayEvents.get(0);
+    IEvent wednesdayEvent = wednesdayEvents.get(0);
 
     assertNotNull(mondayEvent.getSeriesID());
     assertNotNull(wednesdayEvent.getSeriesID());
@@ -1135,11 +1135,11 @@ public class VirtualCalendarTest {
   @Test
   public void testGetEventsBySubjectAndStartTimeMultipleMatchesWithDifferentEndTimes()
           throws CalendarException {
-    Event event1 = calendar.createEvent("Same Subject", today9AM, today10AM);
-    Event event2 = calendar.createEvent("Different Subject", today9AM,
+    IEvent event1 = calendar.createEvent("Same Subject", today9AM, today10AM);
+    IEvent event2 = calendar.createEvent("Different Subject", today9AM,
             today10AM.plusHours(1));
 
-    List<Event> results = calendar.getEventsBySubjectAndStartTime("Same Subject", today9AM);
+    List<IEvent> results = calendar.getEventsBySubjectAndStartTime("Same Subject", today9AM);
     assertEquals(1, results.size());
     assertTrue(results.contains(event1));
     assertFalse(results.contains(event2));
@@ -1154,11 +1154,11 @@ public class VirtualCalendarTest {
   @Test
   public void testGetEventsBySubjectAndStartTimeCaseInsensitiveBehavior()
           throws CalendarException {
-    Event event = calendar.createEvent("Test Event", today9AM, today10AM);
+    IEvent event = calendar.createEvent("Test Event", today9AM, today10AM);
 
-    List<Event> results1 = calendar.getEventsBySubjectAndStartTime("test event", today9AM);
-    List<Event> results2 = calendar.getEventsBySubjectAndStartTime("TEST EVENT", today9AM);
-    List<Event> results3 = calendar.getEventsBySubjectAndStartTime("Test Event", today9AM);
+    List<IEvent> results1 = calendar.getEventsBySubjectAndStartTime("test event", today9AM);
+    List<IEvent> results2 = calendar.getEventsBySubjectAndStartTime("TEST EVENT", today9AM);
+    List<IEvent> results3 = calendar.getEventsBySubjectAndStartTime("Test Event", today9AM);
 
     assertEquals(1, results1.size());
     assertEquals(1, results2.size());
@@ -1179,10 +1179,10 @@ public class VirtualCalendarTest {
           throws CalendarException {
     LocalDateTime exactTime = LocalDateTime.of(2025, 6, 4,
             10, 0);
-    Event event = calendar.createEvent("Overlapping Event",
+    IEvent event = calendar.createEvent("Overlapping Event",
             exactTime.minusMinutes(30), exactTime.plusMinutes(30));
 
-    List<Event> results = calendar.getEventsListInDateRange(
+    List<IEvent> results = calendar.getEventsListInDateRange(
             exactTime.minusMinutes(15), exactTime.plusMinutes(15));
 
     assertEquals("Should find the overlapping event", 1, results.size());
@@ -1200,10 +1200,10 @@ public class VirtualCalendarTest {
     LocalDateTime start = LocalDateTime.of(2025, 6, 4, 9, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 4, 17, 0);
 
-    Event eventAtStart = calendar.createEvent("At Start", start, start.plusHours(1));
-    Event eventAtEnd = calendar.createEvent("At End", end.minusHours(1), end);
+    IEvent eventAtStart = calendar.createEvent("At Start", start, start.plusHours(1));
+    IEvent eventAtEnd = calendar.createEvent("At End", end.minusHours(1), end);
 
-    List<Event> results = calendar.getEventsListInDateRange(start, end);
+    List<IEvent> results = calendar.getEventsListInDateRange(start, end);
     assertEquals(2, results.size());
     assertTrue(results.contains(eventAtStart));
     assertTrue(results.contains(eventAtEnd));
@@ -1249,8 +1249,8 @@ public class VirtualCalendarTest {
    */
   @Test(expected = CalendarException.class)
   public void testEditEventCreatesDuplicateAfterEdit() throws CalendarException {
-    Event event1 = calendar.createEvent("Event1", today9AM, today10AM);
-    Event event2 = calendar.createEvent("Event2", tomorrow9AM, tomorrow10AM);
+    IEvent event1 = calendar.createEvent("Event1", today9AM, today10AM);
+    IEvent event2 = calendar.createEvent("Event2", tomorrow9AM, tomorrow10AM);
 
     // Edit event2 to match event1 exactly - should fail
     calendar.editEvent(event2.getId(), Property.SUBJECT, "Event1");
@@ -1266,7 +1266,7 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testEditEventDateChangeUpdatesCalendarMapping() throws CalendarException {
-    Event event = calendar.createEvent("Test Move", today9AM, today10AM);
+    IEvent event = calendar.createEvent("Test Move", today9AM, today10AM);
     UUID eventId = event.getId();
 
     // Move event to tomorrow - need to edit END time first to avoid validation error
@@ -1274,8 +1274,8 @@ public class VirtualCalendarTest {
     calendar.editEvent(eventId, Property.START, tomorrow9AM.toString());
 
     // Verify event moved from today to tomorrow
-    List<Event> todayEvents = calendar.getEventsList(today9AM.toLocalDate());
-    List<Event> tomorrowEvents = calendar.getEventsList(tomorrow9AM.toLocalDate());
+    List<IEvent> todayEvents = calendar.getEventsList(today9AM.toLocalDate());
+    List<IEvent> tomorrowEvents = calendar.getEventsList(tomorrow9AM.toLocalDate());
 
     assertTrue("Today should have no events", todayEvents.isEmpty());
     assertEquals("Tomorrow should have one event", 1, tomorrowEvents.size());
@@ -1292,16 +1292,16 @@ public class VirtualCalendarTest {
   public void testEditEventMultiDayEventDateChange() throws CalendarException {
     LocalDateTime start = LocalDateTime.of(2025, 6, 4, 22, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 5, 2, 0);
-    Event event = calendar.createEvent("Multi-day Event", start, end);
+    IEvent event = calendar.createEvent("Multi-day Event", start, end);
 
     LocalDateTime newEnd = LocalDateTime.of(2025, 6, 4, 23, 0);
     calendar.editEvent(event.getId(), Property.END, newEnd.toString());
 
-    List<Event> day1Events = calendar.getEventsList(LocalDate.of(2025, 6,
+    List<IEvent> day1Events = calendar.getEventsList(LocalDate.of(2025, 6,
             4));
     assertEquals("First day should have the event", 1, day1Events.size());
 
-    Event updatedEvent = day1Events.get(0);
+    IEvent updatedEvent = day1Events.get(0);
     assertEquals("Event should end on same day now",
             start.toLocalDate(), updatedEvent.getEnd().toLocalDate());
   }
@@ -1320,14 +1320,14 @@ public class VirtualCalendarTest {
             days, LocalDate.of(2025, 6, 4), null, 1,
             null, null, null);
 
-    Event originalEvent = calendar.getEventsList(LocalDate.of(2025, 6,
+    IEvent originalEvent = calendar.getEventsList(LocalDate.of(2025, 6,
             4)).get(0);
     UUID seriesId = originalEvent.getSeriesID();
 
     // Change start time
     calendar.editSeries(seriesId, Property.START, "08:00");
 
-    Event updatedEvent = calendar.getEventsList(LocalDate.of(2025, 6,
+    IEvent updatedEvent = calendar.getEventsList(LocalDate.of(2025, 6,
             4)).get(0);
 
     assertEquals("Start time should be 8:00", LocalTime.of(8, 0),
@@ -1352,18 +1352,18 @@ public class VirtualCalendarTest {
                     6, 11), 0,
             null, null, null);
 
-    Event wednesdayEvent = calendar.getEventsList(LocalDate.of(2025, 6,
+    IEvent wednesdayEvent = calendar.getEventsList(LocalDate.of(2025, 6,
             4)).get(0);
     UUID seriesId = wednesdayEvent.getSeriesID();
 
     // Edit from Wednesday onwards
     calendar.editSeriesFromDate(seriesId, Property.SUBJECT, "Updated Subject");
 
-    List<Event> mondayJun2 = calendar.getEventsBySubjectAndStartTime("Partial Edit Test",
+    List<IEvent> mondayJun2 = calendar.getEventsBySubjectAndStartTime("Partial Edit Test",
             LocalDateTime.of(2025, 6, 2, 9, 0));
-    List<Event> wednesdayJun4 = calendar.getEventsBySubjectAndStartTime("Updated Subject",
+    List<IEvent> wednesdayJun4 = calendar.getEventsBySubjectAndStartTime("Updated Subject",
             LocalDateTime.of(2025, 6, 4, 9, 0));
-    List<Event> mondayJun9 = calendar.getEventsBySubjectAndStartTime("Updated Subject",
+    List<IEvent> mondayJun9 = calendar.getEventsBySubjectAndStartTime("Updated Subject",
             LocalDateTime.of(2025, 6, 9, 9, 0));
 
     assertEquals(1, mondayJun2.size());
@@ -1379,7 +1379,7 @@ public class VirtualCalendarTest {
    */
   @Test(expected = CalendarException.class)
   public void testEditEventInvalidDateTimeFormat() throws CalendarException {
-    Event event = calendar.createEvent("Test", today9AM, today10AM);
+    IEvent event = calendar.createEvent("Test", today9AM, today10AM);
     calendar.editEvent(event.getId(), Property.START, "invalid-date-format");
   }
 
@@ -1392,7 +1392,7 @@ public class VirtualCalendarTest {
    */
   @Test(expected = CalendarException.class)
   public void testEditEventInvalidLocationValue() throws CalendarException {
-    Event event = calendar.createEvent("Test", today9AM, today10AM);
+    IEvent event = calendar.createEvent("Test", today9AM, today10AM);
     calendar.editEvent(event.getId(), Property.LOCATION, "INVALIDLOCATION");
   }
 
@@ -1405,7 +1405,7 @@ public class VirtualCalendarTest {
    */
   @Test(expected = CalendarException.class)
   public void testEditEventInvalidStatusValue() throws CalendarException {
-    Event event = calendar.createEvent("Test", today9AM, today10AM);
+    IEvent event = calendar.createEvent("Test", today9AM, today10AM);
     calendar.editEvent(event.getId(), Property.STATUS, "INVALIDSTATUS");
   }
 
@@ -1417,7 +1417,7 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testEditEventValidLocationValues() throws CalendarException {
-    Event event = calendar.createEvent("Test", today9AM, today10AM);
+    IEvent event = calendar.createEvent("Test", today9AM, today10AM);
 
     calendar.editEvent(event.getId(), Property.LOCATION, "physical");
     assertEquals(Location.PHYSICAL, event.getLocation());
@@ -1437,7 +1437,7 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testEditEventValidStatusValues() throws CalendarException {
-    Event event = calendar.createEvent("Test", today9AM, today10AM);
+    IEvent event = calendar.createEvent("Test", today9AM, today10AM);
 
     calendar.editEvent(event.getId(), Property.STATUS, "private");
     assertEquals(EventStatus.PRIVATE, event.getStatus());
@@ -1456,7 +1456,7 @@ public class VirtualCalendarTest {
   @Test
   public void testCreateEventWithNullEndDate() throws CalendarException {
     try {
-      Event event = calendar.createEvent("Test Event", today9AM, null);
+      IEvent event = calendar.createEvent("Test Event", today9AM, null);
 
       assertNotNull(event);
     } catch (Exception e) {
@@ -1506,7 +1506,7 @@ public class VirtualCalendarTest {
     for (LocalDate date = LocalDate.of(2025, 6, 2);
          !date.isAfter(LocalDate.of(2025, 6, 8));
          date = date.plusDays(1)) {
-      List<Event> eventsOnDay = calendar.getEventsList(date);
+      List<IEvent> eventsOnDay = calendar.getEventsList(date);
       totalEvents += eventsOnDay.size();
     }
 
@@ -1524,12 +1524,12 @@ public class VirtualCalendarTest {
     LocalDateTime endOfEvent = LocalDateTime.of(2025, 6, 1,
             1, 0);
 
-    Event monthSpanningEvent = calendar.createEvent("Month Spanning Event",
+    IEvent monthSpanningEvent = calendar.createEvent("Month Spanning Event",
             startOfEvent, endOfEvent);
 
-    List<Event> mayEvents = calendar.getEventsList(LocalDate.of(2025, 5,
+    List<IEvent> mayEvents = calendar.getEventsList(LocalDate.of(2025, 5,
             31));
-    List<Event> juneEvents = calendar.getEventsList(LocalDate.of(2025, 6,
+    List<IEvent> juneEvents = calendar.getEventsList(LocalDate.of(2025, 6,
             1));
 
     assertTrue("Should appear in May events", mayEvents.contains(monthSpanningEvent));
@@ -1569,7 +1569,7 @@ public class VirtualCalendarTest {
    */
   @Test
   public void testEditEventAllPropertiesSequentially() throws CalendarException {
-    Event event = calendar.createEvent("Original Event", today9AM, today10AM);
+    IEvent event = calendar.createEvent("Original Event", today9AM, today10AM);
     UUID eventId = event.getId();
 
     calendar.editEvent(eventId, Property.SUBJECT, "Updated Subject");
@@ -1582,7 +1582,7 @@ public class VirtualCalendarTest {
     calendar.editEvent(eventId, Property.END, newEnd.toString());
     calendar.editEvent(eventId, Property.START, newStart.toString());
 
-    Event updatedEvent = calendar.getEventsList(newStart.toLocalDate()).stream()
+    IEvent updatedEvent = calendar.getEventsList(newStart.toLocalDate()).stream()
             .filter(e -> e.getId().equals(eventId))
             .findFirst()
             .orElse(null);
@@ -1612,7 +1612,7 @@ public class VirtualCalendarTest {
             days, LocalDate.of(2025, 6, 4), null, 1,
             null, null, null);
 
-    Event seriesEvent = calendar.getEventsList(LocalDate.of(2025, 6,
+    IEvent seriesEvent = calendar.getEventsList(LocalDate.of(2025, 6,
                     4)).stream()
             .filter(e -> e.getSeriesID() != null)
             .findFirst()
@@ -1623,7 +1623,7 @@ public class VirtualCalendarTest {
     try {
       calendar.editSeries(seriesEvent.getSeriesID(), Property.START, "10:00");
 
-      Event updatedEvent = calendar.getEventsList(LocalDate.of(2025, 6,
+      IEvent updatedEvent = calendar.getEventsList(LocalDate.of(2025, 6,
                       4)).stream()
               .filter(e -> e.getSeriesID() != null)
               .findFirst()
@@ -1653,7 +1653,7 @@ public class VirtualCalendarTest {
                     6, 13), 0,
             "Original Description", Location.ONLINE, EventStatus.PUBLIC);
 
-    Event firstEvent = calendar.getEventsList(LocalDate.of(2025, 6,
+    IEvent firstEvent = calendar.getEventsList(LocalDate.of(2025, 6,
             2)).get(0);
     UUID seriesId = firstEvent.getSeriesID();
 
@@ -1661,14 +1661,14 @@ public class VirtualCalendarTest {
 
     calendar.editSeriesFromDate(seriesId, Property.LOCATION, "physical");
 
-    List<Event> allEvents = calendar.getEventsListInDateRange(
+    List<IEvent> allEvents = calendar.getEventsListInDateRange(
             LocalDate.of(2025, 6, 2).atStartOfDay(),
             LocalDate.of(2025, 6, 13).atTime(23, 59, 59));
 
     boolean foundUpdatedDescription = false;
     boolean foundUpdatedLocation = false;
 
-    for (Event event : allEvents) {
+    for (IEvent event : allEvents) {
       if (seriesId.equals(event.getSeriesID())) {
         if ("Updated Description".equals(event.getDescription())) {
           foundUpdatedDescription = true;
@@ -1700,27 +1700,27 @@ public class VirtualCalendarTest {
     LocalDateTime queryEnd = LocalDateTime.of(2025, 6, 4, 14,
             0);
 
-    Event event1 = calendar.createEvent("Before-Within",
+    IEvent event1 = calendar.createEvent("Before-Within",
             LocalDateTime.of(2025, 6, 4, 8, 0),
             LocalDateTime.of(2025, 6, 4, 12, 0));
 
-    Event event2 = calendar.createEvent("Within-After",
+    IEvent event2 = calendar.createEvent("Within-After",
             LocalDateTime.of(2025, 6, 4, 12, 0),
             LocalDateTime.of(2025, 6, 4, 16, 0));
 
-    Event event3 = calendar.createEvent("Completely-Within",
+    IEvent event3 = calendar.createEvent("Completely-Within",
             LocalDateTime.of(2025, 6, 4, 11, 0),
             LocalDateTime.of(2025, 6, 4, 13, 0));
 
-    Event event4 = calendar.createEvent("Spans-All",
+    IEvent event4 = calendar.createEvent("Spans-All",
             LocalDateTime.of(2025, 6, 4, 9, 0),
             LocalDateTime.of(2025, 6, 4, 15, 0));
 
-    Event event5 = calendar.createEvent("Outside",
+    IEvent event5 = calendar.createEvent("Outside",
             LocalDateTime.of(2025, 6, 4, 16, 0),
             LocalDateTime.of(2025, 6, 4, 17, 0));
 
-    List<Event> results = calendar.getEventsListInDateRange(queryStart, queryEnd);
+    List<IEvent> results = calendar.getEventsListInDateRange(queryStart, queryEnd);
 
     assertEquals("Should find 4 overlapping events", 4, results.size());
     assertTrue("Should include before-within event", results.contains(event1));

@@ -625,7 +625,7 @@ public class EventTest {
     LocalDateTime newStart = LocalDateTime.of(2025, 6, 5, 14, 0);
     LocalDateTime newEnd = LocalDateTime.of(2025, 6, 5, 15, 30);
 
-    Event copiedEvent = testEvent2.copyWithNewTimes(newStart, newEnd);
+    IEvent copiedEvent = testEvent2.copyWithNewTimes(newStart, newEnd);
 
     // Should have new times
     assertEquals(newStart, copiedEvent.getStart());
@@ -653,7 +653,7 @@ public class EventTest {
   public void testCopyWithNewTimesNullEndTime() {
     LocalDateTime newStart = LocalDateTime.of(2025, 6, 5, 14, 0);
 
-    Event copiedEvent = testEvent1.copyWithNewTimes(newStart, null);
+    IEvent copiedEvent = testEvent1.copyWithNewTimes(newStart, null);
 
     assertEquals(newStart, copiedEvent.getStart());
     assertNull(copiedEvent.getEnd());
@@ -790,7 +790,7 @@ public class EventTest {
   public void testMultipleCopiesIndependence() {
     Event copy1 = new Event(testEvent2);
     Event copy2 = new Event(testEvent2);
-    Event copy3 = testEvent2.copyWithNewTimes(now.plusHours(2), future.plusHours(2));
+    IEvent copy3 = testEvent2.copyWithNewTimes(now.plusHours(2), future.plusHours(2));
 
     // All should have different IDs
     assertNotEquals(copy1.getId(), copy2.getId());
@@ -871,7 +871,7 @@ public class EventTest {
             originalSeriesId, copy1.getSeriesID());
 
     // copyWithNewTimes should reset series ID
-    Event copy2 = testEvent1.copyWithNewTimes(now.plusHours(1), future.plusHours(1));
+    IEvent copy2 = testEvent1.copyWithNewTimes(now.plusHours(1), future.plusHours(1));
     assertNull("copyWithNewTimes should reset series ID", copy2.getSeriesID());
   }
 }

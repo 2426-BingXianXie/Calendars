@@ -119,7 +119,7 @@ public class NamedCalendar implements ICalendar {
    * @return a list of Event objects that match the criteria.
    */
   @Override
-  public List<Event> getEventsBySubjectAndStartTime(String subject, LocalDateTime startTime) {
+  public List<IEvent> getEventsBySubjectAndStartTime(String subject, LocalDateTime startTime) {
     return calendar.getEventsBySubjectAndStartTime(subject, startTime);
   }
 
@@ -132,7 +132,7 @@ public class NamedCalendar implements ICalendar {
    * @return a list of Event objects that match the criteria.
    */
   @Override
-  public List<Event> getEventsByDetails(String subject, LocalDateTime startTime,
+  public List<IEvent> getEventsByDetails(String subject, LocalDateTime startTime,
                                         LocalDateTime endTime) {
     return calendar.getEventsByDetails(subject, startTime, endTime);
   }
@@ -144,7 +144,7 @@ public class NamedCalendar implements ICalendar {
    * @return a list of Event objects occurring on the specified date.
    */
   @Override
-  public List<Event> getEventsList(LocalDate date) {
+  public List<IEvent> getEventsList(LocalDate date) {
     return calendar.getEventsList(date);
   }
 
@@ -156,7 +156,7 @@ public class NamedCalendar implements ICalendar {
    * @return a list of Event objects occurring within the specified range.
    */
   @Override
-  public List<Event> getEventsListInDateRange(LocalDateTime start, LocalDateTime end) {
+  public List<IEvent> getEventsListInDateRange(LocalDateTime start, LocalDateTime end) {
     return calendar.getEventsListInDateRange(start, end);
   }
 

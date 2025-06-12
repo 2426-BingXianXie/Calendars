@@ -272,14 +272,14 @@ public class CalendarSystemTest {
 
     // Verify event was copied
     ICalendar targetCalendar = system.getCalendar("Target");
-    List<Event> targetEvents = targetCalendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> targetEvents = targetCalendar.getEventsList(LocalDate.of(2024, 1,
             20));
     assertEquals(1, targetEvents.size());
     assertEquals("Meeting", targetEvents.get(0).getSubject());
     assertEquals(targetStart, targetEvents.get(0).getStart());
 
     // Verify original event still exists
-    List<Event> sourceEvents = sourceCalendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> sourceEvents = sourceCalendar.getEventsList(LocalDate.of(2024, 1,
             15));
     assertEquals(1, sourceEvents.size());
     assertEquals("Meeting", sourceEvents.get(0).getSubject());
@@ -307,11 +307,11 @@ public class CalendarSystemTest {
 
     // Verify duration is preserved (2 hours)
     ICalendar targetCalendar = system.getCalendar("Target");
-    List<Event> targetEvents = targetCalendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> targetEvents = targetCalendar.getEventsList(LocalDate.of(2024, 1,
             20));
     assertEquals(1, targetEvents.size());
 
-    Event copiedEvent = targetEvents.get(0);
+    IEvent copiedEvent = targetEvents.get(0);
     assertEquals(targetStart, copiedEvent.getStart());
     assertEquals(targetStart.plusHours(2), copiedEvent.getEnd());
   }
@@ -375,7 +375,7 @@ public class CalendarSystemTest {
 
     // Verify events were copied
     ICalendar targetCalendar = system.getCalendar("Target");
-    List<Event> targetEvents = targetCalendar.getEventsList(targetDate);
+    List<IEvent> targetEvents = targetCalendar.getEventsList(targetDate);
     assertEquals(2, targetEvents.size());
   }
 
@@ -406,7 +406,7 @@ public class CalendarSystemTest {
 
     // Verify event exists in UTC calendar
     ICalendar utcCalendar = system.getCalendar("UTC_Cal");
-    List<Event> utcEvents = utcCalendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> utcEvents = utcCalendar.getEventsList(LocalDate.of(2024, 1,
             15));
     assertEquals(1, utcEvents.size());
     assertEquals("Meeting", utcEvents.get(0).getSubject());
@@ -442,11 +442,11 @@ public class CalendarSystemTest {
 
     // Verify events were copied with correct date offset
     ICalendar targetCalendar = system.getCalendar("Target");
-    List<Event> targetEvents1 = targetCalendar.getEventsList(LocalDate.of(2024, 2,
+    List<IEvent> targetEvents1 = targetCalendar.getEventsList(LocalDate.of(2024, 2,
             1));
-    List<Event> targetEvents2 = targetCalendar.getEventsList(LocalDate.of(2024, 2,
+    List<IEvent> targetEvents2 = targetCalendar.getEventsList(LocalDate.of(2024, 2,
             2));
-    List<Event> targetEvents3 = targetCalendar.getEventsList(LocalDate.of(2024, 2,
+    List<IEvent> targetEvents3 = targetCalendar.getEventsList(LocalDate.of(2024, 2,
             3));
 
     assertEquals(1, targetEvents1.size());
@@ -505,7 +505,7 @@ public class CalendarSystemTest {
 
     // Verify event was copied
     ICalendar personalCalendar = system.getCurrentCalendar();
-    List<Event> personalEvents = personalCalendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> personalEvents = personalCalendar.getEventsList(LocalDate.of(2024, 1,
             16));
     assertEquals(1, personalEvents.size());
     assertEquals("Daily Standup", personalEvents.get(0).getSubject());
@@ -540,7 +540,7 @@ public class CalendarSystemTest {
 
     // Verify event exists in PST calendar
     ICalendar pstCalendar = system.getCalendar("PST_Cal");
-    List<Event> pstEvents = pstCalendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> pstEvents = pstCalendar.getEventsList(LocalDate.of(2024, 1,
             15));
     assertEquals(1, pstEvents.size());
     assertEquals("Conference Call", pstEvents.get(0).getSubject());
@@ -561,7 +561,7 @@ public class CalendarSystemTest {
 
     // Verify no events were copied
     ICalendar targetCalendar = system.getCalendar("Target");
-    List<Event> targetEvents = targetCalendar.getEventsList(LocalDate.of(2024, 2,
+    List<IEvent> targetEvents = targetCalendar.getEventsList(LocalDate.of(2024, 2,
             1));
     assertTrue(targetEvents.isEmpty());
   }
@@ -582,9 +582,9 @@ public class CalendarSystemTest {
     system.copyEvent("Meeting", eventStart, "Source", targetStart);
 
     // Verify both events exist
-    List<Event> events15 = calendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> events15 = calendar.getEventsList(LocalDate.of(2024, 1,
             15));
-    List<Event> events16 = calendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> events16 = calendar.getEventsList(LocalDate.of(2024, 1,
             16));
 
     assertEquals(1, events15.size());

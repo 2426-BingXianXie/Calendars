@@ -5,12 +5,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import calendar.model.Event;
+import calendar.model.IEvent;
 
 /**
  * Implements the {@link ICalendarView} interface, providing methods to display calendar information
  * and user interaction messages to an {@link Appendable} output stream.
- * Updated to support multiple calendars and new command syntax.
+ * Updated to support multiple calendars, new command syntax, and IEvent abstraction.
  */
 public class CalendarView implements ICalendarView {
   // The Appendable object to which all messages will be written (e.g., System.out, StringWriter).
@@ -72,11 +72,11 @@ public class CalendarView implements ICalendarView {
   /**
    * Displays a list of calendar events for a specific date.
    *
-   * @param events The list of {@link Event} objects to display.
+   * @param events The list of {@link IEvent} objects to display.
    * @param date   The {@link LocalDate} for which the events are being displayed.
    * @throws IllegalStateException if an I/O error occurs while writing to the output.
    */
-  public void showCalendarEvents(List<Event> events, LocalDate date) throws IllegalStateException {
+  public void showCalendarEvents(List<IEvent> events, LocalDate date) throws IllegalStateException {
     writeMessage("Printing events on " + date.toString() + "." + System.lineSeparator());
     printEvents(events);
   }
@@ -86,12 +86,12 @@ public class CalendarView implements ICalendarView {
    *
    * @param start  The {@link LocalDateTime} representing the start of the range (inclusive).
    * @param end    The {@link LocalDateTime} representing the end of the range (inclusive).
-   * @param events The list of {@link Event} objects to display.
+   * @param events The list of {@link IEvent} objects to display.
    * @throws IllegalStateException if an I/O error occurs while writing to the output.
    */
   @Override
   public void showCalendarEventsInDateRange(LocalDateTime start, LocalDateTime end,
-                                            List<Event> events) throws IllegalStateException {
+                                            List<IEvent> events) throws IllegalStateException {
     writeMessage("Printing events from " + start + " to " + end + "." + System.lineSeparator());
     printEvents(events);
   }
@@ -100,15 +100,15 @@ public class CalendarView implements ICalendarView {
    * Helper method to iterate through a list of events and print their details.
    * If the list is empty, it prints a "No events found" message.
    *
-   * @param events The list of {@link Event} objects to print.
+   * @param events The list of {@link IEvent} objects to print.
    * @throws IllegalStateException if an I/O error occurs while writing to the output.
    */
-  private void printEvents(List<Event> events) throws IllegalStateException {
+  private void printEvents(List<IEvent> events) throws IllegalStateException {
     if (events.isEmpty()) {
       writeMessage("No events found" + System.lineSeparator());
     }
     // Iterate through each event in the list.
-    for (Event event : events) {
+    for (IEvent event : events) {
       // Check if the event has a specific location.
       if (event.getLocation() == null) { // check for valid location in event
         // If no location, print event subject, date, and time range.
@@ -155,7 +155,8 @@ public class CalendarView implements ICalendarView {
     writeMessage("create calendar --name <calName> --timezone <area/location>" +
             " (Create a new calendar with unique name and timezone)" + System.lineSeparator());
 
-    writeMessage("edit calendar --name <name-of-calendar> --property <property-name> <new-property-value>" +
+    writeMessage("edit calendar --name <name-of-calendar> --property <property-name> " +
+            "<new-property-value>" +
             " (Modify calendar name or timezone)" + System.lineSeparator());
 
     writeMessage("use calendar --name <name-of-calendar>" +
@@ -187,13 +188,15 @@ public class CalendarView implements ICalendarView {
   private void copyOptions() throws IllegalStateException {
     writeMessage("=== Copy Commands ===" + System.lineSeparator());
 
-    writeMessage("copy event <eventName> on <dateStringTtimeString> --target <calendarName> to <dateStringTtimeString>" +
+    writeMessage("copy event <eventName> on <dateStringTtimeString> --target <calendarName> " +
+            "to <dateStringTtimeString>" +
             " (Copy single event to target calendar)" + System.lineSeparator());
 
     writeMessage("copy events on <dateString> --target <calendarName> to <dateString>" +
             " (Copy all events on date to target calendar)" + System.lineSeparator());
 
-    writeMessage("copy events between <dateString> and <dateString> --target <calendarName> to <dateString>" +
+    writeMessage("copy events between <dateString> and <dateString> --target <calendarName> " +
+            "to <dateString>" +
             " (Copy events in date range to target calendar)" + System.lineSeparator());
 
     writeMessage(System.lineSeparator());
@@ -209,7 +212,8 @@ public class CalendarView implements ICalendarView {
     writeMessage("q or quit (Exit the program)" + System.lineSeparator());
 
     writeMessage(System.lineSeparator());
-    writeMessage("Note: Event operations require an active calendar. Use 'use calendar --name <name>' first." +
+    writeMessage("Note: Event operations require an active calendar. Use 'use calendar " +
+            "--name <name>' first." +
             System.lineSeparator());
   }
 

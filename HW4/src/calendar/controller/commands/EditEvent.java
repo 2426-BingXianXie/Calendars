@@ -9,6 +9,7 @@ import calendar.CalendarException;
 import calendar.model.Event;
 import calendar.model.ICalendar;
 import calendar.model.ICalendarSystem;
+import calendar.model.IEvent;
 import calendar.model.Property;
 import calendar.view.ICalendarView;
 
@@ -145,8 +146,8 @@ public class EditEvent extends AbstractCommand {
       }
       String newProperty = sc.next();
       // retrieve events with matching details
-      List<Event> events = model.getEventsByDetails(subject, fromDate, toDate);
-      Event event = checkAmbiguousEvents(events);
+      List<IEvent> events = model.getEventsByDetails(subject, fromDate, toDate);
+      IEvent event = checkAmbiguousEvents(events);
       UUID eventId = event.getId();
       model.editEvent(eventId, property, newProperty);
       view.writeMessage("Edited event '" + subject + "' " + property.getStr() +
@@ -159,8 +160,8 @@ public class EditEvent extends AbstractCommand {
       }
       String newProperty = sc.next();
       // retrieve events with matching details
-      List<Event> events = model.getEventsBySubjectAndStartTime(subject, fromDate);
-      Event event = checkAmbiguousEvents(events);
+      List<IEvent> events = model.getEventsBySubjectAndStartTime(subject, fromDate);
+      IEvent event = checkAmbiguousEvents(events);
       if (event.getSeriesID() == null) { // not part of series, edit event by itself
         model.editEvent(event.getId(), property, newProperty);
         view.writeMessage("Edited event '" + subject + "' " + property.getStr() +
@@ -187,7 +188,7 @@ public class EditEvent extends AbstractCommand {
    * @return The single matching {@link Event}.
    * @throws CalendarException if no events or multiple events are found.
    */
-  private Event checkAmbiguousEvents(List<Event> events) throws CalendarException {
+  private IEvent checkAmbiguousEvents(List<IEvent> events) throws CalendarException {
     if (events.isEmpty()) { // check for no matching events
       throw new CalendarException("No events found.");
     } else if (events.size() > 1) { // check if multiple events match description

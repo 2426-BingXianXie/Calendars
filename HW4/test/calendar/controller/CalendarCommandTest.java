@@ -4,6 +4,7 @@ import calendar.controller.commands.CreateEvent;
 import calendar.model.CalendarSystem;
 import calendar.model.ICalendar;
 import calendar.model.ICalendarSystem;
+import calendar.model.IEvent;
 import calendar.model.VirtualCalendar;
 import calendar.controller.commands.EditEvent;
 import calendar.controller.commands.Show;
@@ -73,9 +74,9 @@ public class CalendarCommandTest {
     cmd.execute(system);
 
     // Verify event was created
-    List<Event> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
+    List<IEvent> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
     assertEquals(1, events.size());
-    Event event = events.get(0);
+    IEvent event = events.get(0);
     assertEquals("Meeting", event.getSubject());
     assertEquals(LocalDateTime.of(2025, 6, 5, 8, 0),
             event.getStart());
@@ -100,9 +101,9 @@ public class CalendarCommandTest {
     CreateEvent cmd = new CreateEvent(scanner, view);
     cmd.execute(system);
 
-    List<Event> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
+    List<IEvent> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
     assertEquals(1, events.size());
-    Event event = events.get(0);
+    IEvent event = events.get(0);
     assertEquals("Conference", event.getSubject());
     assertEquals(LocalDateTime.of(2025, 6, 5, 9, 0),
             event.getStart());
@@ -125,7 +126,7 @@ public class CalendarCommandTest {
     CreateEvent cmd = new CreateEvent(scanner, view);
     cmd.execute(system);
 
-    List<Event> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
+    List<IEvent> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
     assertEquals("Team Building Activity", events.get(0).getSubject());
   }
 
@@ -143,16 +144,16 @@ public class CalendarCommandTest {
     cmd.execute(system);
 
     // Check events were created on correct days
-    List<Event> mondayEvents = calendar.getEventsList(LocalDate.of(2025, 6,
+    List<IEvent> mondayEvents = calendar.getEventsList(LocalDate.of(2025, 6,
             2));
     assertEquals(1, mondayEvents.size());
     assertEquals("Meeting", mondayEvents.get(0).getSubject());
 
-    List<Event> wednesdayEvents = calendar.getEventsList(LocalDate.of(2025, 6,
+    List<IEvent> wednesdayEvents = calendar.getEventsList(LocalDate.of(2025, 6,
             4));
     assertEquals(1, wednesdayEvents.size());
 
-    List<Event> fridayEvents = calendar.getEventsList(LocalDate.of(2025, 6,
+    List<IEvent> fridayEvents = calendar.getEventsList(LocalDate.of(2025, 6,
             6));
     assertEquals(1, fridayEvents.size());
 
@@ -181,12 +182,12 @@ public class CalendarCommandTest {
     cmd.execute(system);
 
     // Verify events created up to end date
-    List<Event> lastMondayEvents = calendar.getEventsList(LocalDate.of(2025,
+    List<IEvent> lastMondayEvents = calendar.getEventsList(LocalDate.of(2025,
             6, 30));
     assertEquals(1, lastMondayEvents.size());
 
     // Verify no events after end date
-    List<Event> afterEndEvents = calendar.getEventsList(LocalDate.of(2025,
+    List<IEvent> afterEndEvents = calendar.getEventsList(LocalDate.of(2025,
             7, 2));
     assertEquals(0, afterEndEvents.size());
 
@@ -211,7 +212,7 @@ public class CalendarCommandTest {
     int eventCount = 0;
     LocalDate checkDate = LocalDate.of(2025, 6, 2);
     for (int i = 0; i < 14; i++) { // Check two weeks
-      List<Event> events = calendar.getEventsList(checkDate.plusDays(i));
+      List<IEvent> events = calendar.getEventsList(checkDate.plusDays(i));
       eventCount += events.size();
     }
     assertEquals(3, eventCount);
@@ -404,7 +405,7 @@ public class CalendarCommandTest {
     CreateEvent cmd = new CreateEvent(scanner, view);
     cmd.execute(system);
 
-    List<Event> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
+    List<IEvent> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
     assertEquals(1, events.size());
     assertEquals("meeting", events.get(0).getSubject());
   }
@@ -424,7 +425,7 @@ public class CalendarCommandTest {
     // Should create 2 events (2 weeks * 1 event per day = 2 events total since it's "2 times")
     int totalEvents = 0;
     for (int i = 0; i < 14; i++) {
-      List<Event> events = calendar.getEventsList(LocalDate.of(2025, 6,
+      List<IEvent> events = calendar.getEventsList(LocalDate.of(2025, 6,
               1).plusDays(i));
       totalEvents += events.size();
     }
@@ -452,10 +453,10 @@ public class CalendarCommandTest {
     cmd.execute(system);
 
     // Check that the event was edited
-    List<Event> eventsOnDay = calendar.getEventsList(LocalDate.of(2025, 6,
+    List<IEvent> eventsOnDay = calendar.getEventsList(LocalDate.of(2025, 6,
             5));
     boolean foundEditedEvent = false;
-    for (Event e : eventsOnDay) {
+    for (IEvent e : eventsOnDay) {
       if (e.getSubject().equals("NewMeeting") &&
               e.getStart().equals(LocalDateTime.of(2025, 6, 5,
                       9, 0)) &&
@@ -949,7 +950,7 @@ public class CalendarCommandTest {
     CreateEvent cmd1 = new CreateEvent(scanner1, view);
     cmd1.execute(system);
 
-    List<Event> events1 = calendar.getEventsList(LocalDate.of(1, 1, 1));
+    List<IEvent> events1 = calendar.getEventsList(LocalDate.of(1, 1, 1));
     assertEquals(LocalDateTime.of(1, 1, 1, 8, 0),
             events1.get(0).getStart());
 
@@ -959,7 +960,7 @@ public class CalendarCommandTest {
     CreateEvent cmd2 = new CreateEvent(scanner2, view);
     cmd2.execute(system);
 
-    List<Event> events2 = calendar.getEventsList(LocalDate.of(9999, 12, 31));
+    List<IEvent> events2 = calendar.getEventsList(LocalDate.of(9999, 12, 31));
     assertEquals(LocalDateTime.of(9999, 12, 31, 8, 0),
             events2.get(0).getStart());
   }
@@ -975,7 +976,7 @@ public class CalendarCommandTest {
     CreateEvent cmd = new CreateEvent(scanner, view);
     cmd.execute(system);
 
-    List<Event> events = calendar.getEventsList(LocalDate.of(2024, 2, 29));
+    List<IEvent> events = calendar.getEventsList(LocalDate.of(2024, 2, 29));
     assertEquals(LocalDate.of(2024, 2, 29),
             events.get(0).getStart().toLocalDate());
   }
@@ -1004,7 +1005,7 @@ public class CalendarCommandTest {
     CreateEvent cmd = new CreateEvent(scanner, view);
     cmd.execute(system);
 
-    List<Event> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
+    List<IEvent> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
     assertEquals("Meeting@Office#123", events.get(0).getSubject());
   }
 
@@ -1024,7 +1025,7 @@ public class CalendarCommandTest {
     for (int i = 0; i < 30; i++) { // Check a month
       LocalDate checkDate = LocalDate.of(2025, 6, 2).plusDays(i);
       if (checkDate.getDayOfWeek() == java.time.DayOfWeek.MONDAY) {
-        List<Event> events = calendar.getEventsList(checkDate);
+        List<IEvent> events = calendar.getEventsList(checkDate);
         if (!events.isEmpty()) {
           mondayCount++;
         }
@@ -1116,7 +1117,7 @@ public class CalendarCommandTest {
     cmd.execute(system);
 
     // Should create only one event on the start/end date
-    List<Event> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
+    List<IEvent> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
     assertEquals(1, events.size());
   }
 
@@ -1132,7 +1133,7 @@ public class CalendarCommandTest {
     CreateEvent cmd = new CreateEvent(scanner, view);
     cmd.execute(system);
 
-    List<Event> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
+    List<IEvent> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
     assertEquals("Meeting", events.get(0).getSubject());
   }
 
@@ -1172,7 +1173,7 @@ public class CalendarCommandTest {
     cmd.execute(system);
 
     // Verify event was created
-    List<Event> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
+    List<IEvent> events = calendar.getEventsList(LocalDate.of(2025, 6, 5));
     assertEquals(1, events.size());
     assertEquals("Team Meeting", events.get(0).getSubject());
 

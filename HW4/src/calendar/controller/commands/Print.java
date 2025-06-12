@@ -9,6 +9,7 @@ import calendar.CalendarException;
 import calendar.model.Event;
 import calendar.model.ICalendar;
 import calendar.model.ICalendarSystem;
+import calendar.model.IEvent;
 import calendar.view.ICalendarView;
 
 /**
@@ -68,7 +69,7 @@ public class Print extends AbstractCommand {
         // check for valid input after 'on'
         // attempt to parse date input
         LocalDate date = parseDate(sc);
-        List<Event> events = model.getEventsList(date);
+        List<IEvent> events = model.getEventsList(date);
         view.showCalendarEvents(events, date);
         // check if next word is 'from'
       } else if (nextKeyword.equalsIgnoreCase("from")) {
@@ -85,7 +86,7 @@ public class Print extends AbstractCommand {
         }
         // attempt to parse end date input
         LocalDateTime toDate = parseDateTime(sc);
-        List<Event> events = model.getEventsListInDateRange(fromDate, toDate);
+        List<IEvent> events = model.getEventsListInDateRange(fromDate, toDate);
         view.showCalendarEventsInDateRange(fromDate, toDate, events);
       } else {
         throw new CalendarException("Expected 'on' or 'from' after 'events'.");

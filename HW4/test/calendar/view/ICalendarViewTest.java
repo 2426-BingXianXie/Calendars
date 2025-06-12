@@ -2,6 +2,7 @@ package calendar.view;
 
 import calendar.model.Event;
 import calendar.model.EventStatus;
+import calendar.model.IEvent;
 import calendar.model.Location;
 
 import org.junit.Before;
@@ -137,7 +138,7 @@ public class ICalendarViewTest {
     Event event2 = new Event("Lunch",
             LocalDateTime.of(2025, 6, 4, 12, 0),
             LocalDateTime.of(2025, 6, 4, 13, 0));
-    List<Event> events = Arrays.asList(event1, event2);
+    List<IEvent> events = Arrays.asList(event1, event2);
 
     view.showCalendarEvents(events, date);
 
@@ -167,7 +168,7 @@ public class ICalendarViewTest {
             LocalDateTime.of(2025, 6, 5, 15, 0),
             "Presentation", Location.PHYSICAL, "Office Rm 300",
             EventStatus.PRIVATE, null);
-    List<Event> events = Arrays.asList(event1, event2);
+    List<IEvent> events = Arrays.asList(event1, event2);
 
     view.showCalendarEvents(events, date);
 
@@ -188,7 +189,7 @@ public class ICalendarViewTest {
   @Test
   public void testShowCalendarEventsNoEvents() {
     LocalDate date = LocalDate.of(2025, 6, 6);
-    List<Event> events = Collections.emptyList();
+    List<IEvent> events = Collections.emptyList();
 
     view.showCalendarEvents(events, date);
 
@@ -242,7 +243,7 @@ public class ICalendarViewTest {
     Event event2 = new Event("Event Day 2",
             LocalDateTime.of(2025, 6, 5, 10, 0),
             LocalDateTime.of(2025, 6, 5, 11, 0));
-    List<Event> events = Arrays.asList(event1, event2);
+    List<IEvent> events = Arrays.asList(event1, event2);
 
     view.showCalendarEventsInDateRange(start, end, events);
 
@@ -277,7 +278,7 @@ public class ICalendarViewTest {
             LocalDateTime.of(2025, 6, 10, 17, 0),
             LocalDateTime.of(2025, 6, 10, 19, 0));
 
-    List<Event> eventsToShow = Arrays.asList(event1, event2, event3);
+    List<IEvent> eventsToShow = Arrays.asList(event1, event2, event3);
 
     view.showCalendarEventsInDateRange(rangeStart, rangeEnd, eventsToShow);
 
@@ -297,7 +298,7 @@ public class ICalendarViewTest {
   public void testShowCalendarEventsInDateRangeNoEvents() {
     LocalDateTime start = LocalDateTime.of(2025, 6, 7, 9, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 8, 17, 0);
-    List<Event> events = Collections.emptyList();
+    List<IEvent> events = Collections.emptyList();
 
     view.showCalendarEventsInDateRange(start, end, events);
 
@@ -319,7 +320,7 @@ public class ICalendarViewTest {
     Event event = new Event("Test", LocalDateTime.of(2025, 6, 11,
             9, 0), LocalDateTime.of(2025, 6, 11, 11,
             0));
-    List<Event> events = List.of(event);
+    List<IEvent> events = List.of(event);
 
     view.showCalendarEventsInDateRange(start, end, events);
     String expectedOutput = "Printing events from 2025-06-11T10:00 to 2025-06-11T10:00."
@@ -418,7 +419,7 @@ public class ICalendarViewTest {
             LocalDateTime.of(2025, 6, 4, 10, 30),
             null, Location.ONLINE, null, null, null);
 
-    List<Event> events = Arrays.asList(eventWithDetail, eventWithoutDetail);
+    List<IEvent> events = Arrays.asList(eventWithDetail, eventWithoutDetail);
     view.showCalendarEvents(events, date);
 
     String output = testOutput.toString();
@@ -433,7 +434,7 @@ public class ICalendarViewTest {
   @Test
   public void testShowCalendarEventsManyEvents() {
     LocalDate date = LocalDate.of(2025, 6, 4);
-    List<Event> manyEvents = new ArrayList<>();
+    List<IEvent> manyEvents = new ArrayList<>();
 
     for (int i = 0; i < 20; i++) {
       Event event = new Event("Event " + i,
@@ -476,7 +477,7 @@ public class ICalendarViewTest {
             LocalDateTime.of(2025, 6, 4, 13, 0));
 
     // Intentionally add out of order to see if view handles sorting or simply prints in list order
-    List<Event> events = Arrays.asList(lateEvent, earlyEvent, middleEvent);
+    List<IEvent> events = Arrays.asList(lateEvent, earlyEvent, middleEvent);
     view.showCalendarEvents(events, date);
 
     String output = testOutput.toString();
@@ -551,7 +552,7 @@ public class ICalendarViewTest {
             LocalDateTime.of(2025, 6, 10, 15, 0),
             LocalDateTime.of(2025, 6, 10, 16, 0));
 
-    List<Event> events = Arrays.asList(morningEvent, lunchEvent, afternoonEvent);
+    List<IEvent> events = Arrays.asList(morningEvent, lunchEvent, afternoonEvent);
     view.showCalendarEventsInDateRange(rangeStart, rangeEnd, events);
 
     String output = testOutput.toString();
@@ -692,7 +693,7 @@ public class ICalendarViewTest {
             LocalDateTime.of(2025, 6, 4, 9, 0),
             LocalDateTime.of(2025, 6, 4, 10, 0));
 
-    List<Event> eventsWithNull = new ArrayList<>();
+    List<IEvent> eventsWithNull = new ArrayList<>();
     eventsWithNull.add(validEvent);
     eventsWithNull.add(null); // Add a null event to the list
 
@@ -743,7 +744,7 @@ public class ICalendarViewTest {
             LocalDateTime.of(2025, 6, 4, 23, 30),
             LocalDateTime.of(2025, 6, 4, 23, 59));
 
-    List<Event> events = Arrays.asList(midnightEvent, beforeMidnightEvent);
+    List<IEvent> events = Arrays.asList(midnightEvent, beforeMidnightEvent);
     view.showCalendarEvents(events, date);
 
     String output = testOutput.toString();
@@ -768,7 +769,7 @@ public class ICalendarViewTest {
             LocalDateTime.of(2025, 12, 25, 10, 0),
             LocalDateTime.of(2025, 12, 25, 18, 0));
 
-    List<Event> events = Arrays.asList(newYearEvent, christmasEvent);
+    List<IEvent> events = Arrays.asList(newYearEvent, christmasEvent);
     view.showCalendarEventsInDateRange(start, end, events);
 
     String output = testOutput.toString();
@@ -815,7 +816,7 @@ public class ICalendarViewTest {
             "Description", null, null, 
             EventStatus.PUBLIC, null);
 
-    List<Event> events = Arrays.asList(physicalPublic, physicalPrivate, onlinePublic,
+    List<IEvent> events = Arrays.asList(physicalPublic, physicalPrivate, onlinePublic,
             onlinePrivate, nullLocation);
     view.showCalendarEvents(events, date);
 
@@ -887,7 +888,7 @@ public class ICalendarViewTest {
             LocalDateTime.of(2025, 6, 4, 13, 0),
             LocalDateTime.of(2025, 6, 4, 14, 0));
 
-    List<Event> mixedEvents = Arrays.asList(individualEvent, seriesEvent, anotherIndividualEvent);
+    List<IEvent> mixedEvents = Arrays.asList(individualEvent, seriesEvent, anotherIndividualEvent);
     view.showCalendarEvents(mixedEvents, date);
 
     String output = testOutput.toString();
@@ -926,7 +927,7 @@ public class ICalendarViewTest {
             LocalDateTime.of(2025, 6, 10, 9, 0),
             LocalDateTime.of(2025, 6, 10, 17, 0));
 
-    List<Event> events = Arrays.asList(beforeToWithin, withinToAfter, completeSpan);
+    List<IEvent> events = Arrays.asList(beforeToWithin, withinToAfter, completeSpan);
     view.showCalendarEventsInDateRange(rangeStart, rangeEnd, events);
 
     String output = testOutput.toString();
@@ -1012,7 +1013,7 @@ public class ICalendarViewTest {
             LocalDateTime.of(2025, 6, 4, 11, 0),
             LocalDateTime.of(2025, 6, 4, 12, 0));
 
-    List<Event> events = Arrays.asList(emptySubjectEvent, normalEvent);
+    List<IEvent> events = Arrays.asList(emptySubjectEvent, normalEvent);
     view.showCalendarEvents(events, date);
 
     String output = testOutput.toString();
@@ -1047,7 +1048,7 @@ public class ICalendarViewTest {
   @Test
   public void testShowCalendarEventsLargeNumberOfEvents() {
     LocalDate date = LocalDate.of(2025, 6, 4);
-    List<Event> manyEvents = new ArrayList<>();
+    List<IEvent> manyEvents = new ArrayList<>();
     
     for (int i = 0; i < 100; i++) {
       

@@ -16,6 +16,7 @@ import calendar.model.CalendarSystem;
 import calendar.model.Days;
 import calendar.model.Event;
 import calendar.model.ICalendarSystem;
+import calendar.model.IEvent;
 import calendar.view.ICalendarView;
 
 import static org.junit.Assert.assertEquals;
@@ -119,7 +120,7 @@ public class ICalendarControllerTest {
        * @param date   The {@link LocalDate} for which the events are being displayed.
        * @throws IllegalStateException if an I/O error occurs while writing to the output.
        */
-      public void showCalendarEvents(List<Event> events, LocalDate date) throws IllegalStateException {
+      public void showCalendarEvents(List<IEvent> events, LocalDate date) throws IllegalStateException {
         writeMessage("Printing events on " + date.toString() + "." + System.lineSeparator());
         printEvents(events);
       }
@@ -134,7 +135,7 @@ public class ICalendarControllerTest {
        */
       @Override
       public void showCalendarEventsInDateRange(LocalDateTime start, LocalDateTime end,
-                                                List<Event> events) throws IllegalStateException {
+                                                List<IEvent> events) throws IllegalStateException {
         writeMessage("Printing events from " + start + " to " + end + "." + System.lineSeparator());
         printEvents(events);
       }
@@ -146,12 +147,12 @@ public class ICalendarControllerTest {
        * @param events The list of {@link Event} objects to print.
        * @throws IllegalStateException if an I/O error occurs while writing to the output.
        */
-      private void printEvents(List<Event> events) throws IllegalStateException {
+      private void printEvents(List<IEvent> events) throws IllegalStateException {
         if (events.isEmpty()) {
           writeMessage("No events found" + System.lineSeparator());
         }
         // Iterate through each event in the list.
-        for (Event event : events) {
+        for (IEvent event : events) {
           // Check if the event has a specific location.
           if (event.getLocation() == null) { // check for valid location in event
             // If no location, print event subject, date, and time range.

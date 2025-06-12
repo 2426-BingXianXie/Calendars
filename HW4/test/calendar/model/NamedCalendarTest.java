@@ -99,7 +99,7 @@ public class NamedCalendarTest {
     LocalDateTime start = LocalDateTime.of(2024, 1, 15, 10, 0);
     LocalDateTime end = LocalDateTime.of(2024, 1, 15, 11, 0);
 
-    Event event = calendar.createEvent("Meeting", start, end);
+    IEvent event = calendar.createEvent("Meeting", start, end);
 
     assertNotNull(event);
     assertEquals("Meeting", event.getSubject());
@@ -129,15 +129,15 @@ public class NamedCalendarTest {
     LocalDateTime start = LocalDateTime.of(2024, 1, 15, 10, 0);
     LocalDateTime end = LocalDateTime.of(2024, 1, 17, 11, 0);
 
-    Event event = calendar.createEvent("Conference", start, end);
+    IEvent event = calendar.createEvent("Conference", start, end);
 
     assertNotNull(event);
     assertEquals("Conference", event.getSubject());
 
     // Event should appear on all days it spans
-    List<Event> events15 = calendar.getEventsList(LocalDate.of(2024, 1, 15));
-    List<Event> events16 = calendar.getEventsList(LocalDate.of(2024, 1, 16));
-    List<Event> events17 = calendar.getEventsList(LocalDate.of(2024, 1, 17));
+    List<IEvent> events15 = calendar.getEventsList(LocalDate.of(2024, 1, 15));
+    List<IEvent> events16 = calendar.getEventsList(LocalDate.of(2024, 1, 16));
+    List<IEvent> events17 = calendar.getEventsList(LocalDate.of(2024, 1, 17));
 
     assertEquals(1, events15.size());
     assertEquals(1, events16.size());
@@ -160,11 +160,11 @@ public class NamedCalendarTest {
             Location.PHYSICAL, EventStatus.PUBLIC);
 
     // Check that events were created on correct days
-    List<Event> mondayEvents = calendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> mondayEvents = calendar.getEventsList(LocalDate.of(2024, 1,
             15));
-    List<Event> tuesdayEvents = calendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> tuesdayEvents = calendar.getEventsList(LocalDate.of(2024, 1,
             16));
-    List<Event> wednesdayEvents = calendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> wednesdayEvents = calendar.getEventsList(LocalDate.of(2024, 1,
             17));
 
     assertEquals(1, mondayEvents.size());
@@ -188,10 +188,10 @@ public class NamedCalendarTest {
             startDate, null, 3, "Team Meeting",
             Location.ONLINE, EventStatus.PRIVATE);
 
-    List<Event> week1 = calendar.getEventsList(LocalDate.of(2024, 1, 15));
-    List<Event> week2 = calendar.getEventsList(LocalDate.of(2024, 1, 22));
-    List<Event> week3 = calendar.getEventsList(LocalDate.of(2024, 1, 29));
-    List<Event> week4 = calendar.getEventsList(LocalDate.of(2024, 2, 5));
+    List<IEvent> week1 = calendar.getEventsList(LocalDate.of(2024, 1, 15));
+    List<IEvent> week2 = calendar.getEventsList(LocalDate.of(2024, 1, 22));
+    List<IEvent> week3 = calendar.getEventsList(LocalDate.of(2024, 1, 29));
+    List<IEvent> week4 = calendar.getEventsList(LocalDate.of(2024, 2, 5));
 
     assertEquals(1, week1.size());
     assertEquals(1, week2.size());
@@ -213,7 +213,7 @@ public class NamedCalendarTest {
     // Check all 5 days have events
     for (int i = 0; i < 5; i++) {
       LocalDate date = startDate.plusDays(i);
-      List<Event> dayEvents = calendar.getEventsList(date);
+      List<IEvent> dayEvents = calendar.getEventsList(date);
       assertEquals(1, dayEvents.size());
       assertEquals("Daily Standup", dayEvents.get(0).getSubject());
     }
@@ -226,12 +226,12 @@ public class NamedCalendarTest {
 
     calendar.createEvent("Meeting", start, end);
 
-    List<Event> events = calendar.getEventsBySubjectAndStartTime("Meeting", start);
+    List<IEvent> events = calendar.getEventsBySubjectAndStartTime("Meeting", start);
     assertEquals(1, events.size());
     assertEquals("Meeting", events.get(0).getSubject());
 
     // Case insensitive search
-    List<Event> eventsLower = calendar.getEventsBySubjectAndStartTime("meeting", start);
+    List<IEvent> eventsLower = calendar.getEventsBySubjectAndStartTime("meeting", start);
     assertEquals(1, eventsLower.size());
   }
 
@@ -242,10 +242,10 @@ public class NamedCalendarTest {
 
     calendar.createEvent("Meeting", start, end);
 
-    List<Event> events = calendar.getEventsBySubjectAndStartTime("Different", start);
+    List<IEvent> events = calendar.getEventsBySubjectAndStartTime("Different", start);
     assertTrue(events.isEmpty());
 
-    List<Event> eventsWrongTime = calendar.getEventsBySubjectAndStartTime("Meeting",
+    List<IEvent> eventsWrongTime = calendar.getEventsBySubjectAndStartTime("Meeting",
             start.plusHours(1));
     assertTrue(eventsWrongTime.isEmpty());
   }
@@ -257,7 +257,7 @@ public class NamedCalendarTest {
 
     calendar.createEvent("Meeting", start, end);
 
-    List<Event> events = calendar.getEventsByDetails("Meeting", start, end);
+    List<IEvent> events = calendar.getEventsByDetails("Meeting", start, end);
     assertEquals(1, events.size());
     assertEquals("Meeting", events.get(0).getSubject());
   }
@@ -269,7 +269,7 @@ public class NamedCalendarTest {
 
     calendar.createEvent("Meeting", start, end);
 
-    List<Event> events = calendar.getEventsByDetails("Meeting", start, end.plusMinutes(30));
+    List<IEvent> events = calendar.getEventsByDetails("Meeting", start, end.plusMinutes(30));
     assertTrue(events.isEmpty());
   }
 
@@ -284,7 +284,7 @@ public class NamedCalendarTest {
     calendar.createEvent("Morning Meeting", start1, end1);
     calendar.createEvent("Afternoon Meeting", start2, end2);
 
-    List<Event> events = calendar.getEventsList(date);
+    List<IEvent> events = calendar.getEventsList(date);
     assertEquals(2, events.size());
 
     // Events should be retrievable by subject
@@ -295,7 +295,7 @@ public class NamedCalendarTest {
   @Test
   public void testGetEventsListEmptyDate() {
     LocalDate date = LocalDate.of(2024, 1, 15);
-    List<Event> events = calendar.getEventsList(date);
+    List<IEvent> events = calendar.getEventsList(date);
     assertTrue(events.isEmpty());
   }
 
@@ -315,7 +315,7 @@ public class NamedCalendarTest {
             LocalDateTime.of(2024, 1, 18, 10, 0),
             LocalDateTime.of(2024, 1, 18, 11, 0));
 
-    List<Event> events = calendar.getEventsListInDateRange(start, end);
+    List<IEvent> events = calendar.getEventsListInDateRange(start, end);
     assertEquals(2, events.size());
     assertTrue(events.stream().anyMatch(e -> e.getSubject().equals("Event 1")));
     assertTrue(events.stream().anyMatch(e -> e.getSubject().equals("Event 2")));
@@ -376,10 +376,10 @@ public class NamedCalendarTest {
     LocalDateTime start = LocalDateTime.of(2024, 1, 15, 10, 0);
     LocalDateTime end = LocalDateTime.of(2024, 1, 15, 11, 0);
 
-    Event event = calendar.createEvent("Meeting", start, end);
+    IEvent event = calendar.createEvent("Meeting", start, end);
     UUID eventId = event.getId();
 
-    Event editedEvent = calendar.editEvent(eventId, Property.SUBJECT, "Updated" +
+    IEvent editedEvent = calendar.editEvent(eventId, Property.SUBJECT, "Updated" +
             " Meeting");
 
     assertEquals("Updated Meeting", editedEvent.getSubject());
@@ -394,10 +394,10 @@ public class NamedCalendarTest {
     LocalDateTime newStart = LocalDateTime.of(2024, 1, 15, 9,
             0);
 
-    Event event = calendar.createEvent("Meeting", start, end);
+    IEvent event = calendar.createEvent("Meeting", start, end);
     UUID eventId = event.getId();
 
-    Event editedEvent = calendar.editEvent(eventId, Property.START, newStart.toString());
+    IEvent editedEvent = calendar.editEvent(eventId, Property.START, newStart.toString());
 
     assertEquals("Meeting", editedEvent.getSubject());
     assertEquals(newStart, editedEvent.getStart());
@@ -410,10 +410,10 @@ public class NamedCalendarTest {
     LocalDateTime end = LocalDateTime.of(2024, 1, 15, 11, 0);
     LocalDateTime newEnd = LocalDateTime.of(2024, 1, 15, 12, 0);
 
-    Event event = calendar.createEvent("Meeting", start, end);
+    IEvent event = calendar.createEvent("Meeting", start, end);
     UUID eventId = event.getId();
 
-    Event editedEvent = calendar.editEvent(eventId, Property.END, newEnd.toString());
+    IEvent editedEvent = calendar.editEvent(eventId, Property.END, newEnd.toString());
 
     assertEquals("Meeting", editedEvent.getSubject());
     assertEquals(start, editedEvent.getStart());
@@ -427,7 +427,7 @@ public class NamedCalendarTest {
     LocalDateTime newStart = LocalDateTime.of(2024, 1, 15, 12,
             0);
 
-    Event event = calendar.createEvent("Meeting", start, end);
+    IEvent event = calendar.createEvent("Meeting", start, end);
     UUID eventId = event.getId();
 
     calendar.editEvent(eventId, Property.START, newStart.toString());
@@ -439,7 +439,7 @@ public class NamedCalendarTest {
     LocalDateTime end = LocalDateTime.of(2024, 1, 15, 11, 0);
     LocalDateTime newEnd = LocalDateTime.of(2024, 1, 15, 9, 0);
 
-    Event event = calendar.createEvent("Meeting", start, end);
+    IEvent event = calendar.createEvent("Meeting", start, end);
     UUID eventId = event.getId();
 
     calendar.editEvent(eventId, Property.END, newEnd.toString());
@@ -450,7 +450,7 @@ public class NamedCalendarTest {
     LocalDateTime start = LocalDateTime.of(2024, 1, 15, 10, 0);
     LocalDateTime end = LocalDateTime.of(2024, 1, 15, 11, 0);
 
-    Event event = calendar.createEvent("Meeting", start, end);
+    IEvent event = calendar.createEvent("Meeting", start, end);
     UUID eventId = event.getId();
 
     // First, edit end time to a later time (this should work)
@@ -470,10 +470,10 @@ public class NamedCalendarTest {
     LocalDateTime start = LocalDateTime.of(2024, 1, 15, 10, 0);
     LocalDateTime end = LocalDateTime.of(2024, 1, 15, 11, 0);
 
-    Event event = calendar.createEvent("Meeting", start, end);
+    IEvent event = calendar.createEvent("Meeting", start, end);
     UUID eventId = event.getId();
 
-    Event editedEvent = calendar.editEvent(eventId, Property.LOCATION, "online");
+    IEvent editedEvent = calendar.editEvent(eventId, Property.LOCATION, "online");
 
     assertEquals(Location.ONLINE, editedEvent.getLocation());
   }
@@ -483,10 +483,10 @@ public class NamedCalendarTest {
     LocalDateTime start = LocalDateTime.of(2024, 1, 15, 10, 0);
     LocalDateTime end = LocalDateTime.of(2024, 1, 15, 11, 0);
 
-    Event event = calendar.createEvent("Meeting", start, end);
+    IEvent event = calendar.createEvent("Meeting", start, end);
     UUID eventId = event.getId();
 
-    Event editedEvent = calendar.editEvent(eventId, Property.STATUS, "private");
+    IEvent editedEvent = calendar.editEvent(eventId, Property.STATUS, "private");
 
     assertEquals(EventStatus.PRIVATE, editedEvent.getStatus());
   }
@@ -496,10 +496,10 @@ public class NamedCalendarTest {
     LocalDateTime start = LocalDateTime.of(2024, 1, 15, 10, 0);
     LocalDateTime end = LocalDateTime.of(2024, 1, 15, 11, 0);
 
-    Event event = calendar.createEvent("Meeting", start, end);
+    IEvent event = calendar.createEvent("Meeting", start, end);
     UUID eventId = event.getId();
 
-    Event editedEvent = calendar.editEvent(eventId, Property.DESCRIPTION,
+    IEvent editedEvent = calendar.editEvent(eventId, Property.DESCRIPTION,
             "Important meeting");
 
     assertEquals("Important meeting", editedEvent.getDescription());
@@ -516,7 +516,7 @@ public class NamedCalendarTest {
     LocalDateTime start = LocalDateTime.of(2024, 1, 15, 10, 0);
     LocalDateTime end = LocalDateTime.of(2024, 1, 15, 11, 0);
 
-    Event event = calendar.createEvent("Meeting", start, end);
+    IEvent event = calendar.createEvent("Meeting", start, end);
     UUID eventId = event.getId();
 
     calendar.editEvent(eventId, Property.LOCATION, "invalid_location");
@@ -527,7 +527,7 @@ public class NamedCalendarTest {
     LocalDateTime start = LocalDateTime.of(2024, 1, 15, 10, 0);
     LocalDateTime end = LocalDateTime.of(2024, 1, 15, 11, 0);
 
-    Event event = calendar.createEvent("Meeting", start, end);
+    IEvent event = calendar.createEvent("Meeting", start, end);
     UUID eventId = event.getId();
 
     calendar.editEvent(eventId, Property.STATUS, "invalid_status");
@@ -540,8 +540,8 @@ public class NamedCalendarTest {
     LocalDateTime start2 = LocalDateTime.of(2024, 1, 15, 14, 0);
     LocalDateTime end2 = LocalDateTime.of(2024, 1, 15, 15, 0);
 
-    Event event1 = calendar.createEvent("Meeting 1", start1, end1);
-    Event event2 = calendar.createEvent("Meeting 2", start2, end2);
+    IEvent event1 = calendar.createEvent("Meeting 1", start1, end1);
+    IEvent event2 = calendar.createEvent("Meeting 2", start2, end2);
 
     // Edit event2 properties individually (should work)
     calendar.editEvent(event2.getId(), Property.SUBJECT, "Updated Meeting 2");
@@ -566,8 +566,8 @@ public class NamedCalendarTest {
     LocalDateTime start2 = LocalDateTime.of(2024, 1, 15, 14, 0);
     LocalDateTime end2 = LocalDateTime.of(2024, 1, 15, 15, 0);
 
-    Event event1 = calendar.createEvent("Meeting 1", start1, end1);
-    Event event2 = calendar.createEvent("Meeting 2", start2, end2);
+    IEvent event1 = calendar.createEvent("Meeting 1", start1, end1);
+    IEvent event2 = calendar.createEvent("Meeting 2", start2, end2);
 
     // Try to edit event2 to have same subject as event1
     calendar.editEvent(event2.getId(), Property.SUBJECT, "Meeting 1");
@@ -588,16 +588,16 @@ public class NamedCalendarTest {
             startDate, null, 3, null, null, null);
 
     // Get one event from the series
-    List<Event> events = calendar.getEventsList(startDate);
-    Event firstEvent = events.get(0);
+    List<IEvent> events = calendar.getEventsList(startDate);
+    IEvent firstEvent = events.get(0);
     UUID seriesId = firstEvent.getSeriesID();
 
     calendar.editSeries(seriesId, Property.SUBJECT, "Updated Lecture");
 
     // Check that all events in series were updated
-    List<Event> mondayEvents = calendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> mondayEvents = calendar.getEventsList(LocalDate.of(2024, 1,
             15));
-    List<Event> wednesdayEvents = calendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> wednesdayEvents = calendar.getEventsList(LocalDate.of(2024, 1,
             17));
 
     assertEquals("Updated Lecture", mondayEvents.get(0).getSubject());
@@ -615,18 +615,18 @@ public class NamedCalendarTest {
             startDate, null, 4, null, null, null);
 
     // Get series ID from first event
-    List<Event> events = calendar.getEventsList(startDate);
-    Event firstEvent = events.get(0);
+    List<IEvent> events = calendar.getEventsList(startDate);
+    IEvent firstEvent = events.get(0);
     UUID seriesId = firstEvent.getSeriesID();
 
     // Edit series from second occurrence
     calendar.editSeriesFromDate(seriesId, Property.SUBJECT, "Modified Lecture");
 
     // Check that all events from the modification point were updated
-    List<Event> week1 = calendar.getEventsList(LocalDate.of(2024, 1, 15));
-    List<Event> week2 = calendar.getEventsList(LocalDate.of(2024, 1, 22));
-    List<Event> week3 = calendar.getEventsList(LocalDate.of(2024, 1, 29));
-    List<Event> week4 = calendar.getEventsList(LocalDate.of(2024, 2, 5));
+    List<IEvent> week1 = calendar.getEventsList(LocalDate.of(2024, 1, 15));
+    List<IEvent> week2 = calendar.getEventsList(LocalDate.of(2024, 1, 22));
+    List<IEvent> week3 = calendar.getEventsList(LocalDate.of(2024, 1, 29));
+    List<IEvent> week4 = calendar.getEventsList(LocalDate.of(2024, 2, 5));
 
     assertEquals("Modified Lecture", week1.get(0).getSubject());
     assertEquals("Modified Lecture", week2.get(0).getSubject());
@@ -645,8 +645,8 @@ public class NamedCalendarTest {
             startDate, null, 2, null, null, null);
 
     // Get series ID from an event
-    List<Event> events = calendar.getEventsList(startDate);
-    Event firstEvent = events.get(0);
+    List<IEvent> events = calendar.getEventsList(startDate);
+    IEvent firstEvent = events.get(0);
     UUID seriesId = firstEvent.getSeriesID();
 
     EventSeries series = calendar.getEventSeriesByID(seriesId);
@@ -681,7 +681,7 @@ public class NamedCalendarTest {
             null);
 
     // Check that both types of events exist
-    List<Event> events = calendar.getEventsList(baseDate);
+    List<IEvent> events = calendar.getEventsList(baseDate);
     assertEquals(2, events.size());
 
     // Verify different types
@@ -694,13 +694,13 @@ public class NamedCalendarTest {
     assertTrue(hasRecurring);
 
     // Check series event has series ID
-    Event recurringEvent = events.stream()
+    IEvent recurringEvent = events.stream()
             .filter(e -> e.getSubject().equals("Recurring Lecture"))
             .findFirst().orElse(null);
     assertNotNull(recurringEvent.getSeriesID());
 
     // Check one-time event has no series ID
-    Event oneTimeEvent = events.stream()
+    IEvent oneTimeEvent = events.stream()
             .filter(e -> e.getSubject().equals("One-time Meeting"))
             .findFirst().orElse(null);
     assertNull(oneTimeEvent.getSeriesID());
@@ -717,8 +717,8 @@ public class NamedCalendarTest {
             startDate, null, 2, null, null, null);
 
     // Get first event and its series ID
-    List<Event> events = calendar.getEventsList(startDate);
-    Event firstEvent = events.get(0);
+    List<IEvent> events = calendar.getEventsList(startDate);
+    IEvent firstEvent = events.get(0);
     UUID originalSeriesId = firstEvent.getSeriesID();
     assertNotNull(originalSeriesId);
 
@@ -727,11 +727,11 @@ public class NamedCalendarTest {
     calendar.editEvent(firstEvent.getId(), Property.START, newStart.toString());
 
     // Check that series ID was removed
-    Event editedEvent = calendar.getEventsBySubjectAndStartTime("Lecture", newStart).get(0);
+    IEvent editedEvent = calendar.getEventsBySubjectAndStartTime("Lecture", newStart).get(0);
     assertNull(editedEvent.getSeriesID());
 
     // Original series should still exist for other events
-    List<Event> week2Events = calendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> week2Events = calendar.getEventsList(LocalDate.of(2024, 1,
             22));
     assertEquals(1, week2Events.size());
     assertEquals(originalSeriesId, week2Events.get(0).getSeriesID());
@@ -758,14 +758,14 @@ public class NamedCalendarTest {
 
     // Verify events exist
     LocalDate midPoint = startDate.plusDays(50);
-    List<Event> midPointEvents = calendar.getEventsList(midPoint);
+    List<IEvent> midPointEvents = calendar.getEventsList(midPoint);
     assertEquals(2, midPointEvents.size()); // One single event + one from series
 
     // Test range query
     LocalDateTime rangeStart = LocalDateTime.of(startDate, LocalTime.of(0, 0));
     LocalDateTime rangeEnd = LocalDateTime.of(startDate.plusDays(10),
             LocalTime.of(23, 59));
-    List<Event> rangeEvents = calendar.getEventsListInDateRange(rangeStart, rangeEnd);
+    List<IEvent> rangeEvents = calendar.getEventsListInDateRange(rangeStart, rangeEnd);
     assertEquals(22, rangeEvents.size()); // 11 days * 2 events per day
   }
 
@@ -775,7 +775,7 @@ public class NamedCalendarTest {
             0);
     LocalDateTime oneAM = LocalDateTime.of(2024, 1, 15, 1, 0);
 
-    Event event = calendar.createEvent("Midnight Event", midnight, oneAM);
+    IEvent event = calendar.createEvent("Midnight Event", midnight, oneAM);
 
     assertTrue(calendar.isBusyAt(midnight));
     assertTrue(calendar.isBusyAt(midnight.plusMinutes(30)));
@@ -787,12 +787,12 @@ public class NamedCalendarTest {
     LocalDateTime start = LocalDateTime.of(2024, 1, 15, 23, 0);
     LocalDateTime end = LocalDateTime.of(2024, 1, 16, 1, 0);
 
-    Event event = calendar.createEvent("Overnight Event", start, end);
+    IEvent event = calendar.createEvent("Overnight Event", start, end);
 
     // Event should appear on both days
-    List<Event> day1Events = calendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> day1Events = calendar.getEventsList(LocalDate.of(2024, 1,
             15));
-    List<Event> day2Events = calendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> day2Events = calendar.getEventsList(LocalDate.of(2024, 1,
             16));
 
     assertEquals(1, day1Events.size());
@@ -813,7 +813,7 @@ public class NamedCalendarTest {
     LocalDateTime start = LocalDateTime.of(2024, 1, 15, 10, 0);
 
     // This should work - some implementations might handle null end times
-    Event event = calendar.createEvent("All Day", start, start.plusHours(9));
+    IEvent event = calendar.createEvent("All Day", start, start.plusHours(9));
     assertNotNull(event);
   }
 
@@ -832,7 +832,7 @@ public class NamedCalendarTest {
     namedCalendar.setTimezone(PST);
 
     // Events should still be retrievable
-    List<Event> events = calendar.getEventsList(startDate);
+    List<IEvent> events = calendar.getEventsList(startDate);
     assertEquals(1, events.size());
     assertEquals("Meeting", events.get(0).getSubject());
   }
@@ -842,7 +842,7 @@ public class NamedCalendarTest {
     LocalDateTime start = LocalDateTime.of(2024, 1, 15, 10, 0);
     LocalDateTime end = LocalDateTime.of(2024, 1, 15, 11, 0);
 
-    Event event = calendar.createEvent("Meeting", start, end);
+    IEvent event = calendar.createEvent("Meeting", start, end);
     UUID eventId = event.getId();
 
     // First extend the end time to the new date to avoid validation error
@@ -855,12 +855,12 @@ public class NamedCalendarTest {
     calendar.editEvent(eventId, Property.START, newStart.toString());
 
     // Event should no longer appear on original date
-    List<Event> originalDateEvents = calendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> originalDateEvents = calendar.getEventsList(LocalDate.of(2024, 1,
             15));
     assertTrue(originalDateEvents.isEmpty());
 
     // Event should appear on new date
-    List<Event> newDateEvents = calendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> newDateEvents = calendar.getEventsList(LocalDate.of(2024, 1,
             20));
     assertEquals(1, newDateEvents.size());
     assertEquals("Meeting", newDateEvents.get(0).getSubject());
@@ -871,7 +871,7 @@ public class NamedCalendarTest {
     LocalDateTime start = LocalDateTime.of(2024, 1, 15, 10, 0);
     LocalDateTime end = LocalDateTime.of(2024, 1, 15, 11, 0);
 
-    Event event = calendar.createEvent("Meeting", start, end);
+    IEvent event = calendar.createEvent("Meeting", start, end);
     UUID eventId = event.getId();
 
     // Extend end time to next day
@@ -880,7 +880,7 @@ public class NamedCalendarTest {
     calendar.editEvent(eventId, Property.END, newEnd.toString());
 
     // Check that event still appears on first day (where it was originally)
-    List<Event> day1Events = calendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> day1Events = calendar.getEventsList(LocalDate.of(2024, 1,
             15));
     assertEquals(1, day1Events.size());
     assertEquals("Meeting", day1Events.get(0).getSubject());
@@ -896,11 +896,11 @@ public class NamedCalendarTest {
     LocalDateTime start = LocalDateTime.of(2024, 1, 15, 10, 0);
     LocalDateTime end = LocalDateTime.of(2024, 1, 15, 11, 0);
 
-    Event event = calendar.createEvent("Meeting", start, end);
+    IEvent event = calendar.createEvent("Meeting", start, end);
     UUID eventId = event.getId();
 
     // Verify event exists on original date
-    List<Event> originalEvents = calendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> originalEvents = calendar.getEventsList(LocalDate.of(2024, 1,
             15));
     assertEquals(1, originalEvents.size());
 
@@ -915,12 +915,12 @@ public class NamedCalendarTest {
     calendar.editEvent(eventId, Property.START, newStart.toString());
 
     // Event should no longer be on original date
-    List<Event> originalDateEvents = calendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> originalDateEvents = calendar.getEventsList(LocalDate.of(2024, 1,
             15));
     assertEquals(0, originalDateEvents.size());
 
     // Event should now be on new date
-    List<Event> newDateEvents = calendar.getEventsList(LocalDate.of(2024, 1,
+    List<IEvent> newDateEvents = calendar.getEventsList(LocalDate.of(2024, 1,
             20));
     assertEquals(1, newDateEvents.size());
     assertEquals("Meeting", newDateEvents.get(0).getSubject());
@@ -937,8 +937,8 @@ public class NamedCalendarTest {
     calendar.createEventSeries("Meeting", startTime, endTime, weekdays,
             startDate, null, 2, null, null, null);
 
-    List<Event> events = calendar.getEventsList(startDate);
-    Event event = events.get(0);
+    List<IEvent> events = calendar.getEventsList(startDate);
+    IEvent event = events.get(0);
     UUID seriesId = event.getSeriesID();
 
     // Test that we can successfully edit to a valid start time
@@ -962,8 +962,8 @@ public class NamedCalendarTest {
     calendar.createEventSeries("Meeting", startTime, endTime, weekdays,
             startDate, null, 2, null, null, null);
 
-    List<Event> events = calendar.getEventsList(startDate);
-    Event event = events.get(0);
+    List<IEvent> events = calendar.getEventsList(startDate);
+    IEvent event = events.get(0);
     UUID seriesId = event.getSeriesID();
 
     // Set end time to a valid later time (should work)
@@ -1002,7 +1002,7 @@ public class NamedCalendarTest {
             LocalDateTime.of(2024, 1, 17, 10, 0),
             LocalDateTime.of(2024, 1, 17, 11, 0));
 
-    List<Event> events = calendar.getEventsListInDateRange(queryStart, queryEnd);
+    List<IEvent> events = calendar.getEventsListInDateRange(queryStart, queryEnd);
     assertEquals(3, events.size()); // Should include all overlapping events
 
     assertTrue(events.stream().anyMatch(e -> e.getSubject().equals("Before Overlap")));
@@ -1048,7 +1048,7 @@ public class NamedCalendarTest {
     LocalDateTime start = LocalDateTime.of(2024, 1, 15, 10, 0);
     LocalDateTime end = LocalDateTime.of(2024, 1, 15, 11, 0);
 
-    Event event = calendar.createEvent("Meeting", start, end);
+    IEvent event = calendar.createEvent("Meeting", start, end);
     UUID eventId = event.getId();
 
     // Test invalid datetime format
@@ -1066,11 +1066,11 @@ public class NamedCalendarTest {
     LocalDateTime start = LocalDateTime.of(2024, 1, 15, 10, 0);
     LocalDateTime end = LocalDateTime.of(2024, 1, 15, 11, 0);
 
-    Event event1 = calendar.createEvent("Meeting", start, end);
+    IEvent event1 = calendar.createEvent("Meeting", start, end);
 
     // Create another event with same details (should fail due to uniqueness)
     try {
-      Event event2 = calendar.createEvent("Meeting", start, end);
+      IEvent event2 = calendar.createEvent("Meeting", start, end);
       fail("Should not allow duplicate events");
     } catch (CalendarException e) {
       assertTrue(e.getMessage().contains("already exists") ||

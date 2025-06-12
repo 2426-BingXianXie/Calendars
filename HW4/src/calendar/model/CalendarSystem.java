@@ -212,7 +212,7 @@ public class CalendarSystem implements ICalendarSystem {
     }
 
     // Find the event to copy
-    List<Event> events = currentCalendar.getEventsBySubjectAndStartTime(eventName, sourceTime);
+    List<IEvent> events = currentCalendar.getEventsBySubjectAndStartTime(eventName, sourceTime);
     if (events.isEmpty()) {
       throw new CalendarException("Event not found: " + eventName + " starting at " + sourceTime);
     }
@@ -220,7 +220,7 @@ public class CalendarSystem implements ICalendarSystem {
       throw new CalendarException("Multiple events found with the same name and start time");
     }
 
-    Event sourceEvent = events.get(0);
+    IEvent sourceEvent = events.get(0);
 
     // Convert target time from target calendar's timezone to
     // source calendar's timezone for duration calculation
@@ -262,9 +262,9 @@ public class CalendarSystem implements ICalendarSystem {
       throw new CalendarException("Target calendar not found: " + targetCalendarName);
     }
 
-    List<Event> sourceEvents = currentCalendar.getEventsList(sourceDate);
+    List<IEvent> sourceEvents = currentCalendar.getEventsList(sourceDate);
 
-    for (Event sourceEvent : sourceEvents) {
+    for (IEvent sourceEvent : sourceEvents) {
       // Calculate time difference for the new date
       LocalDateTime sourceStart = sourceEvent.getStart();
       LocalDateTime sourceEnd = sourceEvent.getEnd();
@@ -333,9 +333,9 @@ public class CalendarSystem implements ICalendarSystem {
     LocalDateTime rangeStart = startDate.atStartOfDay();
     LocalDateTime rangeEnd = endDate.plusDays(1).atStartOfDay(); // Exclusive end
 
-    List<Event> sourceEvents = currentCalendar.getEventsListInDateRange(rangeStart, rangeEnd);
+    List<IEvent> sourceEvents = currentCalendar.getEventsListInDateRange(rangeStart, rangeEnd);
 
-    for (Event sourceEvent : sourceEvents) {
+    for (IEvent sourceEvent : sourceEvents) {
       // Calculate new dates by adding the difference
       LocalDate newStartDate = sourceEvent.getStart().toLocalDate().plusDays(daysDifference);
       LocalDate newEndDate = sourceEvent.getEnd().toLocalDate().plusDays(daysDifference);
