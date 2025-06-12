@@ -680,7 +680,6 @@ public class CalendarCommandTest {
     assertTrue(outputStr.contains("Edited event"));
   }
 
-
   /**
    * Tests the printing of events scheduled for a specific single date
    * using the {@link Print} command.
@@ -1322,12 +1321,31 @@ public class CalendarCommandTest {
   }
 
   @Test
+  public void testEditCalendarNameToSameName() throws CalendarException {
+    // "test" calendar already exists from setUp
+    Scanner scanner = new Scanner("--name test --property name test");
+    EditCalendar cmd = new EditCalendar(scanner, view);
+    cmd.execute(system);
+
+    assertNotNull(system.getCalendar("test")); // Calendar should still exist
+  }
+
+  @Test
   public void testEditCalendarNameSuccess() throws CalendarException {
     system.createCalendar("OldName", ZoneId.of("UTC"));
     Scanner scanner = new Scanner("--name OldName --property name NewName");
     EditCalendar cmd = new EditCalendar(scanner, view);
     cmd.execute(system);
     assertNotNull(system.getCalendar("NewName"));
+  }
+
+  @Test
+  public void testEditCalendarTimezoneSuccess() throws CalendarException {
+    system.createCalendar("OldName", ZoneId.of("UTC"));
+    Scanner scanner = new Scanner("--name OldName --property timezone America/New_York");
+    EditCalendar cmd = new EditCalendar(scanner, view);
+    cmd.execute(system);
+    assertEquals(ZoneId.of("America/New_York"), system.getCalendarTimezone("OldName"));
   }
 
   @Test(expected = CalendarException.class)
@@ -1492,4 +1510,27 @@ public class CalendarCommandTest {
     assertNull(events.get(0).getSeriesID()); // Should be a standalone event
   }
 
+  /**
+   * Tests that a successful copy operation works for the 'between' variant.
+   *
+   * @throws CalendarException if the command execution fails.
+   */
+  @Test
+  public void testCopyEventsBetweenDatesSuccess() throws CalendarException {
+    system.createCalendar("Target", ZoneId.of("UTC"));
+    calendar.createEvent("Event 1",
+            LocalDateTime.of(2025, 10, 15, 9, 0),
+            LocalDateTime.of(2025, 10, 15, 10, 0));
+
+    Scanner scanner = new Scanner(
+            "events between 2025-10-01 and 2025-10-31 --target Target to 2026-01-01");
+    Copy cmd = new Copy(scanner, view);
+    cmd.execute(system);
+
+    ICalendar targetCal = system.getCalendar("Target");
+    // Original date was 10-15. New start date is 01-01. Day offset is the same.
+    List<IEvent> events = targetCal.getEventsList(LocalDate.of(2026, 1, 15));
+    assertEquals(1, events.size());
+    assertEquals("Event 1", events.get(0).getSubject());
+  }
 }
