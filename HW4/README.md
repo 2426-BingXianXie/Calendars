@@ -11,6 +11,7 @@ switch between and edit calendars, as well as support for specific timezone impl
 - revised the methods and debugged for better development
 - Mostly Controller, View, Enum property, Command Patterns package
 - Testing Controller packages, figure out the usage of mocks
+- Implemented jar file
 
 
 ## BingXian(Eason) Xie
@@ -34,8 +35,8 @@ javac -d out -cp src src/calendar/*.java src/calendar/*/*.java src/calendar/*/*/
 ## Running the Application
 
 ### Jar
-- java -jar res/group.jar --mode interactive
-- java -jar res/group.jar --mode headless with a valid command file pathway followed
+- java -jar out/artifacts/calendar_jar.jar --mode interactive
+- java -jar out/artifacts/calendar_jar.jar --mode headless <yourcommandtextfile.txt>
 
 ### Interactive Mode
 java -cp out calendar.CalendarRunner --mode interactive
@@ -68,7 +69,7 @@ create event "Weekly Standup" from 2025-06-02T09:00 to 2025-06-02T10:00 repeats 
 #### Recurring event series (date-based)
 create event "Daily Workout" on 2025-06-01 repeats MTWRFSU until 2025-06-30
 
-## Feature
+## Features
 
 ### Event Management
 
@@ -120,6 +121,29 @@ Headless Mode: Batch processing from command files
 Error Handling: Comprehensive error messages for invalid commands
 Command Validation: Robust parsing with clear error feedback
 Help System: Built-in menu system with command examples
+
+## Design Changes For New Features
+### New Top-Level Model
+
+- Introduced a new top-level model layer (ICalendarSystem interface and CalendarSystem class) to manage a collection of calendars.
+- The original ICalendar interface was designed for a single calendar. We implemented a new management layer to handle the creation, selection, and editing of multiple calendars, with each calendar being an ICalendar instance stored within the CalendarSystem.
+
+### Decorator Pattern for Calendars (NamedCalendar):
+
+- Created a NamedCalendar class that implements the ICalendar interface and wraps a VirtualCalendar instance.
+- This allows new state and responsibilities (a unique name and a ZoneId) to be added to a calendar without altering the core event-management logic of the VirtualCalendar class. 
+
+### Refactored Controller and Command Pattern: 
+
+- The CalendarController was modified to depend on the ICalendarSystem interface instead of the ICalendar interface.
+- The controller's scope expanded from managing events in one calendar to managing a whole system of calendars. It must now interact with the ICalendarSystem to create and use a calendar before event-related commands can be executed.
+- The CalendarCommand interface's execute method was changed to take in an ICalendarSystem isntead of an ICalendar. All concrete command classes were updated to match.
+- This makes the Command Pattern more versatile. Commands that manage the system can operate on it directly, while commands that manage events (CreateEvent, EditEvent) can access the currently active calendar from the system.
+
+### Changed Command Classes:
+
+- The original Create and Edit classes were broken down into more specific commands.
+- Each command class now has one distinct purpose, which makes the system more modular, easier to maintain, and simpler to extend with new commands in the future.
 
 ## Known Limitations
 ### Multi-day Event Cleanup
