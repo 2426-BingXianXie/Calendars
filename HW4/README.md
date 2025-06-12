@@ -35,7 +35,7 @@ javac -d out -cp src src/calendar/*.java src/calendar/*/*.java src/calendar/*/*/
 
 ### Jar
 - java -jar res/group.jar --mode interactive
-- java -jar res/group.jar --mode headless with a valid command file followed
+- java -jar res/group.jar --mode headless with a valid command file pathway followed
 
 ### Interactive Mode
 java -cp out calendar.CalendarRunner --mode interactive
