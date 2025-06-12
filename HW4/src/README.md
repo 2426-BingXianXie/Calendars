@@ -35,8 +35,8 @@ javac -d out -cp src src/calendar/*.java src/calendar/*/*.java src/calendar/*/*/
 ## Running the Application
 
 ### Jar
-- java -jar out/artifacts/calendar_jar.jar --mode interactive
-- java -jar out/artifacts/calendar_jar.jar --mode headless <yourcommandtextfile.txt>
+- java -jar res/calendar_jar.jar --mode interactive
+- java -jar res/calendar_jar.jar --mode headless <yourcommandtextfile.txt>
 
 ### Interactive Mode
 java -cp out calendar.CalendarRunner --mode interactive
