@@ -6,10 +6,6 @@ import org.junit.Test;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-
-import calendar.model.Location;
-import calendar.model.EventStatus;
-
 // Static imports for JUnit Assertions
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

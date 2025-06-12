@@ -1554,5 +1554,4 @@ public class CalendarCommandTest {
     assertEquals(subject, createdEvent.getSubject());
     assertEquals(date.atTime(8, 0), createdEvent.getStart());
   }
-
 }

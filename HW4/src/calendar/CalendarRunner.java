@@ -9,10 +9,8 @@ import calendar.controller.CalendarController;
 import calendar.model.CalendarSystem;
 import calendar.model.ICalendarSystem;
 import calendar.view.CalendarView;
-import calendar.model.ICalendar;
 import calendar.controller.ICalendarController;
 import calendar.view.ICalendarView;
-import calendar.model.VirtualCalendar;
 
 /**
  * The driver of the calendar application.
