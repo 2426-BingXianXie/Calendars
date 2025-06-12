@@ -26,7 +26,7 @@ import calendar.CalendarException;
  */
 public class VirtualCalendar implements ICalendar {
   // A map to store events, with LocalDate as the key and a list of Events as the value.
-  private final Map<LocalDate, List<Event>> calendarEvents;
+  private final Map<LocalDate, List<IEvent>> calendarEvents;
   // A set to ensure that all stored events are unique.
   private final Set<Event> uniqueEvents;
   // A map to quickly retrieve events by their unique ID.
@@ -38,7 +38,7 @@ public class VirtualCalendar implements ICalendar {
    * Constructs a new VirtualCalendar and initializes the internal data structures.
    */
   public VirtualCalendar() {
-    this.calendarEvents = new HashMap<LocalDate, List<Event>>();
+    this.calendarEvents = new HashMap<LocalDate, List<IEvent>>();
     this.uniqueEvents = new HashSet<Event>();
     this.eventsByID = new HashMap<UUID, Event>();
     this.eventSeriesByID = new HashMap<UUID, EventSeries>();
@@ -72,7 +72,7 @@ public class VirtualCalendar implements ICalendar {
            date = date.plusDays(1)) {
         // Adds the event to the list of events for the current date, creating a new
         // list if one doesn't exist.
-        calendarEvents.computeIfAbsent(date, k -> new ArrayList<Event>()).add(event);
+        calendarEvents.computeIfAbsent(date, k -> new ArrayList<IEvent>()).add(event);
       }
       // Stores the event in the map, using its ID as the key.
       eventsByID.put(event.getId(), event);
@@ -160,16 +160,16 @@ public class VirtualCalendar implements ICalendar {
    * @param endTime   the ending date and time of the event to match.
    * @return a list of events that precisely match the provided details.
    */
-  public List<Event> getEventsByDetails(String subject, LocalDateTime startTime, LocalDateTime
+  public List<IEvent> getEventsByDetails(String subject, LocalDateTime startTime, LocalDateTime
           endTime) {
     // Initializes an empty list to store matching events.
-    List<Event> matchingEvents = new ArrayList<>();
+    List<IEvent> matchingEvents = new ArrayList<>();
     // Retrieves all events scheduled for the day of the provided start time to narrow
     // down the search.
     // use getEventsList to narrow down
-    List<Event> eventsOnDay = getEventsList(startTime.toLocalDate());
+    List<IEvent> eventsOnDay = getEventsList(startTime.toLocalDate());
     // Iterates through the events on that day.
-    for (Event event : eventsOnDay) {
+    for (IEvent event : eventsOnDay) {
       // Checks if the event's subject, start time, and end time match the given criteria
       if (event.getSubject().equalsIgnoreCase(subject) && event.getStart().equals(startTime) &&
               event.getEnd().equals(endTime)) {
@@ -189,15 +189,15 @@ public class VirtualCalendar implements ICalendar {
    * @return a list of events that precisely match the provided subject and start time.
    */
   @Override
-  public List<Event> getEventsBySubjectAndStartTime(String subject, LocalDateTime startTime) {
+  public List<IEvent> getEventsBySubjectAndStartTime(String subject, LocalDateTime startTime) {
     // Initializes an empty list to store matching events.
-    List<Event> matchingEvents = new ArrayList<>();
+    List<IEvent> matchingEvents = new ArrayList<>();
     // Retrieves all events scheduled for the day of the provided start time to narrow
     // down the search.
     // use getEventsList to narrow down
-    List<Event> eventsOnDay = getEventsList(startTime.toLocalDate());
+    List<IEvent> eventsOnDay = getEventsList(startTime.toLocalDate());
     // Iterates through the events on that day.
-    for (Event event : eventsOnDay) {
+    for (IEvent event : eventsOnDay) {
       // Checks if the event's subject and start time match the given criteria
       if (event.getSubject().equalsIgnoreCase(subject) && event.getStart().equals(startTime)) {
         // Adds the matching event to the list.
@@ -215,7 +215,7 @@ public class VirtualCalendar implements ICalendar {
    * @return a list of events on the specified date, or an empty list if no events are found.
    */
   @Override
-  public List<Event> getEventsList(LocalDate date) {
+  public List<IEvent> getEventsList(LocalDate date) {
     // Retrieves the list of events associated with the given date, or returns an empty
     // ArrayList if the date is not found.
     return calendarEvents.getOrDefault(date, new ArrayList<>());
@@ -230,7 +230,7 @@ public class VirtualCalendar implements ICalendar {
    * @throws IllegalArgumentException if the start date is after the end date.
    */
   @Override
-  public List<Event> getEventsListInDateRange(LocalDateTime start, LocalDateTime end) {
+  public List<IEvent> getEventsListInDateRange(LocalDateTime start, LocalDateTime end) {
     // Throws an exception if the start date is after the end date.
     if (start.isAfter(end)) {
       throw new IllegalArgumentException("Start date must be before end date");
@@ -239,9 +239,9 @@ public class VirtualCalendar implements ICalendar {
     // Uses a set to automatically handle and prevent duplicate events from being added
     // to the result.
     // use set for duplicate events
-    Set<Event> uniqueEvents = new HashSet<>();
+    Set<IEvent> uniqueEvents = new HashSet<>();
     // Initializes an empty list to store the final result.
-    List<Event> result = new ArrayList<>();
+    List<IEvent> result = new ArrayList<>();
     // Iterates through each day from the start date to the end date (inclusive).
     for (LocalDate date = start.toLocalDate(); !date.isAfter(end.toLocalDate());
          date = date.plusDays(1)) {
@@ -250,7 +250,7 @@ public class VirtualCalendar implements ICalendar {
     }
     // Iterates through the unique events collected from the date range.
     // check that events fall within time intervals
-    for (Event event : uniqueEvents) {
+    for (IEvent event : uniqueEvents) {
       // Gets the start time of the current event.
       LocalDateTime eventStart = event.getStart();
       // Gets the end time of the current event.
@@ -276,11 +276,11 @@ public class VirtualCalendar implements ICalendar {
   public boolean isBusyAt(LocalDateTime dateTime) {
     // Retrieves all events for the day corresponding to the given dateTime.
     // Get all events for the target date
-    List<Event> daysEvents = getEventsList(dateTime.toLocalDate());
+    List<IEvent> daysEvents = getEventsList(dateTime.toLocalDate());
 
     // Iterates through each event scheduled for that day.
     // Check if any event overlaps with the given time
-    for (Event event : daysEvents) {
+    for (IEvent event : daysEvents) {
       // Checks if the given dateTime falls within the duration of the current event.
       if (isDuringEvent(event, dateTime)) {
         // Returns true immediately if an overlapping event is found.
@@ -298,7 +298,7 @@ public class VirtualCalendar implements ICalendar {
    * @param dateTime The time to verify.
    * @return true if the time is within the event's start (inclusive) and end (exclusive) range.
    */
-  private boolean isDuringEvent(Event event, LocalDateTime dateTime) {
+  private boolean isDuringEvent(IEvent event, LocalDateTime dateTime) {
     // Gets the start time of the event.
     LocalDateTime start = event.getStart();
     // Gets the end time of the event.
@@ -330,144 +330,260 @@ public class VirtualCalendar implements ICalendar {
   @Override
   public Event editEvent(UUID eventID, Property property, String newValue)
           throws CalendarException {
-    // Retrieves the event by its ID.
+    Event event = findEventById(eventID);
+    EventEditContext context = createEditContext(event, property);
+
+    try {
+      // Temporarily remove event from uniqueness tracking
+      uniqueEvents.remove(event);
+
+      // Store original values for potential rollback
+      String originalSubject = event.getSubject();
+      LocalDateTime originalStart = event.getStart();
+      LocalDateTime originalEnd = event.getEnd();
+
+      // Apply the property change
+      applyPropertyChange(event, property, newValue);
+
+      // Handle series membership if needed
+      handleSeriesMembership(event, context);
+
+      // Check for conflicts with other events (not including the current event)
+      Event conflictingEvent = findConflictingEvent(event);
+      if (conflictingEvent != null) {
+        // Rollback changes
+        event.setSubject(originalSubject);
+        event.setStart(originalStart);
+        event.setEnd(originalEnd);
+        event.setSeriesId(context.getOriginalSeriesId());
+        uniqueEvents.add(event);
+        throw new CalendarException("Event conflicts with existing event");
+      }
+
+      // Re-add to tracking if no conflicts
+      if (!uniqueEvents.add(event)) {
+        // This shouldn't happen since we removed it earlier, but just in case
+        event.setSubject(originalSubject);
+        event.setStart(originalStart);
+        event.setEnd(originalEnd);
+        event.setSeriesId(context.getOriginalSeriesId());
+        uniqueEvents.add(event);
+        throw new CalendarException("Event conflicts with existing event");
+      }
+
+      // Update calendar mapping if dates changed
+      updateCalendarMapping(event, context, property);
+
+      return event;
+
+    } catch (CalendarException e) {
+      // Re-add original event back to tracking
+      uniqueEvents.add(event);
+      throw e;
+    } catch (Exception e) {
+      // Rollback changes and re-add original event
+      rollbackChanges(event, context);
+      throw new CalendarException("Failed to edit event: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Finds a conflicting event based on subject, start, and end times.
+   * This checks if another event exists with the same subject, start, and end times.
+   */
+  private Event findConflictingEvent(Event eventToCheck) {
+    for (Event existingEvent : uniqueEvents) {
+      // Skip the event we're editing (shouldn't happen since we removed it, but be safe)
+      if (existingEvent.getId().equals(eventToCheck.getId())) {
+        continue;
+      }
+
+      // Check if another event has the same subject, start, and end times
+      if (existingEvent.getSubject().equals(eventToCheck.getSubject()) &&
+              existingEvent.getStart().equals(eventToCheck.getStart()) &&
+              existingEvent.getEnd().equals(eventToCheck.getEnd())) {
+        return existingEvent;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Finds an event by its ID.
+   */
+  private Event findEventById(UUID eventID) throws CalendarException {
     Event event = eventsByID.get(eventID);
-    // Throws an exception if the event is not found.
     if (event == null) {
       throw new CalendarException("Event not found");
     }
+    return event;
+  }
 
-    // Stores the original subject for potential rollback or uniqueness check.
-    // Store original values for uniqueness check
-    String originalSubject = event.getSubject();
-    // Stores the original start time for potential rollback or uniqueness check.
-    LocalDateTime originalStart = event.getStart();
-    // Stores the original end time for potential rollback or uniqueness check.
-    LocalDateTime originalEnd = event.getEnd();
-    // Stores the original series ID to check if the event was part of a series.
-    UUID originalSeriesId = event.getSeriesID();
+  /**
+   * Creates a context object to store original values for potential rollback.
+   */
+  private EventEditContext createEditContext(Event event, Property property) {
+    return new EventEditContext(
+            event.getSubject(),
+            event.getStart(),
+            event.getEnd(),
+            event.getSeriesID(),
+            shouldBreakSeriesMembership(event, property)
+    );
+  }
 
-    // Flag to indicate if editing start/end time would break series membership.
-    // Check if editing would break series membership
-    boolean breakingSeries = false;
-    // If the event is part of a series and the property being edited is START or END, set the flag.
-    if (originalSeriesId != null &&
-            (property == Property.START || property == Property.END)) {
-      breakingSeries = true;
-    }
+  /**
+   * Determines if editing this property would break series membership.
+   */
+  private boolean shouldBreakSeriesMembership(Event event, Property property) {
+    return event.getSeriesID() != null &&
+            (property == Property.START || property == Property.END);
+  }
 
-    // Temporarily removes the event from the uniqueEvents set to allow modification and
-    // then re-add.
-    // Temporarily remove from uniqueEvents for uniqueness check
-    uniqueEvents.remove(event);
-
+  /**
+   * Applies the property change to the event.
+   */
+  private void applyPropertyChange(Event event, Property property, String newValue)
+          throws CalendarException {
     try {
-      // Uses a switch statement to handle different properties.
       switch (property) {
         case SUBJECT:
-          // Sets the new subject for the event.
           event.setSubject(newValue);
           break;
         case START:
-          // Parses the new start time from the string.
-          LocalDateTime newStart = LocalDateTime.parse(newValue);
-          // Throws an exception if the new start time is after the current end time.
-          if (newStart.isAfter(event.getEnd())) {
-            throw new CalendarException("New start time cannot be after current end time");
-          }
-          // Sets the new start time for the event.
-          event.setStart(newStart);
+          validateAndSetStartTime(event, newValue);
           break;
         case END:
-          // Parses the new end time from the string.
-          LocalDateTime newEnd = LocalDateTime.parse(newValue);
-          // Throws an exception if the new end time is before the current start time.
-          if (event.getStart().isAfter(newEnd)) {
-            throw new CalendarException("New end time cannot be before current start time");
-          }
-          // Sets the new end time for the event.
-          event.setEnd(newEnd);
+          validateAndSetEndTime(event, newValue);
           break;
         case DESCRIPTION:
-          // Sets the new description for the event.
           event.setDescription(newValue);
           break;
         case LOCATION:
-          // Converts the string value to a Location enum and sets it.
           Location newLocation = Location.fromStr(newValue);
           event.setLocation(newLocation);
           break;
         case STATUS:
-          // Converts the string value to an EventStatus enum and sets it.
           EventStatus newStatus = EventStatus.fromStr(newValue);
           event.setStatus(newStatus);
           break;
         default:
-          break;
+          throw new CalendarException("Unsupported property: " + property);
       }
     } catch (IllegalArgumentException | DateTimeParseException e) {
-      // Catches exceptions related to invalid input (e.g., malformed date/time string).
-      // Revert to original values
-      // Reverts the subject to its original value.
-      event.setSubject(originalSubject);
-      // Reverts the start time to its original value.
-      event.setStart(originalStart);
-      // Reverts the end time to its original value.
-      event.setEnd(originalEnd);
-      // Re-adds the event to the uniqueEvents set as the edit failed.
-      uniqueEvents.add(event);
-      // Throws a CalendarException with details about the invalid property value.
       throw new CalendarException("Invalid property value: " + e.getMessage());
     }
+  }
 
-    // If editing would break series membership (due to start/end time change), nullify the series
-    // ID.
-    // Handle series membership
-    if (breakingSeries) {
+  /**
+   * Validates and sets the start time for an event.
+   */
+  private void validateAndSetStartTime(Event event, String newValue) throws CalendarException {
+    // Let DateTimeParseException bubble up to be caught by applyPropertyChange
+    LocalDateTime newStart = LocalDateTime.parse(newValue);
+    if (newStart.isAfter(event.getEnd())) {
+      throw new CalendarException("New start time cannot be after current end time");
+    }
+    event.setStart(newStart);
+  }
+
+  /**
+   * Validates and sets the end time for an event.
+   */
+  private void validateAndSetEndTime(Event event, String newValue) throws CalendarException {
+    // Let DateTimeParseException bubble up to be caught by applyPropertyChange
+    LocalDateTime newEnd = LocalDateTime.parse(newValue);
+    if (event.getStart().isAfter(newEnd)) {
+      throw new CalendarException("New end time cannot be before current start time");
+    }
+    event.setEnd(newEnd);
+  }
+
+  /**
+   * Handles series membership changes if needed.
+   */
+  private void handleSeriesMembership(Event event, EventEditContext context) {
+    if (context.shouldBreakSeries()) {
       event.setSeriesId(null);
     }
+  }
 
-    // Attempts to re-add the event with its new values to the uniqueEvents set.
-    // Check for uniqueness with new values
+  /**
+   * Validates the edited event for conflicts and re-adds it to tracking.
+   */
+  private void validateAndReaddEvent(Event event, EventEditContext context)
+          throws CalendarException {
     if (!uniqueEvents.add(event)) {
-      // If adding fails (meaning a conflict exists with another event), revert all changes.
-      // Revert to original values
-      event.setSubject(originalSubject);
-      event.setStart(originalStart);
-      event.setEnd(originalEnd);
-      event.setSeriesId(originalSeriesId);
-      // Re-add the original event to the uniqueEvents set.
-      uniqueEvents.add(event);
-      // Throws an exception indicating an event conflict.
       throw new CalendarException("Event conflicts with existing event");
     }
+  }
 
-    // If the start or end date of the event has changed, update the calendarEvents map.
-    // Update calendar events mapping if dates changed
+  /**
+   * Updates the calendar date mapping if the event's dates changed.
+   */
+  private void updateCalendarMapping(Event event, EventEditContext context, Property property) {
     if (property == Property.START || property == Property.END) {
-      // Gets the original date of the event.
-      LocalDate oldDate = originalStart.toLocalDate();
-      // Gets the new date of the event.
-      LocalDate newDate = event.getStart().toLocalDate();
+      removeFromOldDateMapping(context.getOriginalStart().toLocalDate(), event.getId());
+      addToNewDateMapping(event.getStart().toLocalDate(), event);
+    }
+  }
 
-      // Removes the event from its old date entry in calendarEvents.
-      // Remove from old date
-      if (calendarEvents.containsKey(oldDate)) {
-        // Removes the event using its ID.
-        calendarEvents.get(oldDate).removeIf(e -> e.getId().equals(eventID));
-        // If the list for the old date becomes empty, remove the date entry from the map.
-        if (calendarEvents.get(oldDate).isEmpty()) {
-          calendarEvents.remove(oldDate);
-        }
+  /**
+   * Removes an event from its old date mapping.
+   */
+  private void removeFromOldDateMapping(LocalDate oldDate, UUID eventId) {
+    if (calendarEvents.containsKey(oldDate)) {
+      calendarEvents.get(oldDate).removeIf(e -> e.getId().equals(eventId));
+      if (calendarEvents.get(oldDate).isEmpty()) {
+        calendarEvents.remove(oldDate);
       }
+    }
+  }
 
-      // Adds the event to its new date entry in calendarEvents.
-      // Add to new date
-      calendarEvents.computeIfAbsent(newDate, k -> new ArrayList<>()).add(event);
+  /**
+   * Adds an event to its new date mapping.
+   */
+  private void addToNewDateMapping(LocalDate newDate, Event event) {
+    calendarEvents.computeIfAbsent(newDate, k -> new ArrayList<>()).add(event);
+  }
+
+  /**
+   * Rolls back all changes made to the event.
+   */
+  private void rollbackChanges(Event event, EventEditContext context) {
+    event.setSubject(context.getOriginalSubject());
+    event.setStart(context.getOriginalStart());
+    event.setEnd(context.getOriginalEnd());
+    event.setSeriesId(context.getOriginalSeriesId());
+    uniqueEvents.add(event);
+  }
+
+  /**
+   * Context class to hold original event values for rollback purposes.
+   */
+  private static class EventEditContext {
+    private final String originalSubject;
+    private final LocalDateTime originalStart;
+    private final LocalDateTime originalEnd;
+    private final UUID originalSeriesId;
+    private final boolean shouldBreakSeries;
+
+    public EventEditContext(String originalSubject, LocalDateTime originalStart,
+                            LocalDateTime originalEnd, UUID originalSeriesId,
+                            boolean shouldBreakSeries) {
+      this.originalSubject = originalSubject;
+      this.originalStart = originalStart;
+      this.originalEnd = originalEnd;
+      this.originalSeriesId = originalSeriesId;
+      this.shouldBreakSeries = shouldBreakSeries;
     }
 
-    // Returns the successfully edited event.
-    return event;
+    // Getters
+    public String getOriginalSubject() { return originalSubject; }
+    public LocalDateTime getOriginalStart() { return originalStart; }
+    public LocalDateTime getOriginalEnd() { return originalEnd; }
+    public UUID getOriginalSeriesId() { return originalSeriesId; }
+    public boolean shouldBreakSeries() { return shouldBreakSeries; }
   }
 
   /**
@@ -507,7 +623,7 @@ public class VirtualCalendar implements ICalendar {
 
     // Collects all events in the series that need to be edited (on or after firstEventStart).
     // Collect events to edit to avoid concurrent modification
-    List<Event> eventsToEdit = new ArrayList<>();
+    List<IEvent> eventsToEdit = new ArrayList<>();
     // Iterates through all unique events.
     for (Event event : uniqueEvents) {
       // If the event belongs to the series and starts on or after the firstEventStart,
@@ -518,7 +634,7 @@ public class VirtualCalendar implements ICalendar {
       }
     }
     // Iterates through the collected events and calls editEvent for each.
-    for (Event event : eventsToEdit) {
+    for (IEvent event : eventsToEdit) {
       editEvent(event.getId(), property, newValue);
     }
   }
