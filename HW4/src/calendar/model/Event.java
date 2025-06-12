@@ -5,11 +5,11 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Represents an event in a calendar.
+ * Concrete implementation of IEvent representing an event in a calendar.
  * Each event has a unique ID, subject, start and end times, description, location, status,
  * and optional series ID. Updated to support timezone-aware operations and proper null handling.
  */
-public class Event {
+public class Event implements IEvent {
   private final UUID id;
   private String subject;
   private LocalDateTime startDate;
@@ -54,8 +54,7 @@ public class Event {
    * @param endDate   the end time of the event
    */
   public Event(String subject, LocalDateTime startDate, LocalDateTime endDate) {
-    this(subject, startDate, endDate, null, null, null, null,
-            null);
+    this(subject, startDate, endDate, null, null, null, null, null);
   }
 
   /**
@@ -66,8 +65,7 @@ public class Event {
    * @param startDate the start time of the event
    */
   public Event(String subject, LocalDateTime startDate) {
-    this(subject, startDate, null, null, null, null,
-            null, null);
+    this(subject, startDate, null, null, null, null, null, null);
   }
 
   /**
@@ -76,91 +74,51 @@ public class Event {
    *
    * @param source the event to copy
    */
-  public Event(Event source) {
+  public Event(IEvent source) {
     this.id = UUID.randomUUID(); // Generate new ID for the copy
-    this.subject = source.subject;
-    this.startDate = source.startDate;
-    this.endDate = source.endDate;
-    this.description = source.description;
-    this.location = source.location;
-    this.locationDetail = source.locationDetail;
-    this.status = source.status;
-    this.seriesID = source.seriesID; // Keep series ID for copied events
+    this.subject = source.getSubject();
+    this.startDate = source.getStart();
+    this.endDate = source.getEnd();
+    this.description = source.getDescription();
+    this.location = source.getLocation();
+    this.locationDetail = source.getLocationDetail();
+    this.status = source.getStatus();
+    this.seriesID = source.getSeriesID(); // Keep series ID for copied events
   }
 
-  /**
-   * Creates a copy of this event with new start and end times.
-   * Useful for copying events to different time slots or calendars.
-   *
-   * @param newStart the new start time
-   * @param newEnd   the new end time
-   * @return a new Event with updated times
-   */
-  public Event copyWithNewTimes(LocalDateTime newStart, LocalDateTime newEnd) {
-    return new Event(this.subject, newStart, newEnd, this.description,
-            this.location, this.locationDetail, this.status,
-            null); // Reset series ID for copies to different times
-  }
+  // Implementation of IEvent interface methods
 
-  /**
-   * Returns the unique identifier for this event.
-   *
-   * @return the UUID of the event
-   */
+  @Override
   public UUID getId() {
     return id;
   }
 
-  /**
-   * Returns the subject of this event.
-   *
-   * @return the subject of the event
-   */
+  @Override
   public String getSubject() {
     return subject;
   }
 
-  /**
-   * Sets the subject of this event.
-   *
-   * @param subject the new subject for the event
-   */
+  @Override
   public void setSubject(String subject) {
     this.subject = subject;
   }
 
-  /**
-   * Returns the start time of this event.
-   *
-   * @return the start time as a LocalDateTime
-   */
+  @Override
   public LocalDateTime getStart() {
     return startDate;
   }
 
-  /**
-   * Sets the start time of this event.
-   *
-   * @param start the new start time for the event
-   */
+  @Override
   public void setStart(LocalDateTime start) {
     this.startDate = start;
   }
 
-  /**
-   * Returns the end time of this event.
-   *
-   * @return the end time as a LocalDateTime
-   */
+  @Override
   public LocalDateTime getEnd() {
     return endDate;
   }
 
-  /**
-   * Sets the end time of this event.
-   *
-   * @param end the new end time for the event
-   */
+  @Override
   public void setEnd(LocalDateTime end) {
     if (end != null && this.startDate != null && end.isBefore(this.startDate)) {
       throw new IllegalArgumentException("End cannot be before start");
@@ -168,87 +126,73 @@ public class Event {
     this.endDate = end;
   }
 
-  /**
-   * Returns the description of this event.
-   *
-   * @return the description as a String
-   */
+  @Override
   public String getDescription() {
     return description;
   }
 
-  /**
-   * Sets the description of this event.
-   *
-   * @param description the new description for the event
-   */
+  @Override
   public void setDescription(String description) {
     this.description = description;
   }
 
-  /**
-   * Returns the location of this event.
-   *
-   * @return the location as a Location enum
-   */
+  @Override
   public Location getLocation() {
     return location;
   }
 
-  /**
-   * Sets the location of this event.
-   *
-   * @param location the new location for the event
-   */
+  @Override
   public void setLocation(Location location) {
     this.location = location;
   }
 
-  /**
-   * Sets the detail of the location for this event.
-   * This is used when the location is CUSTOM to provide additional information.
-   *
-   * @param locationDetail the detail of the location
-   */
+  @Override
+  public String getLocationDetail() {
+    return locationDetail;
+  }
+
+  @Override
   public void setLocationDetail(String locationDetail) {
     this.locationDetail = locationDetail;
   }
 
-  /**
-   * Returns the status of this event.
-   *
-   * @return the status as an EventStatus enum
-   */
+  @Override
   public EventStatus getStatus() {
     return status;
   }
 
-  /**
-   * Sets the status of this event.
-   *
-   * @param status the new status for the event
-   */
+  @Override
   public void setStatus(EventStatus status) {
     this.status = status;
   }
 
-  /**
-   * Returns the series ID associated with this event, if any.
-   *
-   * @return the UUID of the series, or null if not part of a series
-   */
+  @Override
   public UUID getSeriesID() {
     return seriesID;
   }
 
-  /**
-   * Sets the series ID for this event.
-   *
-   * @param seriesID the UUID of the series to associate with this event
-   */
+  @Override
   public void setSeriesId(UUID seriesID) {
     this.seriesID = seriesID;
   }
+
+  @Override
+  public String getLocationDisplay() {
+    if (location == null) {
+      return "";
+    }
+    return location.name() + (locationDetail != null && !locationDetail.isEmpty()
+            ? ": " + locationDetail : "");
+  }
+
+  @Override
+  public IEvent copyWithNewTimes(LocalDateTime newStart, LocalDateTime newEnd) {
+    return new Event(this.subject, newStart, newEnd, this.description,
+            this.location, this.locationDetail, this.status,
+            null); // Reset series ID for copies to different times
+  }
+
+  // Object methods
 
   /**
    * Checks if two events are equal.
@@ -256,7 +200,7 @@ public class Event {
    * This method properly handles null values for all three comparison fields.
    *
    * @param o the object to compare with this event
-   * @return true if the object is an Event with the same subject, start, and end times;
+   * @return true if the object is an IEvent with the same subject, start, and end times;
    *         false otherwise
    */
   @Override
@@ -264,13 +208,13 @@ public class Event {
     if (this == o) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(o instanceof IEvent)) {
       return false;
     }
-    Event event = (Event) o;
-    return Objects.equals(subject, event.subject) &&
-            Objects.equals(startDate, event.startDate) &&
-            Objects.equals(endDate, event.endDate);
+    IEvent event = (IEvent) o;
+    return Objects.equals(subject, event.getSubject()) &&
+            Objects.equals(startDate, event.getStart()) &&
+            Objects.equals(endDate, event.getEnd());
   }
 
   /**
@@ -286,21 +230,6 @@ public class Event {
   }
 
   /**
-   * Returns a string representation of the event's location.
-   * If the location is null, returns an empty string.
-   * Otherwise, returns the name of the location along with any additional details.
-   *
-   * @return a formatted string representing the event's location
-   */
-  public String getLocationDisplay() {
-    if (location == null) {
-      return "";
-    }
-    return location.name() + (locationDetail != null && !locationDetail.isEmpty()
-            ? ": " + locationDetail : "");
-  }
-
-  /**
    * Returns a string representation of the event.
    * The format includes the subject, start and end times, and location if available.
    *
@@ -313,14 +242,5 @@ public class Event {
             startDate,
             endDate,
             location != null ? " @ " + getLocationDisplay() : "");
-  }
-
-  /**
-   * Returns the detail of the location for this event.
-   *
-   * @return the location detail as a String
-   */
-  public String getLocationDetail() {
-    return locationDetail;
   }
 }
