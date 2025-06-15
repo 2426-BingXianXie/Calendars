@@ -4,8 +4,10 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.time.ZoneId;
 
 import calendar.controller.CalendarController;
+import calendar.controller.CalendarGUIController;
 import calendar.model.CalendarSystem;
 import calendar.model.ICalendarSystem;
 import calendar.view.CalendarView;
@@ -26,10 +28,26 @@ public class CalendarRunner {
    */
   public static void main(String[] args) {
     ICalendarSystem system = new CalendarSystem();
-    ICalendarView view = new CalendarView(System.out);
-    ICalendarController controller = null;
 
     try {
+      // No arguments - launch GUI mode
+      if (args.length == 0) {
+        // Create default calendar with system timezone
+        String defaultCalendarName = "My Calendar";
+        ZoneId systemTimezone = ZoneId.systemDefault();
+        system.createCalendar(defaultCalendarName, systemTimezone);
+        system.useCalendar(defaultCalendarName);
+
+        // Launch GUI
+        CalendarGUIController guiController = new CalendarGUIController(system);
+        guiController.execute();
+        return;
+      }
+
+      // Command line modes
+      ICalendarView view = new CalendarView(System.out);
+      ICalendarController controller = null;
+
       // check that first input is '--mode'
       if (args.length >= 2 && args[0].equalsIgnoreCase("--mode")) {
         String mode = args[1].toLowerCase();
@@ -64,7 +82,7 @@ public class CalendarRunner {
         System.exit(1);
       }
     } catch (CalendarException e) { // catch calendarExceptions from controller/model
-      view.writeMessage("Application Error");
+      System.err.println("Application Error: " + e.getMessage());
       System.exit(1);
     }
   }
