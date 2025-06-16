@@ -16,7 +16,7 @@ import calendar.model.IEvent;
  * This class handles all GUI component creation, layout, and basic display logic,
  * while delegating user interaction handling to the controller.
  */
-public class CalendarGUIView {
+public class CalendarGUIView implements ICalendarGUIView{
   private JFrame mainFrame;
   private JLabel currentDateLabel;
   private JLabel calendarInfoLabel;
