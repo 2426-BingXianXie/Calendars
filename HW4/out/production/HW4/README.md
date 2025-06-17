@@ -10,7 +10,7 @@ a pre-generated text file), or GUI-based.
 # Work Distribution
 ## Joshua Chan
 - Setup a basic structure of files
-- revised the methods and debugged for better development
+- Revised the methods and debugged for better development
 - Mostly Controller, View, Enum property, Command Patterns package
 - Tested Controller packages, figured out the usage of mocks
 - Implemented jar file
@@ -155,6 +155,9 @@ Help System: Built-in menu system with command examples
 - Each command class now has one distinct purpose, which makes the system more modular, easier to maintain, and simpler to extend with new commands in the future.
 
 ### Implemented GUI Controller: 
+
+- Added a new controller class, CalendarGUIController to handle interactions with the GUI.
+- The logic for handling GUI inputs is different from handling text commands. So, we created a new controller class in order to adhere to the Single Responsibility Principle.
 
 ## Known Limitations
 ### Multi-day Event Cleanup
