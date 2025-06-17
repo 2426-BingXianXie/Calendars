@@ -38,7 +38,8 @@ public class CalendarGUIView implements ICalendarGUIView{
   private static final Font LABEL_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 14);
   private static final Font MONOSPACE_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 12);
   private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-  private static final DateTimeFormatter DISPLAY_DATE_FORMATTER = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy");
+  private static final DateTimeFormatter DISPLAY_DATE_FORMATTER = DateTimeFormatter.ofPattern(
+          "EEEE, MMMM d, yyyy");
 
   /**
    * Creates and displays the main GUI window.
@@ -210,7 +211,8 @@ public class CalendarGUIView implements ICalendarGUIView{
 
     // Status panel
     JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    JLabel statusLabel = new JLabel("Tip: Double-click to view details | Right-click to edit events");
+    JLabel statusLabel = new JLabel("Tip: Double-click to view details | " +
+            "Right-click to edit events");
     statusLabel.setFont(new Font(Font.SANS_SERIF, Font.ITALIC, 11));
     statusLabel.setForeground(Color.GRAY);
     statusPanel.add(statusLabel);

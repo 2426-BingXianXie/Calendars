@@ -30,7 +30,8 @@ public class CalendarGUIController implements ICalendarController {
 
   // Constants
   private static final int MAX_EVENTS_DISPLAY = 10;
-  private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+  private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(
+          "yyyy-MM-dd HH:mm");
 
   /**
    * Constructs a new CalendarGUIController with the specified calendar system.
@@ -330,7 +331,9 @@ public class CalendarGUIController implements ICalendarController {
 
     // Help text
     gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-    JLabel helpLabel = new JLabel("<html><small>Select a timezone or enter a custom one (e.g., America/New_York)</small></html>");
+    JLabel helpLabel = new JLabel(
+            "<html><small>Select a timezone or enter a custom one " +
+                    "(e.g., America/New_York)</small></html>");
     helpLabel.setForeground(Color.GRAY);
     formPanel.add(helpLabel, gbc);
 
@@ -498,7 +501,8 @@ public class CalendarGUIController implements ICalendarController {
     formPanel.add(new JLabel("Location Detail:"), gbc);
     gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
     fields.locationDetailField = view.createStyledTextField("", 25);
-    fields.locationDetailField.setToolTipText("Enter address for physical location or URL for online location");
+    fields.locationDetailField.setToolTipText(
+            "Enter address for physical location or URL for online location");
     formPanel.add(fields.locationDetailField, gbc);
 
     // Status field
@@ -512,7 +516,8 @@ public class CalendarGUIController implements ICalendarController {
     // Help text
     gbc.gridx = 0; gbc.gridy = 9; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
     JLabel helpLabel = new JLabel("<html><small><b>Format Guidelines:</b><br>" +
-            "• Date: YYYY-MM-DD (e.g., " + LocalDate.now().format(view.getDateFormatter()) + ")<br>" +
+            "• Date: YYYY-MM-DD (e.g., " + LocalDate.now().format(view.getDateFormatter()) +
+            ")<br>" +
             "• Time: HH:MM (e.g., 14:30 for 2:30 PM)<br>" +
             "• Fields marked with * are required</small></html>");
     helpLabel.setForeground(Color.DARK_GRAY);
@@ -532,8 +537,10 @@ public class CalendarGUIController implements ICalendarController {
         throw new IllegalArgumentException("Subject is required and cannot be empty");
       }
 
-      LocalDate startDate = LocalDate.parse(fields.startDateField.getText().trim(), view.getDateFormatter());
-      LocalDate endDate = LocalDate.parse(fields.endDateField.getText().trim(), view.getDateFormatter());
+      LocalDate startDate = LocalDate.parse(fields.startDateField.getText().trim(),
+              view.getDateFormatter());
+      LocalDate endDate = LocalDate.parse(fields.endDateField.getText().trim(),
+              view.getDateFormatter());
       LocalTime startTime = LocalTime.parse(fields.startTimeField.getText().trim());
       LocalTime endTime = LocalTime.parse(fields.endTimeField.getText().trim());
 
@@ -612,17 +619,20 @@ public class CalendarGUIController implements ICalendarController {
    * @return true if event should be created, false if user cancelled
    */
   private boolean checkForConflicts(ICalendar calendar, LocalDateTime startDateTime,
-                                    LocalDateTime endDateTime, IEvent excludeEvent, Component parent) {
-
+                                    LocalDateTime endDateTime, IEvent excludeEvent,
+                                    Component parent) {
     try {
-      List<IEvent> conflictingEvents = calendar.getEventsListInDateRange(startDateTime, endDateTime);
+      List<IEvent> conflictingEvents = calendar.getEventsListInDateRange(
+              startDateTime, endDateTime);
       conflictingEvents = conflictingEvents.stream()
               .filter(event -> excludeEvent == null || !event.getId().equals(excludeEvent.getId()))
-              .filter(event -> eventsOverlap(startDateTime, endDateTime, event.getStart(), event.getEnd()))
+              .filter(event -> eventsOverlap(startDateTime, endDateTime, event.getStart(),
+                      event.getEnd()))
               .collect(Collectors.toList());
 
       if (!conflictingEvents.isEmpty()) {
-        StringBuilder conflicts = new StringBuilder("This event conflicts with existing events:\n\n");
+        StringBuilder conflicts = new StringBuilder(
+                "This event conflicts with existing events:\n\n");
         for (IEvent conflict : conflictingEvents) {
           conflicts.append("• ").append(conflict.getSubject())
                   .append(" (").append(conflict.getStart().format(dateTimeFormatter))
@@ -684,7 +694,8 @@ public class CalendarGUIController implements ICalendarController {
     addDetailRow(contentPanel, gbc, "Subject:", event.getSubject(), 0);
     addDetailRow(contentPanel, gbc, "Start:", event.getStart().format(dateTimeFormatter), 1);
     addDetailRow(contentPanel, gbc, "End:", event.getEnd().format(dateTimeFormatter), 2);
-    addDetailRow(contentPanel, gbc, "Duration:", calculateDuration(event.getStart(), event.getEnd()), 3);
+    addDetailRow(contentPanel, gbc, "Duration:", calculateDuration(event.getStart(),
+            event.getEnd()), 3);
 
     if (event.getLocation() != null) {
       addDetailRow(contentPanel, gbc, "Location:", event.getLocationDisplay(), 4);
@@ -713,7 +724,8 @@ public class CalendarGUIController implements ICalendarController {
   /**
    * Adds a detail row to the event details panel.
    */
-  private void addDetailRow(JPanel panel, GridBagConstraints gbc, String label, String value, int row) {
+  private void addDetailRow(JPanel panel, GridBagConstraints gbc, String label, String value,
+                            int row) {
     gbc.gridx = 0; gbc.gridy = row;
     gbc.fill = GridBagConstraints.NONE;
     JLabel labelComponent = new JLabel(label);
@@ -840,14 +852,16 @@ public class CalendarGUIController implements ICalendarController {
       dialog.setVisible(true);
 
     } catch (Exception e) {
-      view.showErrorDialog(view.getMainFrame(), "Error", "Could not open edit dialog: " + e.getMessage());
+      view.showErrorDialog(view.getMainFrame(), "Error", "Could not open edit dialog: "
+              + e.getMessage());
     }
   }
 
   /**
    * Creates form fields for event editing with existing data.
    */
-  private EventFormFields createEditEventFormFields(JPanel formPanel, GridBagConstraints gbc, IEvent event) {
+  private EventFormFields createEditEventFormFields(JPanel formPanel, GridBagConstraints gbc,
+                                                    IEvent event) {
     EventFormFields fields = new EventFormFields();
 
     // Subject field
@@ -950,8 +964,10 @@ public class CalendarGUIController implements ICalendarController {
         throw new IllegalArgumentException("Subject cannot be empty");
       }
 
-      LocalDate startDate = LocalDate.parse(fields.startDateField.getText().trim(), view.getDateFormatter());
-      LocalDate endDate = LocalDate.parse(fields.endDateField.getText().trim(), view.getDateFormatter());
+      LocalDate startDate = LocalDate.parse(fields.startDateField.getText().trim(),
+              view.getDateFormatter());
+      LocalDate endDate = LocalDate.parse(fields.endDateField.getText().trim(),
+              view.getDateFormatter());
       LocalTime startTime = LocalTime.parse(fields.startTimeField.getText().trim());
       LocalTime endTime = LocalTime.parse(fields.endTimeField.getText().trim());
 
@@ -971,8 +987,10 @@ public class CalendarGUIController implements ICalendarController {
 
       // Update event properties
       calendar.editEvent(selectedEvent.getId(), Property.SUBJECT, subject);
-      calendar.editEvent(selectedEvent.getId(), Property.START, startDateTime.format(dateTimeFormatter));
-      calendar.editEvent(selectedEvent.getId(), Property.END, endDateTime.format(dateTimeFormatter));
+      calendar.editEvent(selectedEvent.getId(), Property.START, startDateTime.format(
+              dateTimeFormatter));
+      calendar.editEvent(selectedEvent.getId(), Property.END, endDateTime.format(
+              dateTimeFormatter));
 
       String description = fields.descriptionField.getText().trim();
       if (!description.isEmpty()) {
@@ -1069,7 +1087,8 @@ public class CalendarGUIController implements ICalendarController {
     gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
     formPanel.add(new JLabel("Start Date: *"), gbc);
     gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-    fields.startDateField = view.createMonospaceTextField(currentStartDate.format(view.getDateFormatter()), 25);
+    fields.startDateField = view.createMonospaceTextField(currentStartDate.format(
+            view.getDateFormatter()), 25);
     formPanel.add(fields.startDateField, gbc);
 
     // Start time
@@ -1125,7 +1144,8 @@ public class CalendarGUIController implements ICalendarController {
     gbc.gridx = 0; gbc.gridy = 7; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
     formPanel.add(new JLabel("End Date:"), gbc);
     gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-    fields.endDateField = view.createMonospaceTextField(currentStartDate.plusDays(30).format(view.getDateFormatter()), 25);
+    fields.endDateField = view.createMonospaceTextField(currentStartDate.plusDays(30).format(
+            view.getDateFormatter()), 25);
     formPanel.add(fields.endDateField, gbc);
 
     // Description
@@ -1178,7 +1198,8 @@ public class CalendarGUIController implements ICalendarController {
         throw new IllegalArgumentException("At least one day must be selected");
       }
 
-      LocalDate startDate = LocalDate.parse(fields.startDateField.getText().trim(), view.getDateFormatter());
+      LocalDate startDate = LocalDate.parse(fields.startDateField.getText().trim(),
+              view.getDateFormatter());
       LocalTime startTime = LocalTime.parse(fields.startTimeField.getText().trim());
       LocalTime endTime = LocalTime.parse(fields.endTimeField.getText().trim());
 
@@ -1221,7 +1242,8 @@ public class CalendarGUIController implements ICalendarController {
 
       dialog.dispose();
       updateScheduleView();
-      view.showInfoDialog(view.getMainFrame(), "Event series '" + subject + "' created successfully!");
+      view.showInfoDialog(view.getMainFrame(), "Event series '" + subject + "' " +
+              "created successfully!");
 
     } catch (Exception ex) {
       view.showErrorDialog(dialog, "Error Creating Series", ex.getMessage());
@@ -1246,7 +1268,8 @@ public class CalendarGUIController implements ICalendarController {
     gbc.anchor = GridBagConstraints.EAST;
     formPanel.add(new JLabel("Date:"), gbc);
     gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
-    JTextField dateField = view.createMonospaceTextField(currentStartDate.format(view.getDateFormatter()), 20);
+    JTextField dateField = view.createMonospaceTextField(currentStartDate.format(
+            view.getDateFormatter()), 20);
     dateField.setPreferredSize(new Dimension(200, 25));
     formPanel.add(dateField, gbc);
 
@@ -1276,10 +1299,12 @@ public class CalendarGUIController implements ICalendarController {
 
         dialog.dispose();
         if (isBusy) {
-          view.showInfoDialog(view.getMainFrame(), "You are BUSY at " + dateTime.format(dateTimeFormatter) +
+          view.showInfoDialog(view.getMainFrame(), "You are BUSY at " +
+                  dateTime.format(dateTimeFormatter) +
                   "\nYou have an event scheduled at that time.");
         } else {
-          view.showInfoDialog(view.getMainFrame(), "You are AVAILABLE at " + dateTime.format(dateTimeFormatter) +
+          view.showInfoDialog(view.getMainFrame(), "You are AVAILABLE at " +
+                  dateTime.format(dateTimeFormatter) +
                   "\nNo events scheduled at that time.");
         }
       } catch (Exception ex) {
@@ -1313,7 +1338,8 @@ public class CalendarGUIController implements ICalendarController {
     gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
     formPanel.add(new JLabel("Search from Date:"), gbc);
     gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL;
-    JTextField searchDateField = view.createMonospaceTextField(currentStartDate.format(view.getDateFormatter()), 15);
+    JTextField searchDateField = view.createMonospaceTextField(currentStartDate.format(
+            view.getDateFormatter()), 15);
     formPanel.add(searchDateField, gbc);
 
     gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -1330,7 +1356,8 @@ public class CalendarGUIController implements ICalendarController {
 
     searchButton.addActionListener(e -> {
       try {
-        LocalDate searchDate = LocalDate.parse(searchDateField.getText().trim(), view.getDateFormatter());
+        LocalDate searchDate = LocalDate.parse(searchDateField.getText().trim(),
+                view.getDateFormatter());
         dialog.dispose();
         showSearchResultsDialog(searchDate);
       } catch (DateTimeParseException ex) {
@@ -1368,7 +1395,8 @@ public class CalendarGUIController implements ICalendarController {
     // Title panel
     JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
     titlePanel.setBorder(new javax.swing.border.EmptyBorder(10, 10, 5, 10));
-    JLabel titleLabel = new JLabel("Next 10 Events from " + searchFromDate.format(view.getDisplayDateFormatter()));
+    JLabel titleLabel = new JLabel("Next 10 Events from " + searchFromDate.format(
+            view.getDisplayDateFormatter()));
     titleLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
     titlePanel.add(titleLabel);
     dialog.add(titlePanel, BorderLayout.NORTH);
@@ -1386,13 +1414,16 @@ public class CalendarGUIController implements ICalendarController {
       } else {
         // Search for events starting from the specified date
         LocalDateTime searchStart = searchFromDate.atStartOfDay();
-        LocalDateTime searchEnd = searchFromDate.plusMonths(6).atStartOfDay(); // Search 6 months ahead
+        // Search 6 months ahead
+        LocalDateTime searchEnd = searchFromDate.plusMonths(6).atStartOfDay();
 
         List<IEvent> allEvents = calendar.getEventsListInDateRange(searchStart, searchEnd);
 
         if (allEvents.isEmpty()) {
-          searchResultsModel.addElement("No events found from " + searchFromDate.format(view.getDateFormatter()));
-          searchResultsModel.addElement("Try searching from an earlier date or create some events!");
+          searchResultsModel.addElement("No events found from " + searchFromDate.format(
+                  view.getDateFormatter()));
+          searchResultsModel.addElement(
+                  "Try searching from an earlier date or create some events!");
         } else {
           // Sort events by start time and take the first 10
           allEvents.sort((e1, e2) -> e1.getStart().compareTo(e2.getStart()));
@@ -1409,7 +1440,8 @@ public class CalendarGUIController implements ICalendarController {
           // Add summary info
           if (allEvents.size() > 10) {
             searchResultsModel.addElement("");
-            searchResultsModel.addElement("Found " + allEvents.size() + " total events (showing first 10)");
+            searchResultsModel.addElement("Found " + allEvents.size() + " " +
+                    "total events (showing first 10)");
           } else {
             searchResultsModel.addElement("");
             searchResultsModel.addElement("Found " + allEvents.size() + " total events");
@@ -1469,7 +1501,8 @@ public class CalendarGUIController implements ICalendarController {
             updateScheduleView();
 
             dialog.dispose();
-            view.showInfoDialog(view.getMainFrame(), "Jumped to " + firstEventDate.format(view.getDisplayDateFormatter()) +
+            view.showInfoDialog(view.getMainFrame(), "Jumped to " + firstEventDate.format(
+                    view.getDisplayDateFormatter()) +
                     "\nShowing week containing the first event from your search.");
           }
         }
@@ -1517,7 +1550,8 @@ public class CalendarGUIController implements ICalendarController {
         }
       }
     } catch (Exception e) {
-      view.showErrorDialog(view.getMainFrame(), "Error", "Could not load event details: " + e.getMessage());
+      view.showErrorDialog(view.getMainFrame(), "Error", "Could not load event details: "
+              + e.getMessage());
     }
   }
 }
