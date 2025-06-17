@@ -3,21 +3,24 @@ A command-line multi-calendar application that mimics features found in widely-u
 calendar apps such as Google Calendar. The application supports both single 
 events and recurring event series with comprehensive editing capabilities. 
 The application also supports the use of multiple calendars, with the ability to 
-switch between and edit calendars, as well as support for specific timezone implementation.
+switch between and edit calendars, as well as support for specific timezone implementation. 
+The calendar functions in 2 different ways - text-based(Either by typing in commands or providing
+a pre-generated text file), or GUI-based.
 
 # Work Distribution
 ## Joshua Chan
 - Setup a basic structure of files
 - revised the methods and debugged for better development
 - Mostly Controller, View, Enum property, Command Patterns package
-- Testing Controller packages, figure out the usage of mocks
+- Tested Controller packages, figured out the usage of mocks
 - Implemented jar file
 
 
 ## BingXian(Eason) Xie
-- Implements the methods needed
+- Implemented the methods needed
 - Mostly Model and View package
-- Testing Model and View
+- Tested Model and View
+- Implemented GUI
 
 # How to Run the Program
 ## Prerequisites
@@ -35,8 +38,9 @@ javac -d out -cp src src/calendar/*.java src/calendar/*/*.java src/calendar/*/*/
 ## Running the Application
 
 ### Jar
-- java -jar res/calendar_jar.jar --mode interactive
-- java -jar res/calendar_jar.jar --mode headless <yourcommandtextfile.txt>
+- java -jar res/calendar_jar.jar --mode interactive (interactive mode)
+- java -jar res/calendar_jar.jar --mode headless <yourcommandtextfile.txt> (headless mode)
+- java -jar res/calendar_jar.jar (GUI Application mode)
 
 ### Interactive Mode
 java -cp out calendar.CalendarRunner --mode interactive
@@ -51,6 +55,11 @@ java -cp out calendar.CalendarRunner --mode headless res/valid_commands.txt
 - Executes commands from a text file
 - File must end with exit command
 - Program will display error if file doesn't end with exit
+
+### GUI Application Mode
+
+- Starts a GUI-based Calendar Application that users can interact with
+
 
 ## Example Commands
 
@@ -144,6 +153,8 @@ Help System: Built-in menu system with command examples
 
 - The original Create and Edit classes were broken down into more specific commands.
 - Each command class now has one distinct purpose, which makes the system more modular, easier to maintain, and simpler to extend with new commands in the future.
+
+### Implemented GUI Controller: 
 
 ## Known Limitations
 ### Multi-day Event Cleanup
