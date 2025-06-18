@@ -1,6 +1,6 @@
 package calendar.controller;
 
-import javax.swing.*;
+import javax.swing.JDialog;
 
 import calendar.model.IEvent;
 

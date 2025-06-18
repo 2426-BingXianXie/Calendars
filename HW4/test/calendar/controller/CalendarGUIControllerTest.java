@@ -14,7 +14,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 
-
 import calendar.CalendarException;
 import calendar.model.CalendarSystem;
 import calendar.model.ICalendar;
@@ -24,7 +23,24 @@ import calendar.view.ICalendarGUIView;
 
 import java.util.List;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+
+import javax.swing.JPanel;
+
+import javax.swing.JRadioButton;
+
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
+
+import javax.swing.DefaultListModel;
+
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -194,22 +210,27 @@ public class CalendarGUIControllerTest {
 
     @Override
     public void addCalendarSelectorListener(ActionListener listener) {
+      // empty implementation to avoid errors
     }
 
     @Override
     public void addEventsListMouseListener(MouseListener listener) {
+      // empty implementation to avoid errors
     }
 
     @Override
     public void updateCalendarSelector(List<String> calendarNames, String currentCalendar) {
+      // empty implementation to avoid errors
     }
 
     @Override
     public void updateCalendarInfo(String calendarName, String timezone) {
+      // empty implementation to avoid errors
     }
 
     @Override
     public void updateCurrentDateLabel(LocalDate startDate, LocalDate endDate) {
+      // empty implementation to avoid errors
     }
 
     @Override
@@ -394,9 +415,11 @@ public class CalendarGUIControllerTest {
             "Overlapping Event", "2025-10-10", "11:00", "2025-10-10", "13:00");
     controller.handleCreateEventAction(null, fields2);
 
-    assertTrue(fakeView.lastConfirmationMessage.contains("This event conflicts with existing events"));
+    assertTrue(fakeView.lastConfirmationMessage.contains(
+            "This event conflicts with existing events"));
     assertEquals("Calendar 'Work' created and activated successfully!", fakeView.lastInfoMessage);
-    assertEquals(2, system.getCurrentCalendar().getEventsList(LocalDate.of(2025, 10, 10)).size());
+    assertEquals(2, system.getCurrentCalendar().getEventsList(
+            LocalDate.of(2025, 10, 10)).size());
   }
 
   @Test
@@ -478,11 +501,11 @@ public class CalendarGUIControllerTest {
     controller.handleCreateSeriesAction(null, fields);
 
     ICalendar calendar = system.getCurrentCalendar();
-    assertEquals( 1, calendar.getEventsList(LocalDate.of(2025, 7, 7)).size());
-    assertEquals( 1, calendar.getEventsList(LocalDate.of(2025, 7, 14)).size());
-    assertEquals( 1, calendar.getEventsList(LocalDate.of(2025, 7, 21)).size());
-    assertEquals( 1, calendar.getEventsList(LocalDate.of(2025, 7, 28)).size());
-    assertEquals( 0, calendar.getEventsList(LocalDate.of(2025, 8, 4)).size());
+    assertEquals(1, calendar.getEventsList(LocalDate.of(2025, 7, 7)).size());
+    assertEquals(1, calendar.getEventsList(LocalDate.of(2025, 7, 14)).size());
+    assertEquals(1, calendar.getEventsList(LocalDate.of(2025, 7, 21)).size());
+    assertEquals(1, calendar.getEventsList(LocalDate.of(2025, 7, 28)).size());
+    assertEquals(0, calendar.getEventsList(LocalDate.of(2025, 8, 4)).size());
   }
 
 
@@ -537,7 +560,7 @@ public class CalendarGUIControllerTest {
       fields.dayBoxes[i] = new JCheckBox("", false);
     }
     fields.forTimesRadio = new JRadioButton("", true);
-    fields.timesSpinner = new JSpinner(new SpinnerNumberModel(4,1,100,1));
+    fields.timesSpinner = new JSpinner(new SpinnerNumberModel(4, 1, 100, 1));
 
     controller.handleCreateSeriesAction(null, fields);
     assertEquals("At least one day must be selected", fakeView.lastErrorMessage);
