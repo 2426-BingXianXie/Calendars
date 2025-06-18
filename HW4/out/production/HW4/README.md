@@ -12,7 +12,7 @@ a pre-generated text file), or GUI-based.
 - Setup a basic structure of files
 - Revised the methods and debugged for better development
 - Mostly Controller, View, Enum property, Command Patterns package
-- Tested Controller packages, figured out the usage of mocks
+- Tested Controller and GUI packages, figured out the usage of mocks
 - Implemented jar file
 
 
@@ -156,7 +156,8 @@ Help System: Built-in menu system with command examples
 
 ### Implemented GUI Controller: 
 
-- Added a new controller class, CalendarGUIController to handle interactions with the GUI.
+- Added a new controller class, CalendarGUIController and interface ICalendarGUIController to handle interactions with the GUI.
+- Added a corresponding view class, CalendarGUIView as well as interface ICalendarView to generate GUI components for the application.
 - The logic for handling GUI inputs is different from handling text commands. So, we created a new controller class in order to adhere to the Single Responsibility Principle.
 
 ## Known Limitations

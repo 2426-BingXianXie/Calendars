@@ -1,6 +1,15 @@
 package calendar.view;
 
-import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JTextField;
+import javax.swing.DefaultListModel;
+
 import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
@@ -33,8 +42,8 @@ public interface ICalendarGUIView {
    * Creates a modal dialog with standard layout.
    *
    * @param parent the parent component
-   * @param title the dialog title
-   * @param width the dialog width
+   * @param title  the dialog title
+   * @param width  the dialog width
    * @param height the dialog height
    * @return configured dialog
    */
@@ -65,7 +74,7 @@ public interface ICalendarGUIView {
   /**
    * Creates a styled text field with consistent appearance.
    *
-   * @param text the initial text
+   * @param text    the initial text
    * @param columns the number of columns
    * @return configured text field
    */
@@ -74,7 +83,7 @@ public interface ICalendarGUIView {
   /**
    * Creates a monospace text field for dates and times.
    *
-   * @param text the initial text
+   * @param text    the initial text
    * @param columns the number of columns
    * @return configured monospace text field
    */
@@ -210,7 +219,7 @@ public interface ICalendarGUIView {
   /**
    * Updates the calendar selector with available calendars.
    *
-   * @param calendarNames list of calendar names
+   * @param calendarNames   list of calendar names
    * @param currentCalendar the currently selected calendar
    */
   void updateCalendarSelector(List<String> calendarNames, String currentCalendar);
@@ -220,7 +229,7 @@ public interface ICalendarGUIView {
    * Updates the calendar information display.
    *
    * @param calendarName the calendar name
-   * @param timezone the calendar timezone
+   * @param timezone     the calendar timezone
    */
   void updateCalendarInfo(String calendarName, String timezone);
 
@@ -228,15 +237,15 @@ public interface ICalendarGUIView {
    * Updates the current date label with date range.
    *
    * @param startDate the start date
-   * @param endDate the end date
+   * @param endDate   the end date
    */
   void updateCurrentDateLabel(LocalDate startDate, LocalDate endDate);
 
   /**
    * Shows an error message dialog.
    *
-   * @param parent the parent component
-   * @param title the dialog title
+   * @param parent  the parent component
+   * @param title   the dialog title
    * @param message the error message
    */
   void showErrorDialog(Component parent, String title, String message);
@@ -244,7 +253,7 @@ public interface ICalendarGUIView {
   /**
    * Shows an information message dialog.
    *
-   * @param parent the parent component
+   * @param parent  the parent component
    * @param message the information message
    */
   void showInfoDialog(Component parent, String message);
@@ -252,9 +261,9 @@ public interface ICalendarGUIView {
   /**
    * Shows a confirmation dialog.
    *
-   * @param parent the parent component
+   * @param parent  the parent component
    * @param message the confirmation message
-   * @param title the dialog title
+   * @param title   the dialog title
    * @return true if user confirms, false otherwise
    */
   boolean showConfirmDialog(Component parent, String message, String title);
@@ -262,8 +271,8 @@ public interface ICalendarGUIView {
   /**
    * Shows an input dialog for text input.
    *
-   * @param parent the parent component
-   * @param message the prompt message
+   * @param parent       the parent component
+   * @param message      the prompt message
    * @param initialValue the initial value
    * @return the user input, or null if cancelled
    */

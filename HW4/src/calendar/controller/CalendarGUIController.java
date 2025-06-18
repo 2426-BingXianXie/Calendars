@@ -1,7 +1,46 @@
 package calendar.controller;
 
-import javax.swing.*;
-import java.awt.*;
+import calendar.CalendarException;
+import calendar.model.Days;
+import calendar.model.EventStatus;
+import calendar.model.ICalendar;
+import calendar.model.ICalendarSystem;
+import calendar.model.IEvent;
+import calendar.model.Location;
+import calendar.model.Property;
+import calendar.view.CalendarGUIView;
+import calendar.view.ICalendarGUIView;
+
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingUtilities;
+import javax.swing.DefaultListModel;
+import javax.swing.BorderFactory;
+import javax.swing.ListSelectionModel;
+
+import java.awt.Dimension;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -12,13 +51,9 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import calendar.CalendarException;
-import calendar.model.*;
-import calendar.view.CalendarGUIView;
-import calendar.view.ICalendarGUIView;
 
 /**
  * GUI Controller for the calendar application following MVC principles.
@@ -46,6 +81,13 @@ public class CalendarGUIController implements ICalendarGUIController {
     this.currentStartDate = LocalDate.now();
   }
 
+
+  /**
+   * Constructs a new CalendarGUIController with the specified calendar system and view.
+   *
+   * @param calendarSystem the calendar system to manage
+   * @param view           the view component to use for the GUI
+   */
   public CalendarGUIController(ICalendarSystem calendarSystem, ICalendarGUIView view) {
     this.calendarSystem = calendarSystem;
     this.view = view;
@@ -186,10 +228,9 @@ public class CalendarGUIController implements ICalendarGUIController {
     }
   }
 
-  /**
-   * Navigates the current date by the specified number of days.
-   */
-  private void navigateDate(int days) {
+
+  @Override
+  public void navigateDate(int days) {
     currentStartDate = currentStartDate.plusDays(days);
     updateScheduleView();
   }
@@ -228,7 +269,9 @@ public class CalendarGUIController implements ICalendarGUIController {
         // Add events to the list (limit to MAX_EVENTS_DISPLAY)
         int count = 0;
         for (IEvent event : events) {
-          if (count >= MAX_EVENTS_DISPLAY) break;
+          if (count >= MAX_EVENTS_DISPLAY) {
+            break;
+          }
 
           String eventDisplay = view.formatEventForDisplay(event, count + 1);
           view.getEventsListModel().addElement(eventDisplay);
@@ -259,18 +302,23 @@ public class CalendarGUIController implements ICalendarGUIController {
     GridBagConstraints gbc = new GridBagConstraints();
 
     // Instructions
-    gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    gbc.gridwidth = 2;
     gbc.insets = new Insets(0, 0, 15, 0);
     JLabel instructionLabel = new JLabel("Enter the date you want to navigate to:");
     formPanel.add(instructionLabel, gbc);
 
     // Date input
-    gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    gbc.gridwidth = 1;
     gbc.insets = new Insets(5, 0, 5, 10);
     gbc.anchor = GridBagConstraints.EAST;
     formPanel.add(new JLabel("Date (YYYY-MM-DD):"), gbc);
 
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.anchor = GridBagConstraints.WEST;
     JTextField dateField = view.createMonospaceTextField(
             currentStartDate.format(view.getDateFormatter()), 15);
@@ -322,29 +370,41 @@ public class CalendarGUIController implements ICalendarGUIController {
     gbc.anchor = GridBagConstraints.WEST;
 
     // Calendar name
-    gbc.gridx = 0; gbc.gridy = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 0;
     formPanel.add(new JLabel("Calendar Name: *"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     JTextField nameField = view.createStyledTextField("", 20);
     formPanel.add(nameField, gbc);
 
     // Timezone
-    gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Timezone: *"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
 
     String[] commonTimezones = {
-            "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
-            "Europe/London", "Europe/Paris", "Europe/Berlin", "Asia/Tokyo", "Asia/Shanghai",
-            "Australia/Sydney", "UTC"
+        "America/New_York", "America/Chicago", "America/Denver",
+        "America/Los_Angeles", "Europe/London", "Europe/Paris", "Europe/Berlin",
+        "Asia/Tokyo", "Asia/Shanghai", "Australia/Sydney", "UTC"
     };
+
     JComboBox<String> timezoneCombo = view.createStyledComboBox(commonTimezones);
     timezoneCombo.setSelectedItem(java.time.ZoneId.systemDefault().toString());
     timezoneCombo.setEditable(true);
     formPanel.add(timezoneCombo, gbc);
 
     // Help text
-    gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.gridx = 0;
+    gbc.gridy = 2;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
     JLabel helpLabel = new JLabel(
             "<html><small>Select a timezone or enter a custom one " +
                     "(e.g., America/New_York)</small></html>");
@@ -450,76 +510,122 @@ public class CalendarGUIController implements ICalendarGUIController {
     EventFormFields fields = new EventFormFields();
 
     // Subject field
-    gbc.gridx = 0; gbc.gridy = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 0;
     formPanel.add(new JLabel("Subject: *"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.subjectField = view.createStyledTextField("", 25);
     formPanel.add(fields.subjectField, gbc);
 
     // Start date field
-    gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Start Date: *"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.startDateField = view.createMonospaceTextField(
             currentStartDate.format(view.getDateFormatter()), 25);
     formPanel.add(fields.startDateField, gbc);
 
     // Start time field
-    gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 2;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Start Time: *"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.startTimeField = view.createMonospaceTextField("09:00", 25);
     formPanel.add(fields.startTimeField, gbc);
 
     // End date field
-    gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 3;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("End Date: *"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.endDateField = view.createMonospaceTextField(
             currentStartDate.format(view.getDateFormatter()), 25);
     formPanel.add(fields.endDateField, gbc);
 
     // End time field
-    gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 4;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("End Time: *"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.endTimeField = view.createMonospaceTextField("10:00", 25);
     formPanel.add(fields.endTimeField, gbc);
 
     // Description field
-    gbc.gridx = 0; gbc.gridy = 5; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 5;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Description:"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.descriptionField = view.createStyledTextField("", 25);
     formPanel.add(fields.descriptionField, gbc);
 
     // Location field
-    gbc.gridx = 0; gbc.gridy = 6; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 6;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Location:"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.locationCombo = view.createStyledComboBox(
             new String[]{"", "PHYSICAL", "ONLINE"});
     formPanel.add(fields.locationCombo, gbc);
 
     // Location detail field
-    gbc.gridx = 0; gbc.gridy = 7; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 7;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Location Detail:"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.locationDetailField = view.createStyledTextField("", 25);
     fields.locationDetailField.setToolTipText(
             "Enter address for physical location or URL for online location");
     formPanel.add(fields.locationDetailField, gbc);
 
     // Status field
-    gbc.gridx = 0; gbc.gridy = 8; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 8;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Status:"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.statusCombo = view.createStyledComboBox(
             new String[]{"", "PUBLIC", "PRIVATE"});
     formPanel.add(fields.statusCombo, gbc);
 
     // Help text
-    gbc.gridx = 0; gbc.gridy = 9; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.gridx = 0;
+    gbc.gridy = 9;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
     JLabel helpLabel = new JLabel("<html><small><b>Format Guidelines:</b><br>" +
             "• Date: YYYY-MM-DD (e.g., " + LocalDate.now().format(view.getDateFormatter()) +
             ")<br>" +
@@ -535,11 +641,6 @@ public class CalendarGUIController implements ICalendarGUIController {
    * Handles event creation form submission.
    */
   private void handleCreateEvent(JDialog dialog, EventFormFields fields) {
-    handleCreateEventAction(dialog, fields);
-  }
-
-  @Override
-  public void handleCreateEventAction(JDialog dialog, EventFormFields fields) {
     try {
       // Validate and parse form data
       String subject = fields.subjectField.getText().trim();
@@ -594,6 +695,11 @@ public class CalendarGUIController implements ICalendarGUIController {
     } catch (Exception ex) {
       view.showErrorDialog(dialog, "Error Creating Event", ex.getMessage());
     }
+  }
+
+  @Override
+  public void handleCreateEventAction(JDialog dialog, EventFormFields fields) {
+    handleCreateEvent(dialog, fields);
   }
 
   /**
@@ -736,7 +842,8 @@ public class CalendarGUIController implements ICalendarGUIController {
    */
   private void addDetailRow(JPanel panel, GridBagConstraints gbc, String label, String value,
                             int row) {
-    gbc.gridx = 0; gbc.gridy = row;
+    gbc.gridx = 0;
+    gbc.gridy = row;
     gbc.fill = GridBagConstraints.NONE;
     JLabel labelComponent = new JLabel(label);
     labelComponent.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
@@ -852,7 +959,10 @@ public class CalendarGUIController implements ICalendarGUIController {
       JButton saveButton = view.createStyledButton("Save Changes");
       JButton cancelButton = view.createStyledButton("Cancel");
 
-      saveButton.addActionListener(e -> handleEditEvent(dialog, selectedEvent, formFields));
+      saveButton.addActionListener(e -> {
+        handleEditEventAction(selectedEvent, formFields);
+        dialog.dispose(); // The listener closes its own dialog
+      });
       cancelButton.addActionListener(e -> dialog.dispose());
 
       buttonPanel.add(saveButton);
@@ -875,56 +985,89 @@ public class CalendarGUIController implements ICalendarGUIController {
     EventFormFields fields = new EventFormFields();
 
     // Subject field
-    gbc.gridx = 0; gbc.gridy = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 0;
     formPanel.add(new JLabel("Subject: *"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.subjectField = view.createStyledTextField(event.getSubject(), 25);
     formPanel.add(fields.subjectField, gbc);
 
     // Start date field
-    gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Start Date: *"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.startDateField = view.createMonospaceTextField(
             event.getStart().toLocalDate().format(view.getDateFormatter()), 25);
     formPanel.add(fields.startDateField, gbc);
 
     // Start time field
-    gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 2;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Start Time: *"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.startTimeField = view.createMonospaceTextField(
             event.getStart().toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm")), 25);
     formPanel.add(fields.startTimeField, gbc);
 
     // End date field
-    gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 3;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("End Date: *"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.endDateField = view.createMonospaceTextField(
             event.getEnd().toLocalDate().format(view.getDateFormatter()), 25);
     formPanel.add(fields.endDateField, gbc);
 
     // End time field
-    gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 4;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("End Time: *"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.endTimeField = view.createMonospaceTextField(
             event.getEnd().toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm")), 25);
     formPanel.add(fields.endTimeField, gbc);
 
     // Description field
-    gbc.gridx = 0; gbc.gridy = 5; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 5;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Description:"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.descriptionField = view.createStyledTextField(
             event.getDescription() != null ? event.getDescription() : "", 25);
     formPanel.add(fields.descriptionField, gbc);
 
     // Location field
-    gbc.gridx = 0; gbc.gridy = 6; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 6;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Location:"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.locationCombo = view.createStyledComboBox(new String[]{"", "PHYSICAL", "ONLINE"});
     if (event.getLocation() != null) {
       fields.locationCombo.setSelectedItem(event.getLocation().name());
@@ -932,17 +1075,27 @@ public class CalendarGUIController implements ICalendarGUIController {
     formPanel.add(fields.locationCombo, gbc);
 
     // Location detail field
-    gbc.gridx = 0; gbc.gridy = 7; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 7;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Location Detail:"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.locationDetailField = view.createStyledTextField(
             event.getLocationDetail() != null ? event.getLocationDetail() : "", 25);
     formPanel.add(fields.locationDetailField, gbc);
 
     // Status field
-    gbc.gridx = 0; gbc.gridy = 8; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 8;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Status:"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.statusCombo = view.createStyledComboBox(new String[]{"", "PUBLIC", "PRIVATE"});
     if (event.getStatus() != null) {
       fields.statusCombo.setSelectedItem(event.getStatus().name());
@@ -951,9 +1104,14 @@ public class CalendarGUIController implements ICalendarGUIController {
 
     // Series info (read-only)
     if (event.getSeriesID() != null) {
-      gbc.gridx = 0; gbc.gridy = 9; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+      gbc.gridx = 0;
+      gbc.gridy = 9;
+      gbc.fill = GridBagConstraints.NONE;
+      gbc.weightx = 0;
       formPanel.add(new JLabel("Series:"), gbc);
-      gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+      gbc.gridx = 1;
+      gbc.fill = GridBagConstraints.HORIZONTAL;
+      gbc.weightx = 1.0;
       JLabel seriesLabel = new JLabel("Part of recurring series (editing will break from series)");
       seriesLabel.setFont(new Font(Font.SANS_SERIF, Font.ITALIC, 12));
       seriesLabel.setForeground(Color.BLUE);
@@ -966,12 +1124,7 @@ public class CalendarGUIController implements ICalendarGUIController {
   /**
    * Handles edit event form submission.
    */
-  private void handleEditEvent(JDialog dialog, IEvent selectedEvent, EventFormFields fields) {
-    handleEditEventAction(dialog, selectedEvent, fields);
-  }
-
-  @Override
-  public void handleEditEventAction(JDialog dialog, IEvent selectedEvent, EventFormFields fields) {
+  private void handleEditEvent(IEvent selectedEvent, EventFormFields fields) {
     try {
       // Validate and update event
       String subject = fields.subjectField.getText().trim();
@@ -996,16 +1149,19 @@ public class CalendarGUIController implements ICalendarGUIController {
       ICalendar calendar = calendarSystem.getCurrentCalendar();
 
       // Check for conflicts (excluding current event)
-      if (!checkForConflicts(calendar, startDateTime, endDateTime, selectedEvent, dialog)) {
+      if (!checkForConflicts(calendar, startDateTime, endDateTime, selectedEvent,
+              view.getMainFrame())) {
         return; // User chose not to save conflicting changes
       }
+
+      DateTimeFormatter isoFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
       // Update event properties
       calendar.editEvent(selectedEvent.getId(), Property.SUBJECT, subject);
       calendar.editEvent(selectedEvent.getId(), Property.START, startDateTime.format(
-              dateTimeFormatter));
+              isoFormatter));
       calendar.editEvent(selectedEvent.getId(), Property.END, endDateTime.format(
-              dateTimeFormatter));
+              isoFormatter));
 
       String description = fields.descriptionField.getText().trim();
       if (!description.isEmpty()) {
@@ -1027,13 +1183,17 @@ public class CalendarGUIController implements ICalendarGUIController {
         calendar.editEvent(selectedEvent.getId(), Property.STATUS, statusStr);
       }
 
-      dialog.dispose();
       updateScheduleView();
       view.showInfoDialog(view.getMainFrame(), "Event '" + subject + "' updated successfully!");
 
     } catch (Exception ex) {
-      view.showErrorDialog(dialog, "Error Updating Event", ex.getMessage());
+      view.showErrorDialog(view.getMainFrame(), "Error Updating Event", ex.getMessage());
     }
+  }
+
+  @Override
+  public void handleEditEventAction(IEvent selectedEvent, EventFormFields fields) {
+    handleEditEvent(selectedEvent, fields);
   }
 
   /**
@@ -1068,62 +1228,67 @@ public class CalendarGUIController implements ICalendarGUIController {
   }
 
   /**
-   * Inner class to hold series form field references
-   */
-  private static class SeriesFormFields {
-    JTextField subjectField;
-    JTextField startDateField;
-    JTextField startTimeField;
-    JTextField endTimeField;
-    JCheckBox[] dayBoxes;
-    JRadioButton forTimesRadio;
-    JRadioButton untilDateRadio;
-    JSpinner timesSpinner;
-    JTextField endDateField;
-    JTextField descriptionField;
-    JComboBox<String> locationCombo;
-    JComboBox<String> statusCombo;
-  }
-
-  /**
    * Creates form fields for series creation.
    */
   private SeriesFormFields createSeriesFormFields(JPanel formPanel, GridBagConstraints gbc) {
     SeriesFormFields fields = new SeriesFormFields();
 
     // Subject field
-    gbc.gridx = 0; gbc.gridy = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 0;
     formPanel.add(new JLabel("Subject: *"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.subjectField = view.createStyledTextField("", 25);
     formPanel.add(fields.subjectField, gbc);
 
     // Start date
-    gbc.gridx = 0; gbc.gridy = 1; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Start Date: *"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.startDateField = view.createMonospaceTextField(currentStartDate.format(
             view.getDateFormatter()), 25);
     formPanel.add(fields.startDateField, gbc);
 
     // Start time
-    gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 2;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Start Time: *"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.startTimeField = view.createMonospaceTextField("09:00", 25);
     formPanel.add(fields.startTimeField, gbc);
 
     // End time
-    gbc.gridx = 0; gbc.gridy = 3; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 3;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("End Time: *"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.endTimeField = view.createMonospaceTextField("10:00", 25);
     formPanel.add(fields.endTimeField, gbc);
 
     // Days of week
-    gbc.gridx = 0; gbc.gridy = 4; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 4;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Days of Week: *"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     JPanel daysPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
     fields.dayBoxes = new JCheckBox[7];
     String[] dayNames = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
@@ -1134,9 +1299,14 @@ public class CalendarGUIController implements ICalendarGUIController {
     formPanel.add(daysPanel, gbc);
 
     // Repetition type
-    gbc.gridx = 0; gbc.gridy = 5; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 5;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Repeat: *"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.forTimesRadio = new JRadioButton("For specific number of times");
     fields.untilDateRadio = new JRadioButton("Until specific date");
     ButtonGroup repeatGroup = new ButtonGroup();
@@ -1149,38 +1319,63 @@ public class CalendarGUIController implements ICalendarGUIController {
     formPanel.add(repeatPanel, gbc);
 
     // Number of times
-    gbc.gridx = 0; gbc.gridy = 6; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 6;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Number of Times:"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.timesSpinner = new JSpinner(new SpinnerNumberModel(5, 1, 100, 1));
     formPanel.add(fields.timesSpinner, gbc);
 
     // End date
-    gbc.gridx = 0; gbc.gridy = 7; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 7;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("End Date:"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.endDateField = view.createMonospaceTextField(currentStartDate.plusDays(30).format(
             view.getDateFormatter()), 25);
     formPanel.add(fields.endDateField, gbc);
 
     // Description
-    gbc.gridx = 0; gbc.gridy = 8; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 8;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Description:"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.descriptionField = view.createStyledTextField("", 25);
     formPanel.add(fields.descriptionField, gbc);
 
     // Location
-    gbc.gridx = 0; gbc.gridy = 9; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 9;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Location:"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.locationCombo = view.createStyledComboBox(new String[]{"", "PHYSICAL", "ONLINE"});
     formPanel.add(fields.locationCombo, gbc);
 
     // Status
-    gbc.gridx = 0; gbc.gridy = 10; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 10;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     formPanel.add(new JLabel("Status:"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     fields.statusCombo = view.createStyledComboBox(new String[]{"", "PUBLIC", "PRIVATE"});
     formPanel.add(fields.statusCombo, gbc);
 
@@ -1201,7 +1396,7 @@ public class CalendarGUIController implements ICalendarGUIController {
       // Get selected days
       java.util.Set<Days> selectedDays = new java.util.HashSet<>();
       Days[] daysEnum = {Days.MONDAY, Days.TUESDAY, Days.WEDNESDAY, Days.THURSDAY,
-              Days.FRIDAY, Days.SATURDAY, Days.SUNDAY};
+        Days.FRIDAY, Days.SATURDAY, Days.SUNDAY};
 
       for (int i = 0; i < 7; i++) {
         if (fields.dayBoxes[i].isSelected()) {
@@ -1265,9 +1460,11 @@ public class CalendarGUIController implements ICalendarGUIController {
     }
   }
 
-  /**
-   * Shows the status checking dialog.
-   */
+  @Override
+  public void handleCreateSeriesAction(JDialog dialog, SeriesFormFields fields) {
+    handleCreateSeries(dialog, fields);
+  }
+
   private void showStatusDialog() {
     JDialog dialog = view.createDialog(view.getMainFrame(), "Check Status", 400, 250);
 
@@ -1275,24 +1472,35 @@ public class CalendarGUIController implements ICalendarGUIController {
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.insets = new Insets(10, 10, 10, 10);
 
-    gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    gbc.gridwidth = 2;
     formPanel.add(new JLabel("Check if you're busy at:"), gbc);
 
     // Date field
-    gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    gbc.gridwidth = 1;
     gbc.anchor = GridBagConstraints.EAST;
     formPanel.add(new JLabel("Date:"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     JTextField dateField = view.createMonospaceTextField(currentStartDate.format(
             view.getDateFormatter()), 20);
     dateField.setPreferredSize(new Dimension(200, 25));
     formPanel.add(dateField, gbc);
 
     // Time field
-    gbc.gridx = 0; gbc.gridy = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+    gbc.gridx = 0;
+    gbc.gridy = 2;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0;
     gbc.anchor = GridBagConstraints.EAST;
     formPanel.add(new JLabel("Time:"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1.0;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
     JTextField timeField = view.createMonospaceTextField("14:00", 20);
     timeField.setPreferredSize(new Dimension(200, 25));
     formPanel.add(timeField, gbc);
@@ -1304,27 +1512,8 @@ public class CalendarGUIController implements ICalendarGUIController {
     JButton cancelButton = view.createStyledButton("Cancel");
 
     checkButton.addActionListener(e -> {
-      try {
-        LocalDate date = LocalDate.parse(dateField.getText().trim(), view.getDateFormatter());
-        LocalTime time = LocalTime.parse(timeField.getText().trim());
-        LocalDateTime dateTime = LocalDateTime.of(date, time);
-
-        ICalendar calendar = calendarSystem.getCurrentCalendar();
-        boolean isBusy = calendar.isBusyAt(dateTime);
-
-        dialog.dispose();
-        if (isBusy) {
-          view.showInfoDialog(view.getMainFrame(), "You are BUSY at " +
-                  dateTime.format(dateTimeFormatter) +
-                  "\nYou have an event scheduled at that time.");
-        } else {
-          view.showInfoDialog(view.getMainFrame(), "You are AVAILABLE at " +
-                  dateTime.format(dateTimeFormatter) +
-                  "\nNo events scheduled at that time.");
-        }
-      } catch (Exception ex) {
-        view.showErrorDialog(dialog, "Error", "Invalid date/time format: " + ex.getMessage());
-      }
+      handleShowStatusAction(dateField.getText(), timeField.getText());
+      dialog.dispose();
     });
 
     cancelButton.addActionListener(e -> dialog.dispose());
@@ -1334,6 +1523,36 @@ public class CalendarGUIController implements ICalendarGUIController {
     dialog.add(buttonPanel, BorderLayout.SOUTH);
 
     dialog.setVisible(true);
+  }
+
+  @Override
+  public void handleShowStatusAction(String dateStr, String timeStr) {
+    try {
+      ICalendar calendar = calendarSystem.getCurrentCalendar();
+      if (calendar == null) {
+        throw new CalendarException("No calendar is currently in use.");
+      }
+
+      LocalDate date = LocalDate.parse(dateStr.trim(), view.getDateFormatter());
+      LocalTime time = LocalTime.parse(timeStr.trim());
+      LocalDateTime dateTime = LocalDateTime.of(date, time);
+
+      boolean isBusy = calendar.isBusyAt(dateTime);
+
+      if (isBusy) {
+        view.showInfoDialog(view.getMainFrame(), "You are BUSY at " +
+                dateTime.format(dateTimeFormatter) +
+                "\nYou have an event scheduled at that time.");
+      } else {
+        view.showInfoDialog(view.getMainFrame(), "You are AVAILABLE at " +
+                dateTime.format(dateTimeFormatter) +
+                "\nNo events scheduled at that time.");
+      }
+    } catch (DateTimeParseException ex) {
+      view.showErrorDialog(view.getMainFrame(), "Invalid Format", "Invalid date/time format.");
+    } catch (Exception ex) {
+      view.showErrorDialog(view.getMainFrame(), "Error", ex.getMessage());
+    }
   }
 
   /**
@@ -1346,18 +1565,26 @@ public class CalendarGUIController implements ICalendarGUIController {
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.insets = new Insets(10, 10, 10, 10);
 
-    gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    gbc.gridwidth = 2;
     JLabel instructionLabel = new JLabel("Enter a date to find the next 10 events:");
     formPanel.add(instructionLabel, gbc);
 
-    gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 1;
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    gbc.gridwidth = 1;
     formPanel.add(new JLabel("Search from Date:"), gbc);
-    gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.gridx = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
     JTextField searchDateField = view.createMonospaceTextField(currentStartDate.format(
             view.getDateFormatter()), 15);
     formPanel.add(searchDateField, gbc);
 
-    gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.gridx = 0;
+    gbc.gridy = 2;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
     JLabel helpLabel = new JLabel("<html><small>Format: YYYY-MM-DD (e.g., " +
             LocalDate.now().format(view.getDateFormatter()) + ")</small></html>");
     helpLabel.setForeground(Color.GRAY);
@@ -1370,18 +1597,7 @@ public class CalendarGUIController implements ICalendarGUIController {
     JButton cancelButton = view.createStyledButton("Cancel");
 
     searchButton.addActionListener(e -> {
-      try {
-        LocalDate searchDate = LocalDate.parse(searchDateField.getText().trim(),
-                view.getDateFormatter());
-        dialog.dispose();
-        showSearchResultsDialog(searchDate);
-      } catch (DateTimeParseException ex) {
-        view.showErrorDialog(dialog, "Invalid Date Format",
-                "Please enter the date in YYYY-MM-DD format.\n\nExample: " +
-                        LocalDate.now().format(view.getDateFormatter()));
-        searchDateField.selectAll();
-        searchDateField.requestFocus();
-      }
+      handleSearchAction(searchDateField.getText());
     });
 
     cancelButton.addActionListener(e -> dialog.dispose());
@@ -1399,6 +1615,32 @@ public class CalendarGUIController implements ICalendarGUIController {
     dialog.getRootPane().setDefaultButton(searchButton);
 
     dialog.setVisible(true);
+  }
+
+  @Override
+  public void handleSearchAction(String fromDateStr) {
+    try {
+      ICalendar calendar = calendarSystem.getCurrentCalendar();
+      if (calendar == null) {
+        throw new CalendarException("No calendar in use.");
+      }
+
+      LocalDate searchDate = LocalDate.parse(fromDateStr.trim(), view.getDateFormatter());
+
+      // Perform the search logic
+      LocalDateTime searchStart = searchDate.atStartOfDay();
+      LocalDateTime searchEnd = searchDate.plusMonths(6).atStartOfDay(); // Search 6 months ahead
+      List<IEvent> allEvents = calendar.getEventsListInDateRange(searchStart, searchEnd);
+      allEvents.sort(Comparator.comparing(IEvent::getStart));
+
+      showSearchResultsDialog(searchDate);
+
+    } catch (DateTimeParseException ex) {
+      view.showErrorDialog(view.getMainFrame(), "Invalid Date Format",
+              "Please use YYYY-MM-DD format.");
+    } catch (Exception ex) {
+      view.showErrorDialog(view.getMainFrame(), "Error Searching Events", ex.getMessage());
+    }
   }
 
   /**
@@ -1445,7 +1687,9 @@ public class CalendarGUIController implements ICalendarGUIController {
 
           int count = 0;
           for (IEvent event : allEvents) {
-            if (count >= 10) break;
+            if (count >= 10) {
+              break;
+            }
 
             String eventDisplay = view.formatSearchResultForDisplay(event, count + 1);
             searchResultsModel.addElement(eventDisplay);
