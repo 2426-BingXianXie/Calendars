@@ -12,6 +12,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -186,10 +187,9 @@ public class CalendarGUIController implements ICalendarGUIController {
     }
   }
 
-  /**
-   * Navigates the current date by the specified number of days.
-   */
-  private void navigateDate(int days) {
+
+  @Override
+  public void navigateDate(int days) {
     currentStartDate = currentStartDate.plusDays(days);
     updateScheduleView();
   }
@@ -535,11 +535,6 @@ public class CalendarGUIController implements ICalendarGUIController {
    * Handles event creation form submission.
    */
   private void handleCreateEvent(JDialog dialog, EventFormFields fields) {
-    handleCreateEventAction(dialog, fields);
-  }
-
-  @Override
-  public void handleCreateEventAction(JDialog dialog, EventFormFields fields) {
     try {
       // Validate and parse form data
       String subject = fields.subjectField.getText().trim();
@@ -594,6 +589,11 @@ public class CalendarGUIController implements ICalendarGUIController {
     } catch (Exception ex) {
       view.showErrorDialog(dialog, "Error Creating Event", ex.getMessage());
     }
+  }
+
+  @Override
+  public void handleCreateEventAction(JDialog dialog, EventFormFields fields) {
+    handleCreateEvent(dialog, fields);
   }
 
   /**
@@ -852,7 +852,10 @@ public class CalendarGUIController implements ICalendarGUIController {
       JButton saveButton = view.createStyledButton("Save Changes");
       JButton cancelButton = view.createStyledButton("Cancel");
 
-      saveButton.addActionListener(e -> handleEditEvent(dialog, selectedEvent, formFields));
+      saveButton.addActionListener(e -> {
+        handleEditEventAction(selectedEvent, formFields);
+        dialog.dispose(); // The listener closes its own dialog
+      });
       cancelButton.addActionListener(e -> dialog.dispose());
 
       buttonPanel.add(saveButton);
@@ -966,12 +969,7 @@ public class CalendarGUIController implements ICalendarGUIController {
   /**
    * Handles edit event form submission.
    */
-  private void handleEditEvent(JDialog dialog, IEvent selectedEvent, EventFormFields fields) {
-    handleEditEventAction(dialog, selectedEvent, fields);
-  }
-
-  @Override
-  public void handleEditEventAction(JDialog dialog, IEvent selectedEvent, EventFormFields fields) {
+  private void handleEditEvent(IEvent selectedEvent, EventFormFields fields) {
     try {
       // Validate and update event
       String subject = fields.subjectField.getText().trim();
@@ -996,16 +994,18 @@ public class CalendarGUIController implements ICalendarGUIController {
       ICalendar calendar = calendarSystem.getCurrentCalendar();
 
       // Check for conflicts (excluding current event)
-      if (!checkForConflicts(calendar, startDateTime, endDateTime, selectedEvent, dialog)) {
+      if (!checkForConflicts(calendar, startDateTime, endDateTime, selectedEvent, view.getMainFrame())) {
         return; // User chose not to save conflicting changes
       }
+
+      DateTimeFormatter isoFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
       // Update event properties
       calendar.editEvent(selectedEvent.getId(), Property.SUBJECT, subject);
       calendar.editEvent(selectedEvent.getId(), Property.START, startDateTime.format(
-              dateTimeFormatter));
+              isoFormatter));
       calendar.editEvent(selectedEvent.getId(), Property.END, endDateTime.format(
-              dateTimeFormatter));
+              isoFormatter));
 
       String description = fields.descriptionField.getText().trim();
       if (!description.isEmpty()) {
@@ -1027,13 +1027,17 @@ public class CalendarGUIController implements ICalendarGUIController {
         calendar.editEvent(selectedEvent.getId(), Property.STATUS, statusStr);
       }
 
-      dialog.dispose();
       updateScheduleView();
       view.showInfoDialog(view.getMainFrame(), "Event '" + subject + "' updated successfully!");
 
     } catch (Exception ex) {
-      view.showErrorDialog(dialog, "Error Updating Event", ex.getMessage());
+      view.showErrorDialog(view.getMainFrame(), "Error Updating Event", ex.getMessage());
     }
+  }
+
+  @Override
+  public void handleEditEventAction(IEvent selectedEvent, EventFormFields fields) {
+    handleEditEvent(selectedEvent, fields);
   }
 
   /**
@@ -1065,24 +1069,6 @@ public class CalendarGUIController implements ICalendarGUIController {
     dialog.add(buttonPanel, BorderLayout.SOUTH);
 
     dialog.setVisible(true);
-  }
-
-  /**
-   * Inner class to hold series form field references
-   */
-  private static class SeriesFormFields {
-    JTextField subjectField;
-    JTextField startDateField;
-    JTextField startTimeField;
-    JTextField endTimeField;
-    JCheckBox[] dayBoxes;
-    JRadioButton forTimesRadio;
-    JRadioButton untilDateRadio;
-    JSpinner timesSpinner;
-    JTextField endDateField;
-    JTextField descriptionField;
-    JComboBox<String> locationCombo;
-    JComboBox<String> statusCombo;
   }
 
   /**
@@ -1265,9 +1251,11 @@ public class CalendarGUIController implements ICalendarGUIController {
     }
   }
 
-  /**
-   * Shows the status checking dialog.
-   */
+  @Override
+  public void handleCreateSeriesAction(JDialog dialog, SeriesFormFields fields) {
+    handleCreateSeries(dialog, fields);
+  }
+
   private void showStatusDialog() {
     JDialog dialog = view.createDialog(view.getMainFrame(), "Check Status", 400, 250);
 
@@ -1304,27 +1292,8 @@ public class CalendarGUIController implements ICalendarGUIController {
     JButton cancelButton = view.createStyledButton("Cancel");
 
     checkButton.addActionListener(e -> {
-      try {
-        LocalDate date = LocalDate.parse(dateField.getText().trim(), view.getDateFormatter());
-        LocalTime time = LocalTime.parse(timeField.getText().trim());
-        LocalDateTime dateTime = LocalDateTime.of(date, time);
-
-        ICalendar calendar = calendarSystem.getCurrentCalendar();
-        boolean isBusy = calendar.isBusyAt(dateTime);
-
-        dialog.dispose();
-        if (isBusy) {
-          view.showInfoDialog(view.getMainFrame(), "You are BUSY at " +
-                  dateTime.format(dateTimeFormatter) +
-                  "\nYou have an event scheduled at that time.");
-        } else {
-          view.showInfoDialog(view.getMainFrame(), "You are AVAILABLE at " +
-                  dateTime.format(dateTimeFormatter) +
-                  "\nNo events scheduled at that time.");
-        }
-      } catch (Exception ex) {
-        view.showErrorDialog(dialog, "Error", "Invalid date/time format: " + ex.getMessage());
-      }
+      handleShowStatusAction(dateField.getText(), timeField.getText());
+      dialog.dispose();
     });
 
     cancelButton.addActionListener(e -> dialog.dispose());
@@ -1334,6 +1303,36 @@ public class CalendarGUIController implements ICalendarGUIController {
     dialog.add(buttonPanel, BorderLayout.SOUTH);
 
     dialog.setVisible(true);
+  }
+
+  @Override
+  public void handleShowStatusAction(String dateStr, String timeStr) {
+    try {
+      ICalendar calendar = calendarSystem.getCurrentCalendar();
+      if (calendar == null) {
+        throw new CalendarException("No calendar is currently in use.");
+      }
+
+      LocalDate date = LocalDate.parse(dateStr.trim(), view.getDateFormatter());
+      LocalTime time = LocalTime.parse(timeStr.trim());
+      LocalDateTime dateTime = LocalDateTime.of(date, time);
+
+      boolean isBusy = calendar.isBusyAt(dateTime);
+
+      if (isBusy) {
+        view.showInfoDialog(view.getMainFrame(), "You are BUSY at " +
+                dateTime.format(dateTimeFormatter) +
+                "\nYou have an event scheduled at that time.");
+      } else {
+        view.showInfoDialog(view.getMainFrame(), "You are AVAILABLE at " +
+                dateTime.format(dateTimeFormatter) +
+                "\nNo events scheduled at that time.");
+      }
+    } catch (DateTimeParseException ex) {
+      view.showErrorDialog(view.getMainFrame(), "Invalid Format", "Invalid date/time format.");
+    } catch (Exception ex) {
+      view.showErrorDialog(view.getMainFrame(), "Error", ex.getMessage());
+    }
   }
 
   /**
@@ -1370,18 +1369,7 @@ public class CalendarGUIController implements ICalendarGUIController {
     JButton cancelButton = view.createStyledButton("Cancel");
 
     searchButton.addActionListener(e -> {
-      try {
-        LocalDate searchDate = LocalDate.parse(searchDateField.getText().trim(),
-                view.getDateFormatter());
-        dialog.dispose();
-        showSearchResultsDialog(searchDate);
-      } catch (DateTimeParseException ex) {
-        view.showErrorDialog(dialog, "Invalid Date Format",
-                "Please enter the date in YYYY-MM-DD format.\n\nExample: " +
-                        LocalDate.now().format(view.getDateFormatter()));
-        searchDateField.selectAll();
-        searchDateField.requestFocus();
-      }
+      handleSearchAction(searchDateField.getText());
     });
 
     cancelButton.addActionListener(e -> dialog.dispose());
@@ -1399,6 +1387,32 @@ public class CalendarGUIController implements ICalendarGUIController {
     dialog.getRootPane().setDefaultButton(searchButton);
 
     dialog.setVisible(true);
+  }
+
+  @Override
+  public void handleSearchAction(String fromDateStr) {
+    try {
+      ICalendar calendar = calendarSystem.getCurrentCalendar();
+      if (calendar == null) {
+        throw new CalendarException("No calendar in use.");
+      }
+
+      LocalDate searchDate = LocalDate.parse(fromDateStr.trim(), view.getDateFormatter());
+
+      // Perform the search logic
+      LocalDateTime searchStart = searchDate.atStartOfDay();
+      LocalDateTime searchEnd = searchDate.plusMonths(6).atStartOfDay(); // Search 6 months ahead
+      List<IEvent> allEvents = calendar.getEventsListInDateRange(searchStart, searchEnd);
+      allEvents.sort(Comparator.comparing(IEvent::getStart));
+
+      showSearchResultsDialog(searchDate);
+
+    } catch (DateTimeParseException ex) {
+      view.showErrorDialog(view.getMainFrame(), "Invalid Date Format",
+              "Please use YYYY-MM-DD format.");
+    } catch (Exception ex) {
+      view.showErrorDialog(view.getMainFrame(), "Error Searching Events", ex.getMessage());
+    }
   }
 
   /**

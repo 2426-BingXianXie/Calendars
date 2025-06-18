@@ -12,7 +12,7 @@ a pre-generated text file), or GUI-based.
 - Setup a basic structure of files
 - Revised the methods and debugged for better development
 - Mostly Controller, View, Enum property, Command Patterns package
-- Tested Controller packages, figured out the usage of mocks
+- Tested Controller and GUI packages, figured out the usage of mocks
 - Implemented jar file
 
 

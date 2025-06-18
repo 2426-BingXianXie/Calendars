@@ -3,16 +3,17 @@ package calendar.controller;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.awt.*;
+import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 
-import javax.swing.*;
 
 import calendar.CalendarException;
 import calendar.model.CalendarSystem;
@@ -23,7 +24,10 @@ import calendar.view.ICalendarGUIView;
 
 import java.util.List;
 
+import javax.swing.*;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -45,7 +49,10 @@ public class CalendarGUIControllerTest {
     public String lastErrorMessage = null;
     public String lastInfoMessage = null;
     public String lastConfirmationMessage = null;
-    public boolean confirmationResult = true; //
+    public boolean confirmationResult = true;
+    public String inputDialogResult = "";
+
+    private final JFrame dummyFrame = new JFrame();
 
     @Override
     public void showErrorDialog(Component parent, String title, String message) {
@@ -61,6 +68,17 @@ public class CalendarGUIControllerTest {
     public boolean showConfirmDialog(Component parent, String message, String title) {
       this.lastConfirmationMessage = message;
       return this.confirmationResult;
+    }
+
+    @Override
+    public JFrame getMainFrame() {
+      // Return the non-null dummy frame instead of null
+      return dummyFrame;
+    }
+
+    @Override
+    public String showInputDialog(Component parent, String message, String initialValue) {
+      return this.inputDialogResult;
     }
 
     // Add empty implementations for all other interface methods to prevent errors.
@@ -102,11 +120,6 @@ public class CalendarGUIControllerTest {
     @Override
     public JComboBox<String> createStyledComboBox(String[] items) {
       return new JComboBox<>(items);
-    }
-
-    @Override
-    public JFrame getMainFrame() {
-      return null;
     }
 
     @Override
@@ -200,11 +213,6 @@ public class CalendarGUIControllerTest {
     }
 
     @Override
-    public String showInputDialog(Component parent, String message, String initialValue) {
-      return "";
-    }
-
-    @Override
     public String formatEventForDisplay(IEvent event, int index) {
       return "";
     }
@@ -233,7 +241,7 @@ public class CalendarGUIControllerTest {
   }
 
   @Test
-  public void testHandleCreateCalendarAction_Success() throws CalendarException {
+  public void testHandleCreateCalendarActionSuccess() throws CalendarException {
     //call the controller's public method directly, simulating a button click
     controller.handleCreateCalendarAction("Work", "America/New_York");
     assertEquals("Work", system.getCurrentCalendarName());
@@ -242,7 +250,7 @@ public class CalendarGUIControllerTest {
   }
 
   @Test
-  public void testHandleCreateCalendarAction_DuplicateName() {
+  public void testHandleCreateCalendarActionDuplicateName() {
     controller.handleCreateCalendarAction("Work", "UTC");
     // try to create another with the same name
     controller.handleCreateCalendarAction("Work", "America/Chicago");
@@ -250,7 +258,7 @@ public class CalendarGUIControllerTest {
   }
 
   @Test
-  public void testHandleCreateCalendarAction_EmptyName() {
+  public void testHandleCreateCalendarActionEmptyName() {
     // call the controller's public method with invalid input.
     controller.handleCreateCalendarAction("   ", "UTC"); // Empty name
     assertEquals("Calendar name cannot be empty", fakeView.lastErrorMessage);
@@ -277,7 +285,8 @@ public class CalendarGUIControllerTest {
             fakeView.lastErrorMessage);
   }
 
-  private EventFormFields createPopulatedEventFormFields(String subject, String startDate, String startTime,
+  private EventFormFields createPopulatedEventFormFields(String subject, String startDate,
+                                                         String startTime,
                                                          String endDate, String endTime) {
     EventFormFields fields = new EventFormFields();
     fields.subjectField = new JTextField(subject);
@@ -292,8 +301,40 @@ public class CalendarGUIControllerTest {
     return fields;
   }
 
+  private SeriesFormFields createPopulatedSeriesFormFields(String subject, String startDate,
+                                                           String startTime,
+                                                           String endTime, boolean[] selectedDays,
+                                                           boolean isForTimes, int times,
+                                                           String untilDate) {
+    SeriesFormFields fields = new SeriesFormFields();
+    fields.subjectField = new JTextField(subject);
+    fields.startDateField = new JTextField(startDate);
+    fields.startTimeField = new JTextField(startTime);
+    fields.endTimeField = new JTextField(endTime);
+
+    fields.dayBoxes = new JCheckBox[7];
+    for (int i = 0; i < 7; i++) {
+      fields.dayBoxes[i] = new JCheckBox("Day" + i, selectedDays[i]);
+    }
+
+    fields.forTimesRadio = new JRadioButton("For times", isForTimes);
+    fields.untilDateRadio = new JRadioButton("Until date", !isForTimes);
+
+    int spinnerValue = Math.max(1, times);
+    fields.timesSpinner = new JSpinner(new SpinnerNumberModel(spinnerValue, 1, 100, 1));
+
+    fields.endDateField = new JTextField(untilDate);
+
+    // Initialize all optional fields to prevent NullPointerExceptions
+    fields.descriptionField = new JTextField("");
+    fields.locationCombo = new JComboBox<>();
+    fields.statusCombo = new JComboBox<>();
+
+    return fields;
+  }
+
   @Test
-  public void testHandleCreateEventAction_Success() {
+  public void testHandleCreateEventActionSuccess() {
     controller.handleCreateCalendarAction("Work", "UTC");
     EventFormFields fields = createPopulatedEventFormFields(
             "Team Meeting", "2025-10-20", "14:00", "2025-10-20", "15:00");
@@ -309,7 +350,7 @@ public class CalendarGUIControllerTest {
   }
 
   @Test
-  public void testHandleCreateEventAction_FailsWithNoActiveCalendar() {
+  public void testHandleCreateEventActionFailsWithNoActiveCalendar() {
     EventFormFields fields = createPopulatedEventFormFields(
             "Meeting", "2025-10-10", "10:00", "2025-10-10", "11:00");
     controller.handleCreateEventAction(null, fields);
@@ -317,7 +358,7 @@ public class CalendarGUIControllerTest {
   }
 
   @Test
-  public void testHandleCreateEventAction_WithInvalidDate() throws CalendarException {
+  public void testHandleCreateEventActionWithInvalidDate() throws CalendarException {
     controller.handleCreateCalendarAction("Work", "UTC");
     EventFormFields fields = createPopulatedEventFormFields(
             "Meeting", "invalid-date", "10:00", "2025-10-10", "11:00");
@@ -332,7 +373,7 @@ public class CalendarGUIControllerTest {
   }
 
   @Test
-  public void testHandleCreateEventAction_EndTimeBeforeStart() {
+  public void testHandleCreateEventActionEndTimeBeforeStart() {
     controller.handleCreateCalendarAction("Work", "UTC");
     EventFormFields fields = createPopulatedEventFormFields(
             "Meeting", "2025-10-10", "11:00", "2025-10-10", "10:00");
@@ -341,7 +382,7 @@ public class CalendarGUIControllerTest {
   }
 
   @Test
-  public void testHandleCreateEventWithConflict_UserConfirms() {
+  public void testHandleCreateEventWithConflictUserConfirms() {
     controller.handleCreateCalendarAction("Work", "UTC");
     EventFormFields fields1 = createPopulatedEventFormFields(
             "Existing Event", "2025-10-10", "10:00", "2025-10-10", "12:00");
@@ -359,7 +400,7 @@ public class CalendarGUIControllerTest {
   }
 
   @Test
-  public void testHandleCreateEventWithConflict_UserCancels() {
+  public void testHandleCreateEventWithConflictUserCancels() {
     controller.handleCreateCalendarAction("Work", "UTC");
     EventFormFields fields1 = createPopulatedEventFormFields(
             "Existing Event", "2025-10-10", "10:00", "2025-10-10", "12:00");
@@ -378,5 +419,167 @@ public class CalendarGUIControllerTest {
     assertEquals(1, system.getCurrentCalendar().getEventsList(LocalDate.of(2025, 10, 10)).size());
   }
 
+  @Test
+  public void testHandleEditEventActionSuccess() throws CalendarException {
+    controller.handleCreateCalendarAction("Work", "UTC");
+    // create an event and the form fields with the new data.
+    IEvent originalEvent = system.getCurrentCalendar().createEvent("Initial Event",
+            LocalDateTime.of(2025, 1, 1, 10, 0),
+            LocalDateTime.of(2025, 1, 1, 11, 0));
+    EventFormFields editedFields = createPopulatedEventFormFields("Updated Event",
+            "2025-01-01", "10:00", "2025-01-01", "12:00");
 
+    controller.handleEditEventAction(originalEvent, editedFields);
+
+    List<IEvent> events = system.getCurrentCalendar().getEventsList(LocalDate.of(2025, 1, 1));
+    assertEquals(1, events.size());
+    assertEquals("Updated Event", events.get(0).getSubject());
+    assertEquals(LocalTime.of(12, 0), events.get(0).getEnd().toLocalTime());
+    assertTrue(fakeView.lastInfoMessage.contains("updated successfully"));
+  }
+
+  @Test
+  public void testHandleEditEventToCauseConflict() throws CalendarException {
+    controller.handleCreateCalendarAction("Work", "UTC");
+    system.getCurrentCalendar().createEvent("Existing Event",
+            LocalDateTime.of(2025, 1, 1, 12, 0),
+            LocalDateTime.of(2025, 1, 1, 13, 0));
+    IEvent eventToEdit = system.getCurrentCalendar().createEvent("To Be Edited",
+            LocalDateTime.of(2025, 1, 1, 9, 0),
+            LocalDateTime.of(2025, 1, 1, 10, 0));
+
+    // Edit the event to overlap with "Existing Event"
+    EventFormFields editedFields = createPopulatedEventFormFields("To Be Edited",
+            "2025-01-01", "11:30", "2025-01-01", "12:30");
+    fakeView.confirmationResult = false; // Simulate user clicking "No"
+
+    controller.handleEditEventAction(eventToEdit, editedFields);
+
+    assertTrue(fakeView.lastConfirmationMessage.contains("conflicts with existing events"));
+    // Verify the edit was cancelled and the event was not changed
+    IEvent finalEvent = system.getCurrentCalendar().getEventsByDetails("To Be Edited",
+            LocalDateTime.of(2025, 1, 1, 9, 0),
+            LocalDateTime.of(2025, 1, 1, 10, 0)).get(0);
+    assertNotNull(finalEvent);
+  }
+
+  @Test
+  public void testHandleCreateSeriesForCount() throws CalendarException {
+    // set up a calendar to use.
+    controller.handleCreateCalendarAction("Work", "UTC");
+    fakeView.lastInfoMessage = null; // Clear message from setup
+
+    SeriesFormFields fields = createPopulatedSeriesFormFields(
+            "Weekly Report", "2025-07-07", "10:00", "10:30",
+            new boolean[]{true, false, false, false, false, false, false}, // Select Monday
+            true, 4, ""
+    );
+
+    controller.handleCreateSeriesAction(null, fields);
+
+    ICalendar calendar = system.getCurrentCalendar();
+    assertEquals( 1, calendar.getEventsList(LocalDate.of(2025, 7, 7)).size());
+    assertEquals( 1, calendar.getEventsList(LocalDate.of(2025, 7, 14)).size());
+    assertEquals( 1, calendar.getEventsList(LocalDate.of(2025, 7, 21)).size());
+    assertEquals( 1, calendar.getEventsList(LocalDate.of(2025, 7, 28)).size());
+    assertEquals( 0, calendar.getEventsList(LocalDate.of(2025, 8, 4)).size());
+  }
+
+
+  @Test
+  public void testHandleCreateSeriesUntilDate() {
+    controller.handleCreateCalendarAction("Work", "UTC");
+    fakeView.lastInfoMessage = null; // Clear setup message
+
+    // Create a daily series for one week (Mon-Fri) ending on a specific date
+    SeriesFormFields fields = createPopulatedSeriesFormFields(
+            "Daily Scrum", "2025-07-28", "09:00", "09:15",
+            new boolean[]{true, true, true, true, true, false, false}, // M,T,W,R,F
+            false, 0, "2025-08-01" // isForTimes is false, repeats=0, untilDate is set
+    );
+    controller.handleCreateSeriesAction(null, fields);
+
+    ICalendar calendar = system.getCurrentCalendar();
+    // Should create 5 events from Mon, Jul 28 to Fri, Aug 1
+    assertEquals(1, calendar.getEventsList(LocalDate.of(2025, 7, 28)).size()); // Mon
+    assertEquals(1, calendar.getEventsList(LocalDate.of(2025, 7, 29)).size()); // Tue
+    assertEquals(1, calendar.getEventsList(LocalDate.of(2025, 7, 30)).size()); // Wed
+    assertEquals(1, calendar.getEventsList(LocalDate.of(2025, 7, 31)).size()); // Thu
+    assertEquals(1, calendar.getEventsList(LocalDate.of(2025, 8, 1)).size());  // Fri
+    // Verify no events are created after the end date
+    assertEquals(0, calendar.getEventsList(LocalDate.of(2025, 8, 4)).size()); // Next Monday
+  }
+
+  @Test
+  public void testHandleCreateSeries_InvalidUntilDate() {
+    // Arrange: Create a series where the 'until' date is before the start date.
+    SeriesFormFields fields = createPopulatedSeriesFormFields(
+            "Bad Series", "2025-08-10", "10:00", "11:00",
+            new boolean[]{true, false, false, false, false, false, false}, // Monday
+            false, 0, "2025-08-01" // End date is before start date
+    );
+    controller.handleCreateSeriesAction(null, fields);
+
+    // check that the controller caught the exception from the model and showed an error.
+    assertEquals("Could not check for conflicts: null", fakeView.lastErrorMessage);
+  }
+
+  @Test
+  public void testHandleCreateSeriesFailsWithNoDaysSelected() {
+    controller.handleCreateCalendarAction("Work", "UTC");
+    SeriesFormFields fields = new SeriesFormFields();
+    fields.subjectField = new JTextField("Weekly Report");
+    fields.startDateField = new JTextField("2025-07-07");
+    fields.startTimeField = new JTextField("10:00");
+    fields.endTimeField = new JTextField("10:30");
+    fields.dayBoxes = new JCheckBox[7]; // No days selected
+    for (int i = 0; i < 7; i++) {
+      fields.dayBoxes[i] = new JCheckBox("", false);
+    }
+    fields.forTimesRadio = new JRadioButton("", true);
+    fields.timesSpinner = new JSpinner(new SpinnerNumberModel(4,1,100,1));
+
+    controller.handleCreateSeriesAction(null, fields);
+    assertEquals("At least one day must be selected", fakeView.lastErrorMessage);
+  }
+
+  @Test
+  public void testShowStatusActionWhenBusy() throws CalendarException {
+    // create a calendar and an event to make the user "busy"
+    controller.handleCreateCalendarAction("Work", "UTC");
+    EventFormFields fields = createPopulatedEventFormFields(
+            "Team Meeting", "2025-10-20", "14:00", "2025-10-20", "15:00");
+    controller.handleCreateEventAction(null, fields);
+
+    // call the public handler method directly with a time that is within the event.
+    controller.handleShowStatusAction("2025-10-20", "14:30");
+
+    String expectedMessage = "You are BUSY at 2025-10-20 14:30\nYou have an event scheduled " +
+            "at that time.";
+    assertEquals(expectedMessage, fakeView.lastInfoMessage);
+  }
+
+  @Test
+  public void testShowStatusActionWhenAvailable() throws CalendarException {
+    controller.handleCreateCalendarAction("Work", "UTC");
+    controller.handleShowStatusAction("2025-10-20", "10:00");
+
+    String expectedMessage = "You are AVAILABLE at 2025-10-20 10:00\nNo events " +
+            "scheduled at that time.";
+    assertEquals(expectedMessage, fakeView.lastInfoMessage);
+  }
+
+  @Test
+  public void testSearchEventsActionInvalidDate() {
+    controller.handleCreateCalendarAction("Work", "UTC");
+    controller.handleSearchAction("not-a-real-date");
+    assertEquals("Please use YYYY-MM-DD format.", fakeView.lastErrorMessage);
+  }
+
+  @Test
+  public void testSearchEventsAction_NoActiveCalendar() {
+    controller = new CalendarGUIController(new CalendarSystem(), fakeView);
+    controller.handleSearchAction("2025-01-01");
+    assertEquals("No calendar in use.", fakeView.lastErrorMessage);
+  }
 }
