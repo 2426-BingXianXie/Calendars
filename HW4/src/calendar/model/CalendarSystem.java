@@ -84,12 +84,10 @@ public class CalendarSystem implements ICalendarSystem {
           throw new CalendarException("Calendar with name '" + newName + "' already exists");
         }
 
-        // Update the map
         calendars.remove(name);
         calendar.setName(newName);
         calendars.put(newName, calendar);
 
-        // Update current calendar reference if needed
         if (currentCalendar == calendar) {
           currentCalendar = calendar;
         }
@@ -97,7 +95,10 @@ public class CalendarSystem implements ICalendarSystem {
 
       case TIMEZONE:
         try {
+          ZoneId oldTimezone = calendar.getTimezone();
           ZoneId newTimezone = ZoneId.of(newValue);
+
+          convertCalendarTimezone(calendar, oldTimezone, newTimezone);
           calendar.setTimezone(newTimezone);
         } catch (Exception e) {
           throw new CalendarException("Invalid timezone: " + newValue);
@@ -107,6 +108,77 @@ public class CalendarSystem implements ICalendarSystem {
       default:
         throw new CalendarException("Invalid property: " + property +
                 ". Valid properties are 'name' and 'timezone'");
+    }
+  }
+
+  /**
+   * Converts all existing events in a calendar from one timezone to another.
+   * This method ensures that events maintain their absolute time when the calendar's
+   * timezone is changed, adjusting their local times accordingly.
+   *
+   * @param calendar the calendar containing events to convert
+   * @param oldTimezone the original timezone of the calendar
+   * @param newTimezone the new timezone to convert events to
+   */
+  private void convertCalendarTimezone(NamedCalendar calendar, ZoneId oldTimezone, ZoneId newTimezone) {
+    if (oldTimezone.equals(newTimezone)) {
+      return;
+    }
+
+    List<IEvent> allEvents = getAllEventsFromCalendar(calendar);
+
+    for (IEvent event : allEvents) {
+      LocalDateTime oldStart = event.getStart();
+      LocalDateTime oldEnd = event.getEnd();
+
+      ZonedDateTime startInOldTz = oldStart.atZone(oldTimezone);
+      ZonedDateTime endInOldTz = oldEnd.atZone(oldTimezone);
+
+      ZonedDateTime startInNewTz = startInOldTz.withZoneSameInstant(newTimezone);
+      ZonedDateTime endInNewTz = endInOldTz.withZoneSameInstant(newTimezone);
+
+      event.setStart(startInNewTz.toLocalDateTime());
+      event.setEnd(endInNewTz.toLocalDateTime());
+    }
+
+    updateEventMappingsAfterTimezoneChange(calendar);
+  }
+
+  /**
+   * Retrieves all events from a calendar across all dates.
+   * This method collects events from the virtual calendar's internal storage
+   * to facilitate timezone conversions.
+   *
+   * @param calendar the named calendar to retrieve events from
+   * @return a list of all events in the calendar
+   */
+  private List<IEvent> getAllEventsFromCalendar(NamedCalendar calendar) {
+    VirtualCalendar virtualCalendar = calendar.getVirtualCalendar();
+    List<Event> storedEvents = virtualCalendar.getAllStoredEvents();
+    return new ArrayList<>(storedEvents);
+  }
+
+  /**
+   * Updates the event mappings in the virtual calendar after timezone changes.
+   * This method ensures that events are properly indexed by date after their
+   * times have been converted to a new timezone, as date changes may occur
+   * during timezone conversion.
+   *
+   * @param calendar the calendar whose event mappings need to be updated
+   */
+  private void updateEventMappingsAfterTimezoneChange(NamedCalendar calendar) {
+    VirtualCalendar virtualCalendar = calendar.getVirtualCalendar();
+    List<IEvent> allEvents = getAllEventsFromCalendar(calendar);
+
+    virtualCalendar.clearEventMappings();
+
+    for (IEvent event : allEvents) {
+      LocalDate startDate = event.getStart().toLocalDate();
+      LocalDate endDate = event.getEnd().toLocalDate();
+
+      for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+        virtualCalendar.addEventToDateMapping(date, event);
+      }
     }
   }
 
@@ -212,7 +284,6 @@ public class CalendarSystem implements ICalendarSystem {
       throw new CalendarException("Target calendar not found: " + targetCalendarName);
     }
 
-    // Find the event to copy
     List<IEvent> events = currentCalendar.getEventsBySubjectAndStartTime(eventName, sourceTime);
     if (events.isEmpty()) {
       throw new CalendarException("Event not found: " + eventName + " starting at " + sourceTime);
@@ -223,22 +294,17 @@ public class CalendarSystem implements ICalendarSystem {
 
     IEvent sourceEvent = events.get(0);
 
-    // Convert target time from target calendar's timezone to
-    // source calendar's timezone for duration calculation
     ZonedDateTime sourceZoned = sourceTime.atZone(currentCalendar.getTimezone());
     ZonedDateTime targetZoned = targetTime.atZone(targetCalendar.getTimezone());
 
-    // Calculate duration of original event
     long durationMinutes = ChronoUnit.MINUTES.between(sourceEvent.getStart(), sourceEvent.getEnd());
 
-    // Create new event in target calendar
     LocalDateTime targetEndTime = targetTime.plusMinutes(durationMinutes);
 
     Event newEvent = new Event(sourceEvent.getSubject(), targetTime, targetEndTime,
             sourceEvent.getDescription(), sourceEvent.getLocation(),
             sourceEvent.getLocationDetail(), sourceEvent.getStatus(), null);
 
-    // Add to target calendar
     targetCalendar.createEvent(newEvent.getSubject(), newEvent.getStart(), newEvent.getEnd());
   }
 
@@ -266,11 +332,9 @@ public class CalendarSystem implements ICalendarSystem {
     List<IEvent> sourceEvents = currentCalendar.getEventsList(sourceDate);
 
     for (IEvent sourceEvent : sourceEvents) {
-      // Calculate time difference for the new date
       LocalDateTime sourceStart = sourceEvent.getStart();
       LocalDateTime sourceEnd = sourceEvent.getEnd();
 
-      // Convert times to target calendar's timezone
       ZonedDateTime sourceStartZoned = sourceStart.atZone(currentCalendar.getTimezone());
       ZonedDateTime sourceEndZoned = sourceEnd.atZone(currentCalendar.getTimezone());
 
@@ -279,11 +343,9 @@ public class CalendarSystem implements ICalendarSystem {
       ZonedDateTime targetEndZoned =
               sourceEndZoned.withZoneSameInstant(targetCalendar.getTimezone());
 
-      // Adjust for target date
       LocalDateTime targetStart = targetDate.atTime(targetStartZoned.toLocalTime());
       LocalDateTime targetEnd = targetDate.atTime(targetEndZoned.toLocalTime());
 
-      // Handle day boundary crossing
       if (targetEndZoned.toLocalDate().isAfter(targetStartZoned.toLocalDate())) {
         targetEnd = targetEnd.plusDays(1);
       }
@@ -291,7 +353,6 @@ public class CalendarSystem implements ICalendarSystem {
       try {
         targetCalendar.createEvent(sourceEvent.getSubject(), targetStart, targetEnd);
       } catch (CalendarException e) {
-        // Continue with other events if one fails
         System.err.println("Failed to copy event '"
                 + sourceEvent.getSubject() + "': " + e.getMessage());
       }
@@ -327,24 +388,20 @@ public class CalendarSystem implements ICalendarSystem {
       throw new CalendarException("Start date cannot be after end date");
     }
 
-    // Calculate the date range difference
     long daysDifference = ChronoUnit.DAYS.between(startDate, targetStartDate);
 
-    // Get all events in the date range
     LocalDateTime rangeStart = startDate.atStartOfDay();
-    LocalDateTime rangeEnd = endDate.plusDays(1).atStartOfDay(); // Exclusive end
+    LocalDateTime rangeEnd = endDate.plusDays(1).atStartOfDay();
 
     List<IEvent> sourceEvents = currentCalendar.getEventsListInDateRange(rangeStart, rangeEnd);
 
     for (IEvent sourceEvent : sourceEvents) {
-      // Calculate new dates by adding the difference
       LocalDate newStartDate = sourceEvent.getStart().toLocalDate().plusDays(daysDifference);
       LocalDate newEndDate = sourceEvent.getEnd().toLocalDate().plusDays(daysDifference);
 
       LocalDateTime newStart = newStartDate.atTime(sourceEvent.getStart().toLocalTime());
       LocalDateTime newEnd = newEndDate.atTime(sourceEvent.getEnd().toLocalTime());
 
-      // Convert timezone if different calendars
       if (!currentCalendar.getTimezone().equals(targetCalendar.getTimezone())) {
         ZonedDateTime sourceStartZoned =
                 sourceEvent.getStart().atZone(currentCalendar.getTimezone());
@@ -363,7 +420,6 @@ public class CalendarSystem implements ICalendarSystem {
       try {
         targetCalendar.createEvent(sourceEvent.getSubject(), newStart, newEnd);
       } catch (CalendarException e) {
-        // Continue with other events if one fails
         System.err.println("Failed to copy event '" + sourceEvent.getSubject() + "': "
                 + e.getMessage());
       }

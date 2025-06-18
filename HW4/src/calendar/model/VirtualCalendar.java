@@ -762,4 +762,37 @@ public class VirtualCalendar implements ICalendar {
     // Retrieves the EventSeries from the map using its ID.
     return eventSeriesByID.get(id);
   }
+
+  /**
+   * Clears all event mappings from the calendar.
+   * This method is used internally for timezone conversion operations
+   * to rebuild the date-to-events mapping structure.
+   */
+  public void clearEventMappings() {
+    calendarEvents.clear();
+  }
+
+  /**
+   * Adds an event to the date mapping for a specific date.
+   * This method is used internally during timezone conversion operations
+   * to rebuild the calendar's event organization structure.
+   *
+   * @param date the date to associate with the event
+   * @param event the event to add to the date mapping
+   */
+  public void addEventToDateMapping(LocalDate date, IEvent event) {
+    calendarEvents.computeIfAbsent(date, k -> new ArrayList<>()).add(event);
+  }
+
+  /**
+   * Retrieves all unique events stored in this calendar.
+   * This method collects all events from the unique events set,
+   * providing access to the complete event collection for operations
+   * such as timezone conversions.
+   *
+   * @return a list containing all unique events in the calendar
+   */
+  public List<Event> getAllStoredEvents() {
+    return new ArrayList<>(uniqueEvents);
+  }
 }
