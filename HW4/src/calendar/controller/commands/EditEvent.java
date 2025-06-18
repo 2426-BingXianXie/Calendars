@@ -57,7 +57,7 @@ public class EditEvent extends AbstractCommand {
       throw new CalendarException("Missing 'event' keyword after 'create'.");
     }
     String next = sc.next();
-    // check for input after create
+
     if (next.equalsIgnoreCase("event")) {
       handleEditEvent(sc, model, false, false);
     } else if (next.equalsIgnoreCase("events")) {
@@ -76,20 +76,22 @@ public class EditEvent extends AbstractCommand {
    * @param model      The {@link ICalendar} model.
    * @param fullSeries True if the entire series should be edited, false if only a single event or
    *                   the series from a specific date should be edited.
+   * @param isSeries   True if this is a series operation, false for single event.
    * @throws CalendarException if there are missing or invalid inputs.
    */
   private void handleEditEvent(Scanner sc, ICalendar model, boolean fullSeries, boolean isSeries)
           throws CalendarException {
     Property property = checkValidProperty(sc);
     String subject = checkName(sc, "from");
-    // check that there is a valid subject
+
     if (subject.isEmpty()) {
       throw new CalendarException("Missing event subject");
     }
-    // check that user inputted date
+
     if (!sc.hasNext()) {
       throw new CalendarException("Incomplete command, missing <dateStringTtimeString>.");
     }
+
     handleEditFromVariants(sc, model, subject, property, fullSeries, isSeries);
   }
 
@@ -101,11 +103,9 @@ public class EditEvent extends AbstractCommand {
    * @throws CalendarException if the property string is missing or invalid.
    */
   private Property checkValidProperty(Scanner sc) throws CalendarException {
-    // check that user inputted an event property
     if (!sc.hasNext()) {
       throw new CalendarException("Missing event property.");
     }
-    // attempt to store property, will result in error if invalid property
     return Property.fromStr(sc.next());
   }
 
@@ -118,82 +118,252 @@ public class EditEvent extends AbstractCommand {
    * @param subject        The subject of the event(s) to be edited.
    * @param property       The {@link Property} to change.
    * @param editFullSeries A boolean indicating if the entire series should be edited.
+   * @param isSeries       A boolean indicating if this is a series edit operation.
    * @throws CalendarException if there are missing or invalid inputs, or if multiple
    *                           events match the description.
    */
   private void handleEditFromVariants(Scanner sc, ICalendar model, String subject,
                                       Property property, boolean editFullSeries, boolean isSeries)
           throws CalendarException {
-
-    // attempt to parse from date input
     LocalDateTime fromDate = parseDateTime(sc);
-    if (!sc.hasNext()) {
-      throw new CalendarException("Missing 'to' after from <dateStringTTimeString>.");
-    }
-    String nextKeyword = sc.next();
-    if (nextKeyword.equalsIgnoreCase("to") && !isSeries) { // means edit single event
-      // attempt to parse end date input
-      LocalDateTime toDate = parseDateTime(sc);
-      // check for 'with' input after end date input
-      if (!sc.hasNext()) {
-        throw new CalendarException("Missing input after 'to <dateStringTTimeString>.");
-      }
-      if (!sc.next().equalsIgnoreCase("with")) {
-        throw new CalendarException("Expected 'with' after 'to <dateStringTTimeString>.");
-      }
-      if (!sc.hasNext()) {
-        throw new CalendarException("Missing <NewPropertyValue>.");
-      }
-      String newProperty = sc.next();
-      // retrieve events with matching details
-      List<IEvent> events = model.getEventsByDetails(subject, fromDate, toDate);
-      IEvent event = checkAmbiguousEvents(events);
-      UUID eventId = event.getId();
-      model.editEvent(eventId, property, newProperty);
-      view.writeMessage("Edited event '" + subject + "' " + property.getStr() +
-              " property to " + newProperty + System.lineSeparator());
-    }
-    // no specified end date
-    else if (nextKeyword.equalsIgnoreCase("with")) {
-      if (!sc.hasNext()) {
-        throw new CalendarException("Missing <NewPropertyValue>.");
-      }
-      String newProperty = sc.next();
-      // retrieve events with matching details
-      List<IEvent> events = model.getEventsBySubjectAndStartTime(subject, fromDate);
-      IEvent event = checkAmbiguousEvents(events);
-      if (event.getSeriesID() == null) { // not part of series, edit event by itself
-        model.editEvent(event.getId(), property, newProperty);
-        view.writeMessage("Edited event '" + subject + "' " + property.getStr() +
-                " property to " + newProperty + System.lineSeparator());
-      } else if (!editFullSeries) { // edit event series starting from this event instance
-        view.writeMessage("Edited event series '" + subject + "' " + property.getStr() +
-                " property to " + newProperty + " from " + event.getStart() +
-                System.lineSeparator());
-        model.editSeriesFromDate(event.getSeriesID(), property, newProperty);
-      } else { // edit the full series
-        view.writeMessage("Edited event series '" + subject + "' " + property.getStr() +
-                " property to " + newProperty + System.lineSeparator());
-        model.editSeries(event.getSeriesID(), property, newProperty);
-      }
+    String nextKeyword = getNextKeyword(sc);
+
+    EditCommandContext context = new EditCommandContext(subject, property, fromDate,
+            editFullSeries, isSeries);
+
+    if (isTimedEventEdit(nextKeyword, isSeries)) {
+      handleTimedEventEdit(sc, model, context, nextKeyword);
+    } else if (isSeriesEdit(nextKeyword)) {
+      handleDirectSeriesEdit(sc, model, context);
+    } else {
+      throw new CalendarException("Expected 'to' or 'with' after from <dateStringTTimeString>.");
     }
   }
 
   /**
-   * Helper method to check for ambiguous event matches.
-   * Throws an exception if no events are found or if multiple events match the description,
-   * preventing an ambiguous edit operation.
+   * Gets the next keyword from the scanner with validation.
    *
-   * @param events The list of events found matching the criteria.
-   * @return The single matching {@link Event}.
-   * @throws CalendarException if no events or multiple events are found.
+   * @param sc the scanner to read from
+   * @return the next keyword
+   * @throws CalendarException if no keyword is found
    */
-  private IEvent checkAmbiguousEvents(List<IEvent> events) throws CalendarException {
-    if (events.isEmpty()) { // check for no matching events
+  private String getNextKeyword(Scanner sc) throws CalendarException {
+    if (!sc.hasNext()) {
+      throw new CalendarException("Missing 'to' after from <dateStringTTimeString>.");
+    }
+    return sc.next();
+  }
+
+  /**
+   * Determines if this is a timed event edit (single event with start and end times).
+   *
+   * @param keyword the keyword found after the from date
+   * @param isSeries whether this is a series operation
+   * @return true if this is a timed event edit
+   */
+  private boolean isTimedEventEdit(String keyword, boolean isSeries) {
+    return keyword.equalsIgnoreCase("to") && !isSeries;
+  }
+
+  /**
+   * Determines if this is a direct series edit (no end time specified).
+   *
+   * @param keyword the keyword found after the from date
+   * @return true if this is a direct series edit
+   */
+  private boolean isSeriesEdit(String keyword) {
+    return keyword.equalsIgnoreCase("with");
+  }
+
+  /**
+   * Handles editing a single timed event with specific start and end times.
+   *
+   * @param sc the scanner for further input
+   * @param model the calendar model
+   * @param context the edit command context
+   * @param keyword the keyword that was found (should be "to")
+   * @throws CalendarException if validation fails or event is not found
+   */
+  private void handleTimedEventEdit(Scanner sc, ICalendar model, EditCommandContext context,
+                                    String keyword) throws CalendarException {
+    LocalDateTime toDate = parseDateTime(sc);
+    validateWithKeyword(sc);
+    String newProperty = getNewPropertyValue(sc);
+
+    List<IEvent> events = model.getEventsByDetails(context.subject, context.fromDate, toDate);
+    IEvent event = validateSingleEventFound(events);
+
+    editSingleEvent(model, event, context.property, newProperty);
+    displayEditConfirmation(context.subject, context.property, newProperty);
+  }
+
+  /**
+   * Handles editing a series or event without specifying an end time.
+   *
+   * @param sc the scanner for further input
+   * @param model the calendar model
+   * @param context the edit command context
+   * @throws CalendarException if validation fails or event is not found
+   */
+  private void handleDirectSeriesEdit(Scanner sc, ICalendar model, EditCommandContext context)
+          throws CalendarException {
+    String newProperty = getNewPropertyValue(sc);
+
+    List<IEvent> events = model.getEventsBySubjectAndStartTime(context.subject, context.fromDate);
+    IEvent event = validateSingleEventFound(events);
+
+    if (isNotPartOfSeries(event)) {
+      editSingleEvent(model, event, context.property, newProperty);
+      displayEditConfirmation(context.subject, context.property, newProperty);
+    } else {
+      editEventSeries(model, event, context, newProperty);
+    }
+  }
+
+  /**
+   * Validates that the "with" keyword is present.
+   *
+   * @param sc the scanner to read from
+   * @throws CalendarException if "with" keyword is missing
+   */
+  private void validateWithKeyword(Scanner sc) throws CalendarException {
+    if (!sc.hasNext()) {
+      throw new CalendarException("Missing input after 'to <dateStringTTimeString>.");
+    }
+    if (!sc.next().equalsIgnoreCase("with")) {
+      throw new CalendarException("Expected 'with' after 'to <dateStringTTimeString>.");
+    }
+  }
+
+  /**
+   * Gets the new property value from the scanner.
+   *
+   * @param sc the scanner to read from
+   * @return the new property value
+   * @throws CalendarException if no value is provided
+   */
+  private String getNewPropertyValue(Scanner sc) throws CalendarException {
+    if (!sc.hasNext()) {
+      throw new CalendarException("Missing <NewPropertyValue>.");
+    }
+    return sc.next();
+  }
+
+  /**
+   * Validates that exactly one event was found matching the criteria.
+   *
+   * @param events the list of events found
+   * @return the single event found
+   * @throws CalendarException if no events or multiple events are found
+   */
+  private IEvent validateSingleEventFound(List<IEvent> events) throws CalendarException {
+    if (events.isEmpty()) {
       throw new CalendarException("No events found.");
-    } else if (events.size() > 1) { // check if multiple events match description
+    } else if (events.size() > 1) {
       throw new CalendarException("Error: multiple events found.");
     }
     return events.get(0);
+  }
+
+  /**
+   * Checks if an event is not part of a series.
+   *
+   * @param event the event to check
+   * @return true if the event is not part of a series
+   */
+  private boolean isNotPartOfSeries(IEvent event) {
+    return event.getSeriesID() == null;
+  }
+
+  /**
+   * Edits a single event.
+   *
+   * @param model the calendar model
+   * @param event the event to edit
+   * @param property the property to change
+   * @param newProperty the new property value
+   * @throws CalendarException if the edit fails
+   */
+  private void editSingleEvent(ICalendar model, IEvent event, Property property, String newProperty)
+          throws CalendarException {
+    model.editEvent(event.getId(), property, newProperty);
+  }
+
+  /**
+   * Handles editing an event series based on the edit context.
+   *
+   * @param model the calendar model
+   * @param event the event that is part of the series
+   * @param context the edit command context
+   * @param newProperty the new property value
+   * @throws CalendarException if the edit fails
+   */
+  private void editEventSeries(ICalendar model, IEvent event, EditCommandContext context,
+                               String newProperty) throws CalendarException {
+    if (context.editFullSeries) {
+      model.editSeries(event.getSeriesID(), context.property, newProperty);
+      displaySeriesEditConfirmation(context.subject, context.property, newProperty, true);
+    } else {
+      model.editSeriesFromDate(event.getSeriesID(), context.property, newProperty);
+      displaySeriesEditConfirmation(context.subject, context.property, newProperty, false);
+    }
+  }
+
+  /**
+   * Displays confirmation message for single event edits.
+   *
+   * @param subject the event subject
+   * @param property the property that was changed
+   * @param newProperty the new property value
+   */
+  private void displayEditConfirmation(String subject, Property property, String newProperty) {
+    view.writeMessage("Edited event '" + subject + "' " + property.getStr() +
+            " property to " + newProperty + System.lineSeparator());
+  }
+
+  /**
+   * Displays confirmation message for series edits.
+   *
+   * @param subject the series subject
+   * @param property the property that was changed
+   * @param newProperty the new property value
+   * @param isFullSeries whether the entire series was edited
+   */
+  private void displaySeriesEditConfirmation(String subject, Property property, String newProperty,
+                                             boolean isFullSeries) {
+    String scope = isFullSeries ? "" : " from " + System.lineSeparator();
+    view.writeMessage("Edited event series '" + subject + "' " + property.getStr() +
+            " property to " + newProperty + scope + System.lineSeparator());
+  }
+
+  /**
+   * Context class to hold edit command parameters.
+   * This class encapsulates the parameters needed for edit operations,
+   * reducing method parameter complexity and improving code organization.
+   */
+  private static class EditCommandContext {
+    final String subject;
+    final Property property;
+    final LocalDateTime fromDate;
+    final boolean editFullSeries;
+    final boolean isSeries;
+
+    /**
+     * Constructs an EditCommandContext with the specified parameters.
+     *
+     * @param subject the subject of the event or series being edited
+     * @param property the property being modified
+     * @param fromDate the start date/time of the event
+     * @param editFullSeries whether to edit the entire series
+     * @param isSeries whether this is a series operation
+     */
+    EditCommandContext(String subject, Property property, LocalDateTime fromDate,
+                       boolean editFullSeries, boolean isSeries) {
+      this.subject = subject;
+      this.property = property;
+      this.fromDate = fromDate;
+      this.editFullSeries = editFullSeries;
+      this.isSeries = isSeries;
+    }
   }
 }

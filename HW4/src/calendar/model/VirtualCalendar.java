@@ -362,7 +362,6 @@ public class VirtualCalendar implements ICalendar {
 
       // Re-add to tracking if no conflicts
       if (!uniqueEvents.add(event)) {
-        // This shouldn't happen since we removed it earlier, but just in case
         event.setSubject(originalSubject);
         event.setStart(originalStart);
         event.setEnd(originalEnd);
@@ -393,7 +392,6 @@ public class VirtualCalendar implements ICalendar {
    */
   private Event findConflictingEvent(Event eventToCheck) {
     for (Event existingEvent : uniqueEvents) {
-      // Skip the event we're editing (shouldn't happen since we removed it, but be safe)
       if (existingEvent.getId().equals(eventToCheck.getId())) {
         continue;
       }
@@ -665,91 +663,148 @@ public class VirtualCalendar implements ICalendar {
   @Override
   public void editSeries(UUID seriesID, Property property, String newValue)
           throws CalendarException {
-    // Retrieves the EventSeries object by its ID.
     EventSeries series = eventSeriesByID.get(seriesID);
-    // If the series is not found, simply return.
     if (series == null) {
       return;
     }
 
-    // Updates the series properties first based on the specified property.
-    // Update series properties first
+    updateSeriesProperty(series, property, newValue);
+    updateAllEventsInSeries(seriesID, property, newValue, series);
+  }
+
+  /**
+   * Updates the property of an event series object.
+   *
+   * @param series the event series to update
+   * @param property the property to change
+   * @param newValue the new value for the property
+   * @throws CalendarException if the property value is invalid or would cause day boundary issues
+   */
+  private void updateSeriesProperty(EventSeries series, Property property, String newValue)
+          throws CalendarException {
     switch (property) {
       case SUBJECT:
-        // Sets the new subject for the entire series.
         series.setSubject(newValue);
         break;
       case START:
-        // Parses the new start time for the series.
         LocalTime newStart = LocalTime.parse(newValue);
-        // Sets the new start time for the series.
         series.setStartTime(newStart);
         break;
       case END:
-        // Parses the new end time for the series.
-        LocalTime newEnd = LocalTime.parse(newValue);
-        // Calculates the duration based on the series' current start time and the new end time.
-        Duration newDuration = Duration.between(series.getStartTime(), newEnd);
-
-        // Checks if the new duration is negative, which would imply the end time is
-        // before the start time on the same day.
-        // This would mean the event spans to the next day, which is not allowed
-        if (newDuration.isNegative()) {
-          throw new CalendarException("Event would cross day boundary");
-        }
-
-        // Additional validation to ensure the event doesn't cross a day boundary after
-        // the duration change.
-        // Additional validation: ensure the calculated end time is on the same day
-        LocalDate testDate = LocalDate.of(2000, 1, 1);
-        // Creates a test LocalDateTime with the arbitrary date and series start time.
-        LocalDateTime testStart = LocalDateTime.of(testDate, series.getStartTime());
-        // Calculates the test end time by adding the new duration to the test start time.
-        LocalDateTime testEnd = testStart.plus(newDuration);
-
-        // If the test start date and test end date are different, it means the event
-        // would cross a day boundary.
-        if (!testStart.toLocalDate().equals(testEnd.toLocalDate())) {
-          throw new CalendarException("Event would cross day boundary");
-        }
-
-        // Sets the new duration for the series.
-        series.setDuration(newDuration);
+        updateSeriesEndTime(series, newValue);
         break;
       default:
+        // No series-level update needed for other properties
         break;
     }
+  }
 
-    // Iterates through all individual events to update them based on the series'
-    // modified properties.
-    // Edit all events in the series
+  /**
+   * Updates the end time of an event series with validation.
+   *
+   * @param series the event series to update
+   * @param newEndValue the new end time value as a string
+   * @throws CalendarException if the new end time would cause day boundary crossing
+   */
+  private void updateSeriesEndTime(EventSeries series, String newEndValue)
+          throws CalendarException {
+    LocalTime newEnd = LocalTime.parse(newEndValue);
+    Duration newDuration = Duration.between(series.getStartTime(), newEnd);
+
+    if (newDuration.isNegative()) {
+      throw new CalendarException("Event would cross day boundary");
+    }
+
+    validateDurationDoesNotCrossDayBoundary(series.getStartTime(), newDuration);
+    series.setDuration(newDuration);
+  }
+
+  /**
+   * Validates that a duration does not cause an event to cross a day boundary.
+   *
+   * @param startTime the start time of the event
+   * @param duration the duration to validate
+   * @throws CalendarException if the duration would cross a day boundary
+   */
+  private void validateDurationDoesNotCrossDayBoundary(LocalTime startTime, Duration duration)
+          throws CalendarException {
+    LocalDate testDate = LocalDate.of(2000, 1, 1);
+    LocalDateTime testStart = LocalDateTime.of(testDate, startTime);
+    LocalDateTime testEnd = testStart.plus(duration);
+
+    if (!testStart.toLocalDate().equals(testEnd.toLocalDate())) {
+      throw new CalendarException("Event would cross day boundary");
+    }
+  }
+
+  /**
+   * Updates all individual events in a series based on the modified series properties.
+   *
+   * @param seriesID the ID of the series being edited
+   * @param property the property being changed
+   * @param newValue the new property value
+   * @param series the updated series object
+   * @throws CalendarException if any individual event update fails
+   */
+  private void updateAllEventsInSeries(UUID seriesID, Property property, String newValue,
+                                       EventSeries series) throws CalendarException {
     for (Event event : uniqueEvents) {
-      // Checks if the current event belongs to the series being edited.
       if (seriesID.equals(event.getSeriesID())) {
-        // For subject, start, and end - update through series properties
-        if (property == Property.SUBJECT) {
-          // If the subject was changed for the series, update the individual event's subject.
-          event.setSubject(newValue);
-        } else if (property == Property.START) {
-          // If the start time was changed for the series, update the individual event's start time.
-          LocalDateTime newStartTime = LocalDateTime.of(
-                  event.getStart().toLocalDate(), // Keep the original date of the event.
-                  series.getStartTime() // Use the new series start time.
-          );
-          event.setStart(newStartTime);
-        } else if (property == Property.END) {
-          // If the end time (via duration) was changed for the series, update the
-          // individual event's end time.
-          LocalDateTime newEndTime = event.getStart().plus(series.getDuration());
-          event.setEnd(newEndTime);
-        } else {
-          // For other properties (DESCRIPTION, LOCATION, STATUS), use the standard
-          // editEvent method.
-          // For other properties, use standard edit
-          editEvent(event.getId(), property, newValue);
-        }
+        updateIndividualEventInSeries(event, property, newValue, series);
       }
     }
+  }
+
+  /**
+   * Updates a single event within a series based on the property being changed.
+   *
+   * @param event the event to update
+   * @param property the property being changed
+   * @param newValue the new property value
+   * @param series the updated series object containing new timing information
+   * @throws CalendarException if the event update fails
+   */
+  private void updateIndividualEventInSeries(Event event, Property property, String newValue,
+                                             EventSeries series) throws CalendarException {
+    switch (property) {
+      case SUBJECT:
+        event.setSubject(newValue);
+        break;
+      case START:
+        updateEventStartTime(event, series);
+        break;
+      case END:
+        updateEventEndTime(event, series);
+        break;
+      default:
+        editEvent(event.getId(), property, newValue);
+        break;
+    }
+  }
+
+  /**
+   * Updates an event's start time based on the series start time.
+   *
+   * @param event the event to update
+   * @param series the series containing the new start time
+   */
+  private void updateEventStartTime(Event event, EventSeries series) {
+    LocalDateTime newStartTime = LocalDateTime.of(
+            event.getStart().toLocalDate(),
+            series.getStartTime()
+    );
+    event.setStart(newStartTime);
+  }
+
+  /**
+   * Updates an event's end time based on the series duration.
+   *
+   * @param event the event to update
+   * @param series the series containing the new duration
+   */
+  private void updateEventEndTime(Event event, EventSeries series) {
+    LocalDateTime newEndTime = event.getStart().plus(series.getDuration());
+    event.setEnd(newEndTime);
   }
 
   /**
