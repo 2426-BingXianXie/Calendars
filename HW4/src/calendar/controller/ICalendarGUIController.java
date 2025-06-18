@@ -67,5 +67,11 @@ public interface ICalendarGUIController extends ICalendarController {
    */
   void handleShowStatusAction(String dateStr, String timeStr);
 
+  
+  /**
+   * Handles the action of searching for events starting from a given date.
+   *
+   * @param fromDateStr the starting date string to search from
+   */
   void handleSearchAction(String fromDateStr);
 }
