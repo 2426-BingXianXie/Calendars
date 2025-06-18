@@ -374,23 +374,66 @@ public class CalendarGUIView implements ICalendarGUIView{
   }
 
   // Getters for components that need external access
-  public JFrame getMainFrame() { return mainFrame; }
-  public JLabel getCurrentDateLabel() { return currentDateLabel; }
-  public JLabel getCalendarInfoLabel() { return calendarInfoLabel; }
-  public JList<String> getEventsList() { return eventsList; }
-  public DefaultListModel<String> getEventsListModel() { return eventsListModel; }
-  public JComboBox<String> getCalendarSelector() { return calendarSelector; }
+  public JFrame getMainFrame() {
+    return mainFrame;
+  }
+
+  public JLabel getCurrentDateLabel() {
+    return currentDateLabel;
+  }
+
+  public JLabel getCalendarInfoLabel() {
+    return calendarInfoLabel;
+  }
+
+  public JList<String> getEventsList() {
+    return eventsList;
+  }
+
+  public DefaultListModel<String> getEventsListModel() {
+    return eventsListModel;
+  }
+
+  public JComboBox<String> getCalendarSelector() {
+    return calendarSelector;
+  }
 
   // Button getters for controller to add listeners
-  public JButton getPrevWeekButton() { return prevWeekButton; }
-  public JButton getNextWeekButton() { return nextWeekButton; }
-  public JButton getGoToDateButton() { return goToDateButton; }
-  public JButton getCreateEventButton() { return createEventButton; }
-  public JButton getCreateSeriesButton() { return createSeriesButton; }
-  public JButton getRefreshButton() { return refreshButton; }
-  public JButton getShowStatusButton() { return showStatusButton; }
-  public JButton getSearchEventsButton() { return searchEventsButton; }
-  public JButton getNewCalendarButton() { return newCalendarButton; }
+  public JButton getPrevWeekButton() {
+    return prevWeekButton;
+  }
+
+  public JButton getNextWeekButton() {
+    return nextWeekButton;
+  }
+
+  public JButton getGoToDateButton() {
+    return goToDateButton;
+  }
+
+  public JButton getCreateEventButton() {
+    return createEventButton;
+  }
+
+  public JButton getCreateSeriesButton() {
+    return createSeriesButton;
+  }
+
+  public JButton getRefreshButton() {
+    return refreshButton;
+  }
+
+  public JButton getShowStatusButton() {
+    return showStatusButton;
+  }
+
+  public JButton getSearchEventsButton() {
+    return searchEventsButton;
+  }
+
+  public JButton getNewCalendarButton() {
+    return newCalendarButton;
+  }
 
   /**
    * Adds action listener to calendar selector.

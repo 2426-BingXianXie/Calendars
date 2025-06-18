@@ -9,6 +9,7 @@ import java.awt.event.WindowEvent;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -17,15 +18,16 @@ import java.util.stream.Collectors;
 import calendar.CalendarException;
 import calendar.model.*;
 import calendar.view.CalendarGUIView;
+import calendar.view.ICalendarGUIView;
 
 /**
  * GUI Controller for the calendar application following MVC principles.
  * Handles user interactions and coordinates between the model and view.
  * Maintains clean separation of concerns with proper delegation to view layer.
  */
-public class CalendarGUIController implements ICalendarController {
+public class CalendarGUIController implements ICalendarGUIController {
   private final ICalendarSystem calendarSystem;
-  private final CalendarGUIView view;
+  private final ICalendarGUIView view;
   private LocalDate currentStartDate;
 
   // Constants
@@ -41,6 +43,12 @@ public class CalendarGUIController implements ICalendarController {
   public CalendarGUIController(ICalendarSystem calendarSystem) {
     this.calendarSystem = calendarSystem;
     this.view = new CalendarGUIView();
+    this.currentStartDate = LocalDate.now();
+  }
+
+  public CalendarGUIController(ICalendarSystem calendarSystem, ICalendarGUIView view) {
+    this.calendarSystem = calendarSystem;
+    this.view = view;
     this.currentStartDate = LocalDate.now();
   }
 
@@ -127,18 +135,22 @@ public class CalendarGUIController implements ICalendarController {
   private void handleCalendarSelection() {
     String selectedCalendar = (String) view.getCalendarSelector().getSelectedItem();
     if (selectedCalendar != null && !selectedCalendar.isEmpty()) {
-      try {
-        String currentCalendar = calendarSystem.getCurrentCalendarName();
-        if (!selectedCalendar.equals(currentCalendar)) {
-          calendarSystem.useCalendar(selectedCalendar);
-          updateCalendarInfo();
-          updateScheduleView();
-        }
-      } catch (Exception ex) {
-        view.showErrorDialog(view.getMainFrame(), "Error",
-                "Could not switch calendar: " + ex.getMessage());
-        revertCalendarSelection();
+      handleUseCalendarAction(selectedCalendar);
+    }
+  }
+
+  @Override
+  public void handleUseCalendarAction(String calendarName) {
+    try {
+      if (calendarName != null && !calendarName.isEmpty()) {
+        calendarSystem.useCalendar(calendarName);
+        updateCalendarInfo();
+        updateScheduleView();
       }
+    } catch (Exception ex) {
+      view.showErrorDialog(view.getMainFrame(), "Error",
+              "Could not switch calendar: " + ex.getMessage());
+      revertCalendarSelection();
     }
   }
 
@@ -236,6 +248,7 @@ public class CalendarGUIController implements ICalendarController {
     }
   }
 
+
   /**
    * Shows a date picker dialog to jump to a specific date.
    */
@@ -296,6 +309,7 @@ public class CalendarGUIController implements ICalendarController {
     dialog.setVisible(true);
   }
 
+
   /**
    * Shows the create new calendar dialog.
    */
@@ -345,32 +359,13 @@ public class CalendarGUIController implements ICalendarController {
     JButton cancelButton = new JButton("Cancel");
 
     createButton.addActionListener(e -> {
-      try {
-        String name = nameField.getText().trim();
-        if (name.isEmpty()) {
-          throw new IllegalArgumentException("Calendar name cannot be empty");
-        }
-
-        String timezoneStr = (String) timezoneCombo.getSelectedItem();
-        if (timezoneStr == null || timezoneStr.trim().isEmpty()) {
-          throw new IllegalArgumentException("Timezone cannot be empty");
-        }
-
-        java.time.ZoneId timezone = java.time.ZoneId.of(timezoneStr.trim());
-        calendarSystem.createCalendar(name, timezone);
-        calendarSystem.useCalendar(name);
-
-        updateCalendarInfo();
-        updateScheduleView();
-
-        dialog.dispose();
-        view.showInfoDialog(view.getMainFrame(),
-                "Calendar '" + name + "' created and activated successfully!");
-
-      } catch (Exception ex) {
-        view.showErrorDialog(dialog, "Error Creating Calendar", ex.getMessage());
-      }
+      // Just get the data and delegate to the public method
+      String name = nameField.getText();
+      String timezone = (String) timezoneCombo.getSelectedItem();
+      handleCreateCalendarAction(name, timezone);
+      dialog.dispose(); // Close the dialog after handling the action
     });
+    dialog.setVisible(true);
 
     cancelButton.addActionListener(e -> dialog.dispose());
 
@@ -381,6 +376,31 @@ public class CalendarGUIController implements ICalendarController {
     nameField.requestFocus();
     dialog.getRootPane().setDefaultButton(createButton);
     dialog.setVisible(true);
+  }
+
+  @Override
+  public void handleCreateCalendarAction(String name, String timezoneStr) {
+    try {
+      if (name == null || name.trim().isEmpty()) {
+        throw new IllegalArgumentException("Calendar name cannot be empty");
+      }
+      if (timezoneStr == null || timezoneStr.trim().isEmpty()) {
+        throw new IllegalArgumentException("Timezone cannot be empty");
+      }
+
+      ZoneId timezone = ZoneId.of(timezoneStr.trim());
+      calendarSystem.createCalendar(name.trim(), timezone);
+      calendarSystem.useCalendar(name.trim());
+
+      // Update the view
+      updateCalendarInfo();
+      updateScheduleView();
+      view.showInfoDialog(view.getMainFrame(),
+              "Calendar '" + name.trim() + "' created and activated successfully!");
+
+    } catch (Exception ex) {
+      view.showErrorDialog(view.getMainFrame(), "Error Creating Calendar", ex.getMessage());
+    }
   }
 
   /**
@@ -421,21 +441,6 @@ public class CalendarGUIController implements ICalendarController {
     formFields.subjectField.requestFocus();
     dialog.getRootPane().setDefaultButton(createButton);
     dialog.setVisible(true);
-  }
-
-  /**
-   * Inner class to hold form field references
-   */
-  private static class EventFormFields {
-    JTextField subjectField;
-    JTextField startDateField;
-    JTextField startTimeField;
-    JTextField endDateField;
-    JTextField endTimeField;
-    JTextField descriptionField;
-    JComboBox<String> locationCombo;
-    JTextField locationDetailField;
-    JComboBox<String> statusCombo;
   }
 
   /**
@@ -530,6 +535,11 @@ public class CalendarGUIController implements ICalendarController {
    * Handles event creation form submission.
    */
   private void handleCreateEvent(JDialog dialog, EventFormFields fields) {
+    handleCreateEventAction(dialog, fields);
+  }
+
+  @Override
+  public void handleCreateEventAction(JDialog dialog, EventFormFields fields) {
     try {
       // Validate and parse form data
       String subject = fields.subjectField.getText().trim();
@@ -957,6 +967,11 @@ public class CalendarGUIController implements ICalendarController {
    * Handles edit event form submission.
    */
   private void handleEditEvent(JDialog dialog, IEvent selectedEvent, EventFormFields fields) {
+    handleEditEventAction(dialog, selectedEvent, fields);
+  }
+
+  @Override
+  public void handleEditEventAction(JDialog dialog, IEvent selectedEvent, EventFormFields fields) {
     try {
       // Validate and update event
       String subject = fields.subjectField.getText().trim();

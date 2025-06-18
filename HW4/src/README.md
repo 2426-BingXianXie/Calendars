@@ -156,7 +156,8 @@ Help System: Built-in menu system with command examples
 
 ### Implemented GUI Controller: 
 
-- Added a new controller class, CalendarGUIController to handle interactions with the GUI.
+- Added a new controller class, CalendarGUIController and interface ICalendarGUIController to handle interactions with the GUI.
+- Added a corresponding view class, CalendarGUIView as well as interface ICalendarView to generate GUI components for the application.
 - The logic for handling GUI inputs is different from handling text commands. So, we created a new controller class in order to adhere to the Single Responsibility Principle.
 
 ## Known Limitations

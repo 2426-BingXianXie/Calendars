@@ -15,7 +15,7 @@ import calendar.model.IEvent;
  * Defines the contract for GUI operations while maintaining separation
  * between the view implementation and the controller.
  *
- * This interface follows the MVC pattern by providing abstraction
+ * <p>This interface follows the MVC pattern by providing abstraction
  * over the concrete GUI implementation, allowing for different
  * GUI implementations or testing with mock views.
  */
@@ -214,6 +214,7 @@ public interface ICalendarGUIView {
    * @param currentCalendar the currently selected calendar
    */
   void updateCalendarSelector(List<String> calendarNames, String currentCalendar);
+
 
   /**
    * Updates the calendar information display.
