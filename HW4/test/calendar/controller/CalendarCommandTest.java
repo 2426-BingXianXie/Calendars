@@ -1554,4 +1554,132 @@ public class CalendarCommandTest {
     assertEquals(subject, createdEvent.getSubject());
     assertEquals(date.atTime(8, 0), createdEvent.getStart());
   }
+
+  @Test
+  public void testEditCalendarTimezoneConvertsExistingEventTimes() throws CalendarException {
+    // create a calendar in New York and add an event.
+    system.createCalendar("Work", ZoneId.of("America/New_York"));
+    system.useCalendar("Work");
+    ICalendar workCalendar = system.getCurrentCalendar();
+    IEvent event = workCalendar.createEvent("Meeting",
+            LocalDateTime.of(2025, 11, 10, 14, 0), // 2:00 PM EST
+            LocalDateTime.of(2025, 11, 10, 15, 0));
+
+    // edit the calendar's timezone to Los Angeles (PST, UTC-8).
+    Scanner scanner = new Scanner("--name Work --property timezone America/Los_Angeles");
+    EditCalendar cmd = new EditCalendar(scanner, view);
+    cmd.execute(system);
+
+    // check that the local time of the original event has been converted
+    // 2pm in New York is 11am in Los Angeles
+    LocalTime expectedTime = LocalTime.of(11, 0);
+    LocalTime actualTime = event.getStart().toLocalTime();
+
+    assertEquals(expectedTime, actualTime);
+  }
+
+  @Test
+  public void testCopySingleEventSameTimezoneSuccess() throws CalendarException {
+    //create a target calendar in the same timezone
+    system.createCalendar("Personal", ZoneId.of("America/New_York"));
+
+    // create the source event in the active calendar
+    ICalendar sourceCal = system.getCurrentCalendar();
+    sourceCal.createEvent("Team Lunch",
+            LocalDateTime.of(2025, 8, 15, 12, 0),
+            LocalDateTime.of(2025, 8, 15, 13, 0));
+
+    Scanner scanner = new Scanner(
+            "event Team Lunch on 2025-08-15T12:00 --target Personal to 2025-09-01T12:00");
+    Copy cmd = new Copy(scanner, view);
+    cmd.execute(system);
+
+    // verify the correct event now exists in the target calendar
+    ICalendar targetCal = system.getCalendar("Personal");
+    List<IEvent> eventsInTarget = targetCal.getEventsList(LocalDate.of(2025, 9, 1));
+    assertEquals( 1, eventsInTarget.size());
+
+    IEvent copiedEvent = eventsInTarget.get(0);
+    assertEquals("Team Lunch", copiedEvent.getSubject());
+    // since timezones are the same, the local time should match the target time from the command
+    assertEquals(LocalTime.of(12, 0), copiedEvent.getStart().toLocalTime());
+
+    // verify the source event still exists in the source calendar
+    assertEquals( 1, sourceCal.getEventsList(LocalDate.of(2025, 8, 15)).size());
+  }
+
+  @Test
+  public void testCopyEventsBetweenDatesSameTimezoneSuccess() throws CalendarException {
+    // create a target calendar in the same timezone
+    system.createCalendar("Target", ZoneId.of("America/New_York"));
+
+    // create several events in the source calendar within a specific range
+    ICalendar sourceCal = system.getCurrentCalendar();
+    sourceCal.createEvent("Event 1",
+            LocalDateTime.of(2025, 10, 5, 9, 0),
+            LocalDateTime.of(2025, 10, 5, 10, 0));
+    sourceCal.createEvent("Event 2",
+            LocalDateTime.of(2025, 10, 20, 12, 0),
+            LocalDateTime.of(2025, 10, 20, 13, 0));
+    // create an event outside the range to ensure it is not copied
+    sourceCal.createEvent("Event Outside Range",
+            LocalDateTime.of(2025, 11, 1, 9, 0),
+            LocalDateTime.of(2025, 11, 1, 10, 0));
+
+    Scanner scanner = new Scanner(
+            "events between 2025-10-01 and 2025-10-31 --target Target to 2026-03-01");
+    Copy cmd = new Copy(scanner, view);
+    cmd.execute(system);
+
+    // verify the events were copied to the correct new dates in the target calendar
+    ICalendar targetCal = system.getCalendar("Target");
+    // event 1 from Oct 5th should be shifted to Mar 5th
+    assertEquals(1, targetCal.getEventsList(LocalDate.of(2026, 3, 5)).size());
+    assertEquals("Event 1", targetCal.getEventsList(LocalDate.of(2026, 3, 5)).get(0).getSubject());
+    // event 2 from Oct 20th should be shifted to Mar 20th
+    assertEquals(1, targetCal.getEventsList(LocalDate.of(2026, 3, 20)).size());
+    // the event from November should not have been copied.
+    assertTrue(targetCal.getEventsList(LocalDate.of(2026, 4, 1)).isEmpty());
+  }
+
+  @Test
+  public void testCopyEventsBetweenDatesDifferentTimezoneSuccess() throws CalendarException {
+    system.createCalendar("LA_Office", ZoneId.of("America/Los_Angeles"));
+
+    // create two events in the source calendar within the copy range (November 2025)
+    ICalendar sourceCal = system.getCurrentCalendar();
+    sourceCal.createEvent("NY Event 1",
+            LocalDateTime.of(2025, 11, 5, 14, 0), // 2:00 PM EST
+            LocalDateTime.of(2025, 11, 5, 15, 0));
+    sourceCal.createEvent("NY Event 2",
+            LocalDateTime.of(2025, 11, 10, 12, 0), // 12:00 PM EST
+            LocalDateTime.of(2025, 11, 10, 13, 0));
+    // create an event outside the range to ensure it's not copied
+    sourceCal.createEvent("December Event",
+            LocalDateTime.of(2025, 12, 1, 10, 0),
+            LocalDateTime.of(2025, 12, 1, 11, 0));
+
+    Scanner scanner = new Scanner(
+            "events between 2025-11-01 and 2025-11-30 --target LA_Office to 2026-02-01");
+    Copy cmd = new Copy(scanner, view);
+    cmd.execute(system);
+
+    // verify the events were copied and their times were converted correctly in the target calendar
+    ICalendar targetCal = system.getCalendar("LA_Office");
+
+    // event 1 (Nov 5 to Feb 5): 14:00 EST should become 11:00 PST
+    List<IEvent> eventsOnFeb5 = targetCal.getEventsList(LocalDate.of(2026, 2, 5));
+    assertEquals(1, eventsOnFeb5.size());
+    assertEquals("NY Event 1", eventsOnFeb5.get(0).getSubject());
+    assertEquals(LocalTime.of(11, 0), eventsOnFeb5.get(0).getStart().toLocalTime());
+
+    // event 2 (Nov 10 to Feb 10): 12:00 PM EST should become 9:00 AM PST
+    List<IEvent> eventsOnFeb10 = targetCal.getEventsList(LocalDate.of(2026, 2, 10));
+    assertEquals(1, eventsOnFeb10.size());
+    assertEquals("NY Event 2", eventsOnFeb10.get(0).getSubject());
+    assertEquals(LocalTime.of(9, 0), eventsOnFeb10.get(0).getStart().toLocalTime());
+
+    // the event from December should not have been copied
+    assertTrue(targetCal.getEventsList(LocalDate.of(2026, 3, 1)).isEmpty());
+  }
 }

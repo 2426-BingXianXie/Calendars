@@ -120,7 +120,8 @@ public class CalendarSystem implements ICalendarSystem {
    * @param oldTimezone the original timezone of the calendar
    * @param newTimezone the new timezone to convert events to
    */
-  private void convertCalendarTimezone(NamedCalendar calendar, ZoneId oldTimezone, ZoneId newTimezone) {
+  private void convertCalendarTimezone(NamedCalendar calendar, ZoneId oldTimezone,
+                                       ZoneId newTimezone) {
     if (oldTimezone.equals(newTimezone)) {
       return;
     }

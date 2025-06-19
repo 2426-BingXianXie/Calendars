@@ -443,6 +443,25 @@ public class CalendarGUIControllerTest {
   }
 
   @Test
+  public void testEventCreatedInCorrectCalendarWhenMultipleExist() throws CalendarException {
+    // Verifies that events are added only to the currently active calendar.
+    controller.handleCreateCalendarAction("Work", "UTC");
+    controller.handleCreateCalendarAction("Home", "UTC");
+
+    controller.handleUseCalendarAction("Home");
+
+    // create an event
+    controller.handleCreateEventAction(null, createPopulatedEventFormFields(
+            "Dinner", "2025-11-05", "18:00", "2025-11-05", "19:00"));
+
+    ICalendar homeCal = system.getCalendar("Home");
+    ICalendar workCal = system.getCalendar("Work");
+
+    assertEquals( 1, homeCal.getEventsList(LocalDate.of(2025, 11, 5)).size());
+    assertTrue( workCal.getEventsList(LocalDate.of(2025, 11, 5)).isEmpty());
+  }
+
+  @Test
   public void testHandleEditEventActionSuccess() throws CalendarException {
     controller.handleCreateCalendarAction("Work", "UTC");
     // create an event and the form fields with the new data.

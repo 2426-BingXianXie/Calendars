@@ -60,14 +60,14 @@ public interface ICalendarGUIController extends ICalendarController {
   void navigateDate(int days);
 
   /**
-   * Shows the status checking dialog.
+   * Handles the action of showing a user's availability status on a certain date and time.
    *
    * @param dateStr the given date string
    * @param timeStr the given time string
    */
   void handleShowStatusAction(String dateStr, String timeStr);
 
-  
+
   /**
    * Handles the action of searching for events starting from a given date.
    *

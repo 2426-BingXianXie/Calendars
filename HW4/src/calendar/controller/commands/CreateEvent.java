@@ -188,7 +188,8 @@ public class CreateEvent extends AbstractCommand {
         handleSeriesDetails(subject, fromDate, false, sc, model,
                 fromDate.toLocalTime(), toDate.toLocalTime());
       } else {
-        throw new CalendarException("Expected 'repeats' or end of command for single timed event.");
+        throw new CalendarException(
+                "Expected 'repeats' or end of command for single timed event.");
       }
     } else {
       createSingleTimedEvent(subject, fromDate, toDate, model);
@@ -396,7 +397,8 @@ public class CreateEvent extends AbstractCommand {
     if (terminator.isCountBased()) {
       view.writeMessage(baseMessage + terminator.count + " times." + System.lineSeparator());
     } else {
-      view.writeMessage(baseMessage + "until " + terminator.endDate + "." + System.lineSeparator());
+      view.writeMessage(baseMessage + "until " + terminator.endDate + "." +
+              System.lineSeparator());
     }
   }
 
