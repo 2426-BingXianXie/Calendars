@@ -27,6 +27,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagLayout;
+import java.awt.CardLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 import java.time.LocalDate;
@@ -56,6 +57,19 @@ public class CalendarGUIView implements ICalendarGUIView {
   private JButton searchEventsButton;
   private JButton newCalendarButton;
   private JComboBox<String> calendarSelector;
+
+  // Container for different schedule views (week, month, day, year)
+  private JPanel scheduleViewContainer;
+  private static final String VIEW_CARD_WEEK = "WEEK";
+  private static final String VIEW_CARD_MONTH = "MONTH";
+  private static final String VIEW_CARD_DAY = "DAY";
+  private static final String VIEW_CARD_YEAR = "YEAR";
+
+  private WeekViewPanel weekViewPanel;
+  private MonthViewPanel monthViewPanel;
+  private DayViewPanel dayViewPanel;
+  private YearViewPanel yearViewPanel;
+  private JComboBox<String> viewModeSelector;
 
   // Constants for consistent styling
   private static final Font TITLE_FONT = new Font(Font.SANS_SERIF, Font.BOLD, 16);
@@ -192,6 +206,15 @@ public class CalendarGUIView implements ICalendarGUIView {
     // Separator
     navPanel.add(Box.createHorizontalStrut(20));
 
+    // View mode selector
+    viewModeSelector = new JComboBox<>(new String[]{"Week", "Month", "Day", "Year"});
+    viewModeSelector.setPreferredSize(new Dimension(120, 30));
+    viewModeSelector.setToolTipText("Select view mode");
+    navPanel.add(viewModeSelector);
+
+    // Separator
+    navPanel.add(Box.createHorizontalStrut(10));
+
     // Go to date button
     goToDateButton = createStyledButton("Go to Date...");
     goToDateButton.setToolTipText("Jump to a specific date");
@@ -216,14 +239,14 @@ public class CalendarGUIView implements ICalendarGUIView {
     titlePanel.add(titleLabel);
     contentPanel.add(titlePanel, BorderLayout.NORTH);
 
-    // Events list
+    // Events list (underlying list model, kept for compatibility)
     eventsListModel = new DefaultListModel<>();
     eventsList = new JList<>(eventsListModel);
     eventsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     eventsList.setFont(MONOSPACE_FONT);
     eventsList.setCellRenderer(new EventListCellRenderer());
 
-    // Scroll pane for the events list
+    // Scroll pane for the events list (not the primary week visualization anymore)
     JScrollPane scrollPane = new JScrollPane(eventsList);
     scrollPane.setPreferredSize(new Dimension(800, 350));
     scrollPane.setBorder(BorderFactory.createCompoundBorder(
@@ -231,7 +254,21 @@ public class CalendarGUIView implements ICalendarGUIView {
             BorderFactory.createEmptyBorder(5, 5, 5, 5)
     ));
 
-    contentPanel.add(scrollPane, BorderLayout.CENTER);
+    // Container that can host multiple schedule views (week, month, day, year)
+    scheduleViewContainer = new JPanel(new CardLayout());
+    // Main visual week view is now a week grid panel
+    weekViewPanel = new WeekViewPanel();
+    scheduleViewContainer.add(weekViewPanel, VIEW_CARD_WEEK);
+
+    // Initialize month, day, and year view panels but do not show them yet
+    monthViewPanel = new MonthViewPanel();
+    dayViewPanel = new DayViewPanel();
+    yearViewPanel = new YearViewPanel();
+    scheduleViewContainer.add(monthViewPanel, VIEW_CARD_MONTH);
+    scheduleViewContainer.add(dayViewPanel, VIEW_CARD_DAY);
+    scheduleViewContainer.add(yearViewPanel, VIEW_CARD_YEAR);
+
+    contentPanel.add(scheduleViewContainer, BorderLayout.CENTER);
 
     // Status panel
     JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -243,6 +280,117 @@ public class CalendarGUIView implements ICalendarGUIView {
     contentPanel.add(statusPanel, BorderLayout.SOUTH);
 
     return contentPanel;
+  }
+
+  /**
+   * Shows the weekly list view card.
+   */
+  public void showWeekView() {
+    if (scheduleViewContainer != null) {
+      CardLayout layout = (CardLayout) scheduleViewContainer.getLayout();
+      layout.show(scheduleViewContainer, VIEW_CARD_WEEK);
+    }
+  }
+
+  /**
+   * Shows the month grid view card.
+   */
+  public void showMonthView() {
+    if (scheduleViewContainer != null) {
+      CardLayout layout = (CardLayout) scheduleViewContainer.getLayout();
+      layout.show(scheduleViewContainer, VIEW_CARD_MONTH);
+    }
+  }
+
+  /**
+   * Shows the detailed single-day view card.
+   */
+  public void showDayView() {
+    if (scheduleViewContainer != null) {
+      CardLayout layout = (CardLayout) scheduleViewContainer.getLayout();
+      layout.show(scheduleViewContainer, VIEW_CARD_DAY);
+    }
+  }
+
+  /**
+   * Shows the year overview view card.
+   */
+  public void showYearView() {
+    if (scheduleViewContainer != null) {
+      CardLayout layout = (CardLayout) scheduleViewContainer.getLayout();
+      layout.show(scheduleViewContainer, VIEW_CARD_YEAR);
+    }
+  }
+
+  /**
+   * Updates the data displayed in the month view panel.
+   *
+   * @param month       the month to show
+   * @param eventsByDay mapping of dates to their events
+   */
+  public void updateMonthView(java.time.YearMonth month,
+                              java.util.Map<LocalDate, java.util.List<IEvent>> eventsByDay) {
+    if (monthViewPanel != null) {
+      monthViewPanel.setMonthData(month, eventsByDay);
+    }
+  }
+
+  /**
+   * Updates the data displayed in the day view panel.
+   *
+   * @param date   the day to show
+   * @param events the events for that day
+   */
+  public void updateDayView(LocalDate date, java.util.List<IEvent> events) {
+    if (dayViewPanel != null) {
+      dayViewPanel.setDayData(date, events);
+    }
+  }
+
+  /**
+   * Updates the data displayed in the week view panel.
+   *
+   * @param weekStart  the first day of the week
+   * @param eventsByDay mapping of dates in the week to their events
+   */
+  public void updateWeekView(LocalDate weekStart,
+                             java.util.Map<LocalDate, java.util.List<IEvent>> eventsByDay) {
+    if (weekViewPanel != null) {
+      weekViewPanel.setWeekData(weekStart, eventsByDay);
+    }
+  }
+
+  /**
+   * Registers a listener that is notified when a day is clicked in the month view.
+   *
+   * @param listener consumer that receives the clicked LocalDate
+   */
+  public void setMonthViewDayClickListener(java.util.function.Consumer<LocalDate> listener) {
+    if (monthViewPanel != null) {
+      monthViewPanel.setDayClickListener(listener);
+    }
+  }
+
+  /**
+   * Updates the displayed year in the year view panel.
+   *
+   * @param year the year to display
+   */
+  public void updateYearView(int year) {
+    if (yearViewPanel != null) {
+      yearViewPanel.setYear(year);
+    }
+  }
+
+  /**
+   * Registers a listener for month clicks in the year view.
+   *
+   * @param listener consumer that receives the clicked YearMonth
+   */
+  public void setYearViewMonthClickListener(java.util.function.Consumer<java.time.YearMonth> listener) {
+    if (yearViewPanel != null) {
+      yearViewPanel.setMonthClickListener(listener);
+    }
   }
 
   /**
@@ -460,12 +608,32 @@ public class CalendarGUIView implements ICalendarGUIView {
   }
 
   /**
+   * Exposes the view mode selector for controller logic if needed.
+   *
+   * @return the view mode combo box
+   */
+  public JComboBox<String> getViewModeSelector() {
+    return viewModeSelector;
+  }
+
+  /**
    * Adds action listener to calendar selector.
    *
    * @param listener the action listener
    */
   public void addCalendarSelectorListener(ActionListener listener) {
     calendarSelector.addActionListener(listener);
+  }
+
+  /**
+   * Adds an action listener for changes in the view mode selector.
+   *
+   * @param listener the action listener
+   */
+  public void addViewModeListener(ActionListener listener) {
+    if (viewModeSelector != null) {
+      viewModeSelector.addActionListener(listener);
+    }
   }
 
   /**

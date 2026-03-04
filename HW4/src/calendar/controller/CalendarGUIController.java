@@ -48,6 +48,7 @@ import java.awt.event.WindowEvent;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -65,6 +66,10 @@ public class CalendarGUIController implements ICalendarGUIController {
   private final ICalendarGUIView view;
   private LocalDate currentStartDate;
 
+  private YearMonth currentMonth;
+  private LocalDate selectedDayDate;
+  private int currentYear;
+
   // Constants
   private static final int MAX_EVENTS_DISPLAY = 10;
   private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(
@@ -79,6 +84,9 @@ public class CalendarGUIController implements ICalendarGUIController {
     this.calendarSystem = calendarSystem;
     this.view = new CalendarGUIView();
     this.currentStartDate = LocalDate.now();
+    this.currentMonth = YearMonth.from(this.currentStartDate);
+    this.selectedDayDate = this.currentStartDate;
+    this.currentYear = this.currentStartDate.getYear();
   }
 
 
@@ -92,6 +100,9 @@ public class CalendarGUIController implements ICalendarGUIController {
     this.calendarSystem = calendarSystem;
     this.view = view;
     this.currentStartDate = LocalDate.now();
+    this.currentMonth = YearMonth.from(this.currentStartDate);
+    this.selectedDayDate = this.currentStartDate;
+    this.currentYear = this.currentStartDate.getYear();
   }
 
   /**
@@ -122,6 +133,9 @@ public class CalendarGUIController implements ICalendarGUIController {
     // Initialize the display
     updateCalendarInfo();
     updateScheduleView();
+    updateWeekView();
+    updateMonthView();
+    updateYearView();
 
     // Add window listener for cleanup
     mainFrame.addWindowListener(new WindowAdapter() {
@@ -157,6 +171,57 @@ public class CalendarGUIController implements ICalendarGUIController {
     // Calendar management
     view.getNewCalendarButton().addActionListener(e -> showCreateCalendarDialog());
     view.addCalendarSelectorListener(e -> handleCalendarSelection());
+
+    // View mode selector: Week / Month / Day / Year
+    view.addViewModeListener(e -> {
+      Object selected = view.getViewModeSelector().getSelectedItem();
+      if (selected == null) {
+        return;
+      }
+      String mode = selected.toString();
+      switch (mode) {
+        case "Week":
+          view.showWeekView();
+          updateScheduleView();
+          updateWeekView();
+          break;
+        case "Month":
+          view.showMonthView();
+          updateMonthView();
+          break;
+        case "Day":
+          view.showDayView();
+          updateDayView();
+          break;
+        case "Year":
+          view.showYearView();
+          updateYearView();
+          break;
+        default:
+          break;
+      }
+    });
+
+    // Respond to day clicks in month view by switching to the day view
+    view.setMonthViewDayClickListener(date -> {
+      selectedDayDate = date;
+      updateDayView();
+      view.showDayView();
+    });
+
+    // Respond to month clicks in year view by switching to that month
+    view.setYearViewMonthClickListener(yearMonth -> {
+      currentYear = yearMonth.getYear();
+      currentMonth = yearMonth;
+      currentStartDate = yearMonth.atDay(1);
+      selectedDayDate = currentStartDate;
+      updateScheduleView();
+      updateWeekView();
+      updateMonthView();
+      updateDayView();
+      view.showMonthView();
+      view.getViewModeSelector().setSelectedItem("Month");
+    });
 
     // Events list interactions
     view.addEventsListMouseListener(new MouseAdapter() {
@@ -232,7 +297,14 @@ public class CalendarGUIController implements ICalendarGUIController {
   @Override
   public void navigateDate(int days) {
     currentStartDate = currentStartDate.plusDays(days);
+    currentMonth = YearMonth.from(currentStartDate);
+    selectedDayDate = currentStartDate;
+    currentYear = currentStartDate.getYear();
     updateScheduleView();
+    updateWeekView();
+    updateMonthView();
+    updateDayView();
+    updateYearView();
   }
 
   /**
@@ -288,6 +360,90 @@ public class CalendarGUIController implements ICalendarGUIController {
     } catch (Exception e) {
       view.getEventsListModel().addElement("Error loading events: " + e.getMessage());
       System.err.println("Error updating schedule view: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Updates the month grid view using events from the current month.
+   */
+  private void updateMonthView() {
+    try {
+      ICalendar calendar = calendarSystem.getCurrentCalendar();
+      if (calendar == null) {
+        // No calendar; nothing to show in month view
+        view.updateMonthView(currentMonth, java.util.Collections.emptyMap());
+        return;
+      }
+
+      java.util.Map<LocalDate, java.util.List<IEvent>> eventsByDay = new java.util.HashMap<>();
+      int daysInMonth = currentMonth.lengthOfMonth();
+      for (int day = 1; day <= daysInMonth; day++) {
+        LocalDate date = currentMonth.atDay(day);
+        java.util.List<IEvent> eventsForDay = calendar.getEventsList(date);
+        if (!eventsForDay.isEmpty()) {
+          eventsByDay.put(date, eventsForDay);
+        }
+      }
+
+      view.updateMonthView(currentMonth, eventsByDay);
+    } catch (Exception e) {
+      // In case of any error, still keep the UI responsive
+      view.updateMonthView(currentMonth, java.util.Collections.emptyMap());
+      System.err.println("Error updating month view: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Updates the week grid view using events from the current week.
+   */
+  private void updateWeekView() {
+    try {
+      ICalendar calendar = calendarSystem.getCurrentCalendar();
+      if (calendar == null) {
+        view.updateWeekView(currentStartDate, java.util.Collections.emptyMap());
+        return;
+      }
+      java.util.Map<LocalDate, java.util.List<IEvent>> eventsByDay = new java.util.HashMap<>();
+      for (int i = 0; i < 7; i++) {
+        LocalDate date = currentStartDate.plusDays(i);
+        java.util.List<IEvent> eventsForDay = calendar.getEventsList(date);
+        if (!eventsForDay.isEmpty()) {
+          eventsByDay.put(date, eventsForDay);
+        }
+      }
+      view.updateWeekView(currentStartDate, eventsByDay);
+    } catch (Exception e) {
+      view.updateWeekView(currentStartDate, java.util.Collections.emptyMap());
+      System.err.println("Error updating week view: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Updates the year overview view.
+   */
+  private void updateYearView() {
+    view.updateYearView(currentYear);
+  }
+
+  /**
+   * Updates the single-day view using events for the currently selected day.
+   */
+  private void updateDayView() {
+    try {
+      ICalendar calendar = calendarSystem.getCurrentCalendar();
+      if (calendar == null || selectedDayDate == null) {
+        view.updateDayView(LocalDate.now(), java.util.Collections.emptyList());
+        return;
+      }
+
+      java.util.List<IEvent> eventsForDay = new java.util.ArrayList<>(calendar.getEventsList(
+              selectedDayDate));
+      eventsForDay.sort(java.util.Comparator.comparing(IEvent::getStart));
+      view.updateDayView(selectedDayDate, eventsForDay);
+    } catch (Exception e) {
+      view.updateDayView(selectedDayDate != null ? selectedDayDate : LocalDate.now(),
+              java.util.Collections.emptyList());
+      System.err.println("Error updating day view: " + e.getMessage());
     }
   }
 

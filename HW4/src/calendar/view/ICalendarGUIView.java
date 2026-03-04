@@ -14,8 +14,11 @@ import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
 import calendar.model.IEvent;
 
@@ -203,11 +206,25 @@ public interface ICalendarGUIView {
   JButton getNewCalendarButton();
 
   /**
+   * Gets the view mode selector combo box (e.g., Week / Month / Day).
+   *
+   * @return the view mode selector
+   */
+  JComboBox<String> getViewModeSelector();
+
+  /**
    * Adds an action listener to the calendar selector.
    *
    * @param listener the action listener to add
    */
   void addCalendarSelectorListener(ActionListener listener);
+
+  /**
+   * Adds an action listener to the view mode selector.
+   *
+   * @param listener the action listener to add
+   */
+  void addViewModeListener(ActionListener listener);
 
   /**
    * Adds a mouse listener to the events list.
@@ -240,6 +257,34 @@ public interface ICalendarGUIView {
    * @param endDate   the end date
    */
   void updateCurrentDateLabel(LocalDate startDate, LocalDate endDate);
+
+  /**
+   * Updates the week view with events grouped by day for the current week.
+   *
+   * @param weekStart  the first day of the week
+   * @param eventsByDay mapping from each date in the week to its events
+   */
+  void updateWeekView(LocalDate weekStart, Map<LocalDate, List<IEvent>> eventsByDay);
+
+  /**
+   * Switches the schedule area to show the weekly list view.
+   */
+  void showWeekView();
+
+  /**
+   * Switches the schedule area to show the month grid view.
+   */
+  void showMonthView();
+
+  /**
+   * Switches the schedule area to show the single-day view.
+   */
+  void showDayView();
+
+  /**
+   * Switches the schedule area to show the year overview view.
+   */
+  void showYearView();
 
   /**
    * Shows an error message dialog.
@@ -309,4 +354,41 @@ public interface ICalendarGUIView {
    * @return the display date formatter
    */
   DateTimeFormatter getDisplayDateFormatter();
+
+  /**
+   * Updates the month grid view with events grouped by day.
+   *
+   * @param month       the month to display
+   * @param eventsByDay mapping from LocalDate to that day's events
+   */
+  void updateMonthView(YearMonth month, Map<LocalDate, List<IEvent>> eventsByDay);
+
+  /**
+   * Updates the day view with events for a specific date.
+   *
+   * @param date   the date to display
+   * @param events the events for that date
+   */
+  void updateDayView(LocalDate date, List<IEvent> events);
+
+  /**
+   * Registers a listener for day clicks in the month view.
+   *
+   * @param listener consumer that receives the clicked LocalDate
+   */
+  void setMonthViewDayClickListener(Consumer<LocalDate> listener);
+
+  /**
+   * Updates the year view to display a specific year.
+   *
+   * @param year the year to display
+   */
+  void updateYearView(int year);
+
+  /**
+   * Registers a listener for month clicks in the year view.
+   *
+   * @param listener consumer that receives the clicked YearMonth
+   */
+  void setYearViewMonthClickListener(Consumer<YearMonth> listener);
 }
