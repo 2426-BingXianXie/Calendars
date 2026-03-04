@@ -60,6 +60,17 @@ java -cp out calendar.CalendarRunner --mode headless res/valid_commands.txt
 
 - Starts a GUI-based Calendar Application that users can interact with
 
+#### GUI Views (Google Calendar–style)
+
+The GUI now provides multiple calendar views, similar to modern calendar apps:
+
+- **Week View**: 7 vertical day columns (Mon–Sun) showing a time axis and event blocks positioned by start/end time.
+- **Day View**: A focused single-day vertical timeline with event blocks sized by duration.
+- **Month View**: A month grid where each square is a day block listing that day’s events.
+- **Year View**: A 12‑month overview; clicking a month switches into the corresponding month view.
+
+Use the **View mode** dropdown in the navigation bar (`Week / Month / Day / Year`) to switch between these views. All views reuse the same underlying model logic (`VirtualCalendar`, `IEvent`, etc.), so newly created or edited events automatically appear in the correct day blocks across week, month, and day views.
+
 
 ## Example Commands
 
